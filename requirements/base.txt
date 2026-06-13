@@ -1,0 +1,46 @@
+# =============================================================================
+# Base Requirements — AI Interviewer
+# =============================================================================
+
+# ─── Django ───────────────────────────────────────────────────────────────────
+Django==5.1.4
+djangorestframework==3.15.2
+djangorestframework-simplejwt==5.3.1
+django-cors-headers==4.6.0
+django-filter==24.3
+drf-spectacular==0.28.0
+asgiref==3.8.1
+# ─── Database ─────────────────────────────────────────────────────────────────
+psycopg2-binary==2.9.10
+
+# ─── Cache & Celery ───────────────────────────────────────────────────────────
+redis==5.2.1
+django-redis==5.4.0
+celery==5.4.0
+django-celery-beat==2.7.0
+django-celery-results==2.5.1
+
+# ─── LangChain ────────────────────────────────────────────────────────────────
+langchain==0.3.13
+langchain-openai==0.3.0
+langchain-community==0.3.13
+openai==1.59.3
+
+# ─── Auth & Security ──────────────────────────────────────────────────────────
+PyJWT==2.10.1
+cryptography==44.0.0
+
+# ─── Utils ────────────────────────────────────────────────────────────────────
+python-decouple==3.8         # env vars
+python-json-logger==3.2.1    # JSON logging
+Pillow==11.1.0               # image upload (avatar)
+phonenumbers==8.13.52        # phone validation
+
+# ─── HTTP ─────────────────────────────────────────────────────────────────────
+httpx==0.28.1
+requests==2.32.3
+
+
+channels==4.1.0
+channels-redis==4.2.0
+daphne==4.1.0

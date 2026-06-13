@@ -1,0 +1,116 @@
+networks:
+  backend_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_volume:
+  media_volume:
+
+services:
+
+  db:
+    image: postgres:15-alpine
+    container_name: ai_interviewer_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - backend_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ai_interviewer_redis
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/django/Dockerfile
+      args:
+          DJANGO_ENV: development
+    container_name: ai_interviewer_web
+    command: ["bash", "/app/scripts/entrypoint.sh"]
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+      - media_volume:/app/media
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.development
+    env_file:
+      - .env
+    networks:
+      - backend_network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  celery:
+    build:
+      context: .
+      dockerfile: docker/django/Dockerfile
+      args:
+            DJANGO_ENV: development
+    container_name: ai_interviewer_celery
+    command: ["bash", "/app/scripts/celery-entrypoint.sh"]
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    networks:
+      - backend_network
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  flower:
+    image: mher/flower:2.0
+    container_name: ai_interviewer_flower
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    ports:
+      - "5555:5555"
+    networks:
+      - backend_network
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: ai_interviewer_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/proxy_params.conf:/etc/nginx/conf.d/proxy_params.conf:ro
+      - static_volume:/app/static
+      - media_volume:/app/media
+    networks:
+      - backend_network
+    depends_on:
+      - web
+    restart: unless-stopped

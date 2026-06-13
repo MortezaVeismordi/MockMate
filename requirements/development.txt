@@ -1,0 +1,27 @@
+# =============================================================================
+# Development Requirements
+# =============================================================================
+-r base.txt
+
+# ─── Debug ────────────────────────────────────────────────────────────────────
+django-debug-toolbar==4.4.6
+django-extensions==3.2.3
+ipython==8.31.0
+Werkzeug==3.1.3              # runserver_plus برای better tracebacks
+
+# ─── Testing ──────────────────────────────────────────────────────────────────
+pytest==8.3.4
+pytest-django==4.9.0
+pytest-cov==6.0.0
+pytest-xdist==3.6.1          # parallel tests
+factory-boy==3.3.1
+faker==33.1.0
+freezegun==1.5.1             # mock کردن زمان در تست‌ها
+
+# ─── Code Quality ─────────────────────────────────────────────────────────────
+ruff==0.8.6                  # linter + formatter (جایگزین flake8+black+isort)
+mypy==1.14.1
+django-stubs==5.1.1
+
+# ─── Graph ────────────────────────────────────────────────────────────────────
+pygraphviz==1.14             # برای graph_models
