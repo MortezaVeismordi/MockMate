@@ -1,7 +1,8 @@
 import logging
 from datetime import timedelta
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model ,authenticate
+from django.contrib.auth.password_validation import validate_password
 from django.core.validators import RegexValidator
 from django.db.models import Count, Q
 from django.utils import timezone
@@ -1279,3 +1280,86 @@ class AdminStatsSerializer(serializers.Serializer):
             "experience_breakdown": exp_breakdown,
             "otp_stats": otp_stats,
         }
+
+class LoginWithPasswordSerializer(PhoneNormalizerMixin, serializers.Serializer):
+    """اعتبارسنجی ورود کاربران با شماره موبایل و رمز عبور"""
+    phone_number = serializers.CharField(validators=[phone_validator])
+    password = serializers.CharField(
+        write_only=True, 
+        style={'input_type': 'password'},
+        label=_("رمز عبور")
+    )
+
+    def validate(self, attrs):
+        # نرمال‌سازی شماره تلفن با استفاده از میکسین خودتان
+        phone_number = self.validate_phone_number(attrs.get('phone_number'))
+        password = attrs.get('password')
+
+        if phone_number and password:
+            # جنگو در پشت صحنه از فیلد UNIQUE شما (phone_number) برای authenticate استفاده میکنه
+            user = authenticate(
+                request=self.context.get('request'),
+                username=phone_number,
+                password=password
+            )
+
+            if not user:
+                raise serializers.ValidationError(_("شماره موبایل یا رمز عبور اشتباه است"))
+            
+            if not user.is_active:
+                raise serializers.ValidationError(_("حساب کاربری شما غیرفعال شده است"))
+                
+            if getattr(user, 'is_banned', False):
+                raise serializers.ValidationError(_("حساب کاربری شما مسدود شده است"))
+        else:
+            raise serializers.ValidationError(_("ارسال شماره موبایل و رمز عبور الزامی است"))
+
+        attrs['user'] = user
+        return attrs
+
+
+
+class SetPasswordSerializer(serializers.Serializer):
+    """سریالایزر برای تعیین یا تغییر رمز عبور کاربر احراز هویت شده"""
+    current_password = serializers.CharField(
+        style={'input_type': 'password'}, 
+        required=False, 
+        allow_blank=True,
+        label=_("رمز عبور فعلی")
+    )
+    new_password = serializers.CharField(
+        write_only=True, 
+        style={'input_type': 'password'},
+        validators=[validate_password], # استفاده از ولیدیتورهای نیتیو جنگو
+        label=_("رمز عبور جدید")
+    )
+    confirm_password = serializers.CharField(
+        write_only=True, 
+        style={'input_type': 'password'},
+        label=_("تکرار رمز عبور جدید")
+    )
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+        current_password = attrs.get('current_password')
+        new_password = attrs.get('new_password')
+        confirm_password = attrs.get('confirm_password')
+
+        # ۱. بررسی تطابق رمز عبور جدید و تکرار آن
+        if new_password != confirm_password:
+            raise serializers.ValidationError({
+                "confirm_password": _("رمز عبور جدید و تکرار آن مطابقت ندارند")
+            })
+
+        # ۲. اگر کاربر از قبل رمز عبور دارد، وارد کردن رمز عبور فعلی الزامی است
+        if user.has_usable_password():
+            if not current_password:
+                raise serializers.ValidationError({
+                    "current_password": _("برای تغییر رمز عبور، وارد کردن رمز عبور فعلی الزامی است")
+                })
+            if not user.check_password(current_password):
+                raise serializers.ValidationError({
+                    "current_password": _("رمز عبور فعلی اشتباه است")
+                })
+        
+        return attrs

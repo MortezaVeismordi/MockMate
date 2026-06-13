@@ -22,6 +22,8 @@ from .serializers import (
     VerifyOTPSerializer,
     RefreshTokenSerializer,
     LogoutSerializer,
+    LoginWithPasswordSerializer,
+    SetPasswordSerializer,
     # Profile
     UserMeSerializer,
     CompleteProfileSerializer,
@@ -951,4 +953,70 @@ class AdminStatsView(APIView):
         return APIResponse.success(
             message=_("آمار کاربران"),
             data=serializer.data,
+        )
+        
+        
+class LoginWithPasswordView(GenericAPIView):
+    """
+    POST /api/v1/users/auth/login-password/
+    ورود کاربران با استفاده از شماره موبایل و رمز عبور
+    """
+    permission_classes = [AllowAny]
+    serializer_class = LoginWithPasswordSerializer
+    throttle_classes = [AnonRateThrottle] # برای جلوگیری از حملات حدس رمز عبور
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        user = serializer.validated_data['user']
+        
+        # تولید توکن‌های JWT (دقیقاً همگام با منطق پروژه شما)
+        refresh = RefreshToken.for_user(user)
+        
+        data = {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+            "user": {
+                "id": user.id,
+                "phone_number": user.phone_number,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+            }
+        }
+        
+        # به‌روزرسانی زمان آخرین ورود کاربر
+        user.last_login = timezone.now()
+        user.save(update_fields=['last_login'])
+        
+        return APIResponse.success(
+            data=data,
+            message=_("ورود با موفقیت انجام شد")
+        )
+        
+        
+        
+class SetPasswordView(GenericAPIView):
+    """
+    POST /api/v1/users/profile/set-password/
+    تعیین رمز عبور برای بار اول یا تغییر آن برای کاربران لاگین شده
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = SetPasswordSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        
+        user = request.user
+        new_password = serializer.validated_data['new_password']
+        
+        # هش کردن و ذخیره رمز عبور جدید
+        user.set_password(new_password)
+        user.save(update_fields=['password'])
+        
+        logger.info(f"User {user.id} successfully updated/set their password.")
+        
+        return APIResponse.success(
+            message=_("رمز عبور با موفقیت ثبت و به‌روزرسانی شد")
         )
