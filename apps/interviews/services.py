@@ -142,16 +142,33 @@ class InterviewSetupService:
 
     @staticmethod
     def _get_question_distribution(total: int) -> dict:
-        """
-        توزیع پیشنهادی بین انواع سوال برای یه مصاحبه متعادل
-        """
-        return {
-            Question.QuestionType.TECHNICAL      : max(1, int(total * 0.40)),
-            Question.QuestionType.SYSTEM_DESIGN  : max(1, int(total * 0.20)),
-            Question.QuestionType.ARCHITECTURE   : max(1, int(total * 0.15)),
-            Question.QuestionType.BEHAVIORAL     : max(1, int(total * 0.15)),
-            Question.QuestionType.DEVOPS         : max(1, int(total * 0.10)),
+        raw = {
+            Question.QuestionType.TECHNICAL    : total * 0.40,
+            Question.QuestionType.SYSTEM_DESIGN: total * 0.20,
+            Question.QuestionType.ARCHITECTURE : total * 0.15,
+            Question.QuestionType.BEHAVIORAL   : total * 0.15,
+            Question.QuestionType.DEVOPS       : total * 0.10,
         }
+
+        # تبدیل به int و تضمین جمع = total
+        distribution = {k: int(v) for k, v in raw.items()}
+        
+        # کسری که گم شده رو به بزرگترین bucket اضافه کن
+        deficit = total - sum(distribution.values())
+        if deficit > 0:
+            largest_key = max(distribution, key=distribution.get)
+            distribution[largest_key] += deficit
+
+        # تضمین حداقل ۱ برای هر نوع فقط اگه total اجازه بده
+        if total >= len(distribution):
+            distribution = {k: max(1, v) for k, v in distribution.items()}
+            # دوباره تنظیم کن
+            excess = sum(distribution.values()) - total
+            if excess > 0:
+                largest_key = max(distribution, key=distribution.get)
+                distribution[largest_key] -= excess
+
+        return distribution
 
     @staticmethod
     def _assign_questions(
@@ -518,7 +535,7 @@ class EvaluationService:
 
             # صدا زدن LLM
             from apps.core.llm.client import LLMClient
-            result = LLMClient.evaluate(context)
+            result = LLMClient.evaluate_default(context)
 
             # ذخیره نتیجه
             EvaluationService._save_evaluation(answer, result)

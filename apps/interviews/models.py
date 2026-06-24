@@ -177,7 +177,12 @@ class InterviewSession(models.Model):
             self.completed_at = timezone.now()
 
         self.status = new_status
-        self.save(update_fields=["status", "started_at", "completed_at"])
+        update_fields = ["status"]
+        if new_status == self.Status.INTRO:
+            update_fields.append("started_at")
+        elif new_status == self.Status.COMPLETED:
+            update_fields.append("completed_at")
+        self.save(update_fields=update_fields)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
