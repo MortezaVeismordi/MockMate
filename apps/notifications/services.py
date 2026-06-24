@@ -8,33 +8,13 @@ from django.utils.translation import gettext_lazy as _
 
 from .models import Notification
 from .providers.base import BaseNotificationProvider, ConsoleSMSProvider
-
+from .providers.email import ConsoleEmailProvider, SmtpEmailProvider
+from .providers.sms import KavenegarSMSProvider
 
 logger = logging.getLogger(__name__)
 
-
 # ──────────────────────────────────────────────────────────────────────────────
-#  ۱. اینترفیس انتزاعی پرووایدرها (The Strategy Interface)
-# ──────────────────────────────────────────────────────────────────────────────
-
-class BaseNotificationProvider(ABC):
-    """
-    رابط اصلی برای تمام پرووایدرهای ارسال پیام (SMS, Email, etc).
-    تمام پرووایدرهای آینده باید از این کلاس ارث‌بری کنند.
-    """
-    
-    @abstractmethod
-    def send(self, recipient: str, body: str, title: Optional[str] = None) -> tuple[bool, Optional[str], Optional[str]]:
-        """
-        ارسال واقعی پیام به سمت API یا سرور واسط.
-        Returns:
-            (success: bool, provider_message_id: str, error_message: str)
-        """
-        pass
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-#  ۲. سرویس ارکستراتور اعلان‌ها (Notification Coordinator Service)
+#  1. سرویس ارکستراتور اعلان‌ها (Notification Coordinator Service)
 # ──────────────────────────────────────────────────────────────────────────────
 
 class NotificationService:
@@ -89,12 +69,7 @@ class NotificationService:
 
         # ─── هوشمندسازی خودکار انتخاب پرووایدر در محیط لوکال ─────────────────────
         if provider_class is None:
-            if notification.notification_type == Notification.Type.SMS:
-                # استفاده از پرووایدر کنسولی برای چاپ در ترمینال
-                provider_class = ConsoleSMSProvider
-            elif notification.notification_type == Notification.Type.EMAIL:
-                # اینجا می‌توانید در آینده ConsoleEmailProvider را بگذارید
-                pass
+            provider_class = cls._resolve_provider(notification.notification_type)
 
         if not provider_class:
             logger.error(f"No valid provider class found for notification type: {notification.notification_type}")
@@ -121,3 +96,24 @@ class NotificationService:
             notification.mark_as_failed(error=error_msg or "Unknown provider error")
             logger.error(f"Notification {notification.id} failed to send. Error: {error_msg}")
             raise RuntimeError(f"Provider failed to deliver message: {error_msg}")
+        
+    @staticmethod
+    def _resolve_provider(notification_type: str):
+        """
+        انتخاب provider بر اساس نوع notification و محیط (dev/prod)
+        """
+        from django.conf import settings
+        
+        is_production = not settings.DEBUG
+
+        if notification_type == Notification.Type.SMS:
+            if is_production:
+                return KavenegarSMSProvider
+            return ConsoleSMSProvider
+
+        if notification_type == Notification.Type.EMAIL:
+            if is_production:
+                return SmtpEmailProvider
+            return ConsoleEmailProvider
+
+        return None
