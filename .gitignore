@@ -2,3 +2,8 @@
 .aider*
 .env
 logs/
+tests/
+apps/__pycache__/
+config/__pycache__/
+config/settings/__pycache__/
+apps/notifications/__pycache__/

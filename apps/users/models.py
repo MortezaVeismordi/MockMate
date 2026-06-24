@@ -108,6 +108,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         default=False,
         verbose_name=_("تلفن تایید شده"),
     )
+    is_banned = models.BooleanField(
+    default=False,
+    verbose_name=_("مسدود شده"),
+    db_index=True,
+    )
 
     # ── تاریخ‌ها ───────────────────────────────
     date_joined = models.DateTimeField(

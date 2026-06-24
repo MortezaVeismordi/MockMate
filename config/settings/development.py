@@ -14,13 +14,13 @@ DJANGO_ENV = "development"
 
 # ─── Apps & Middleware (فقط development) ─────────────────────────────────────
 INSTALLED_APPS += [
-    "debug_toolbar",
+    # "debug_toolbar",
     "django_extensions",        # shell_plus، graph_models، ...
 ]
 
-MIDDLEWARE += [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
-]
+# MIDDLEWARE += [
+#     "debug_toolbar.middleware.DebugToolbarMiddleware",
+# ]
 
 # ─── Database ────────────────────────────────────────────────────────────────
 # همون base ولی با logging کامل query ها
@@ -65,6 +65,7 @@ DEBUG_TOOLBAR_CONFIG = {
     "SHOW_TOOLBAR_CALLBACK": lambda request: DEBUG,
     "SHOW_COLLAPSED": True,
     "SQL_WARNING_THRESHOLD": 100,    # query های بالای 100ms رو highlight میکنه
+    "IS_RUNNING_TESTS": False,
 }
 
 DEBUG_TOOLBAR_PANELS = [

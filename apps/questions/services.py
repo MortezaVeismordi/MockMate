@@ -1,8 +1,9 @@
 import logging
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from apps.questions.models import Question, UserAnswer  # فرض بر وجود مدل UserAnswer برای ثبت نتایج
-from apps.core.llm import get_ai_client  # لایه انتزاعی هوش مصنوعی پلتفرم شما
+from apps.questions.models import Question
+from apps.interviews.models import UserAnswer
+from apps.core.llm import get_ai_client
 
 logger = logging.getLogger(__name__)
 

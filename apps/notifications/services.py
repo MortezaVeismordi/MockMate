@@ -97,7 +97,8 @@ class NotificationService:
                 pass
 
         if not provider_class:
-            logger.error(f"No valid provider class found or specified for notification {notification_id}")
+            logger.error(f"No valid provider class found for notification type: {notification.notification_type}")
+            notification.mark_as_failed(error=f"No valid provider class found for notification type: {notification.notification_type}")
             return
         # ──────────────────────────────────────────────────────────────────────────
 

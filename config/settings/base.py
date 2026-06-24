@@ -6,7 +6,7 @@
 import os
 from pathlib import Path
 from datetime import timedelta
-
+import sys
 # ─── Paths ───────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -222,7 +222,8 @@ REST_FRAMEWORK = {
         "user": "1000/hour",
         "otp":  "5/hour",       # custom throttle برای OTP
     },
-
+    "DEFAULT_THROTTLE_CLASSES": [],
+    "DEFAULT_THROTTLE_RATES": {},
     # Schema
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 
@@ -335,3 +336,10 @@ LLM_MODEL    = os.environ.get("LLM_MODEL", None)
 OPENAI_API_KEY     = os.environ.get("OPENAI_API_KEY", "")
 ANTHROPIC_API_KEY  = os.environ.get("ANTHROPIC_API_KEY", "")
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+
+
+
+#---------for testing--------------------------
+if 'test' not in sys.argv:
+    INSTALLED_APPS += ['debug_toolbar']
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']

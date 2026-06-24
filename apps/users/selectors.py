@@ -97,11 +97,14 @@ class UserSelector:
 
     @staticmethod
     def is_banned(phone_number: str) -> bool:
-        """آیا این شماره بن شده؟"""
         return User.objects.filter(
-            phone_number__startswith="banned_",
-            phone_number__endswith=phone_number,
+            phone_number=phone_number,
+            is_banned=True,
         ).exists()
+        
+    @staticmethod
+    def get_banned_users() -> QuerySet:
+        return User.objects.filter(is_banned=True).order_by("-date_joined")
 
     @staticmethod
     def is_profile_complete(user_id: int) -> bool:
@@ -519,7 +522,7 @@ class StatsSelector:
             staff=Count("id", filter=Q(is_staff=True)),
             banned=Count(
                 "id",
-                filter=Q(phone_number__startswith="banned_"),
+                filter=Q(is_banned=True),
             ),
             complete_profile=Count(
                 "id",
