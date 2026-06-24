@@ -128,60 +128,52 @@ class BaseQuestionAdapter:
         with transaction.atomic():
             for q_data in questions_data:
                 try:
-                    # اعتبارسنجی نهایی هر سوال
-                    validated_data = self.validate_and_truncate(q_data)
-                    if not validated_data:
-                        continue
+                    with transaction.atomic():  # ← هر سوال transaction مجزا
+                        validated_data = self.validate_and_truncate(q_data)
+                        if not validated_data:
+                            continue
 
-                    # استخراج روابط قبل از ساخت نمونه سوال
-                    categories_list = validated_data.pop('categories_metadata', [])
-                    options_list = validated_data.pop('options_metadata', [])
+                        categories_list = validated_data.pop('categories_metadata', [])
+                        options_list = validated_data.pop('options_metadata', [])
 
-                    # ساخت یا آپدیت سوال (بر اساس تایتل یکتا برای جلوگیری از دیتای تکراری در ایمپورت مجدد)
-                    question, created = Question.objects.update_or_create(
-                        title=validated_data['title'],
-                        source_url=validated_data.get('source_url'),
-                        defaults={
-                            'body': validated_data['body'],
-                            'question_type': validated_data.get('question_type', Question.QuestionType.TECHNICAL),
-                            'seniority_level': validated_data.get('seniority_level', Question.SeniorityLevel.MID_LEVEL),
-                            'reference_answer': validated_data['reference_answer'],
-                            'ai_evaluation_criteria': validated_data.get('ai_evaluation_criteria', {}),
-                            'estimated_time': validated_data.get('estimated_time', 120),
-                            'code_template': validated_data.get('code_template'),
-                            'source': Question.SourceType.GITHUB_IMPORT,
-                            'is_active': True
-                        }
-                    )
+                        question, created = Question.objects.update_or_create(
+                            title=validated_data['title'],
+                            source_url=validated_data.get('source_url'),
+                            defaults={
+                                'body': validated_data['body'],
+                                'question_type': validated_data.get('question_type', Question.QuestionType.TECHNICAL),
+                                'seniority_level': validated_data.get('seniority_level', Question.SeniorityLevel.MID_LEVEL),
+                                'reference_answer': validated_data['reference_answer'],
+                                'ai_evaluation_criteria': validated_data.get('ai_evaluation_criteria', {}),
+                                'estimated_time': validated_data.get('estimated_time', 120),
+                                'code_template': validated_data.get('code_template'),
+                                'source': Question.SourceType.GITHUB_IMPORT,
+                                'is_active': True
+                            }
+                        )
 
-                    # هندل کردن دسته‌بندی‌ها (ManyToManyField)
-                    for cat_name in categories_list:
-                        category_obj = self.get_or_create_category(cat_name)
-                        question.categories.add(category_obj)
+                        for cat_name in categories_list:
+                            category_obj = self.get_or_create_category(cat_name)
+                            question.categories.add(category_obj)
 
-                    # هندل کردن گزینه‌های تستی در صورت وجود
-                    if options_list:
-                        # حذف گزینه‌های قبلی برای جلوگیری از تکرار در صورت آپدیت
-                        question.options.all().delete()
-                        options_to_create = [
-                            QuestionOption(
-                                question=question,
-                                text=opt['text'],
-                                is_correct=opt.get('is_correct', False)
-                            ) for opt in options_list
-                        ]
-                        QuestionOption.objects.bulk_create(options_to_create)
+                        if options_list:
+                            question.options.all().delete()
+                            QuestionOption.objects.bulk_create([
+                                QuestionOption(
+                                    question=question,
+                                    text=opt['text'],
+                                    is_correct=opt.get('is_correct', False)
+                                ) for opt in options_list
+                            ])
 
-                    success_count += 1
-                    
-                    # اعمال محدودیت سقف سوالات درخواستی کاربر (--limit)
-                    if self.limit and success_count >= self.limit:
-                        logger.info(f"Reached user defined limit of {self.limit} questions. Stopping.")
-                        break
+                        success_count += 1
+
+                        if self.limit and success_count >= self.limit:
+                            logger.info(f"Reached limit of {self.limit}. Stopping.")
+                            break
 
                 except Exception as item_error:
-                    # اگر یک سوال خطا داد، لاگ می‌شود اما کل خط لوله متوقف نمی‌شود
-                    logger.error(f"Failed to load individual question item: {str(item_error)}", exc_info=True)
+                    logger.error(f"Failed to load question: {str(item_error)}", exc_info=True)
                     continue
 
         logger.info(f"Successfully loaded {success_count} questions into the database.")

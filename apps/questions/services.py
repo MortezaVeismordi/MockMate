@@ -3,7 +3,7 @@ from django.db import transaction
 from django.core.exceptions import ValidationError
 from apps.questions.models import Question
 from apps.interviews.models import UserAnswer
-from apps.core.llm import get_ai_client
+from apps.core.llm.client import LLMClient
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +44,7 @@ def submit_and_grade_answer(
 
     # ۴. صدا زدن کلاینت هوش مصنوعی با مدیریت خطا (Fault Tolerance)
     try:
-        ai_client = get_ai_client()
-        # درخواست خروجی در قالب ساختاریافته‌ی JSON (مثلا با قابلیت Structured Outputs یا Json Mode)
-        ai_analysis = ai_client.generate_json(prompt=ai_prompt)
+        ai_analysis = LLMClient.evaluate_default(ai_prompt)
         
         # ۵. به‌روزرسانی رکورد با فیدبک و نمره نهایی هوش مصنوعی
         user_answer_record.score = ai_analysis.get("score", 0)
