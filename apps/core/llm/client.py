@@ -7,9 +7,11 @@ import logging
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Optional
+import threading
 
 logger = logging.getLogger(__name__)
 
+_lock = threading.Lock()
 
 # =============================================================================
 #  Provider Enum
@@ -58,7 +60,9 @@ class OpenAIProvider(BaseLLMProvider):
         from django.conf import settings
         self._model       = model
         self._temperature = temperature
-        self._api_key     = settings.OPENAI_API_KEY
+        self._api_key = getattr(settings, "OPENAI_API_KEY", None)
+        if not self._api_key:
+            raise ValueError("OPENAI_API_KEY در settings تنظیم نشده.")
 
     def get_chat_model(self, **kwargs):
         from langchain_openai import ChatOpenAI
@@ -91,7 +95,9 @@ class AnthropicProvider(BaseLLMProvider):
         from django.conf import settings
         self._model       = model
         self._temperature = temperature
-        self._api_key     = settings.ANTHROPIC_API_KEY
+        self._api_key = getattr(settings, "ANTHROPIC_API_KEY", None)
+        if not self._api_key:
+            raise ValueError("ANTHROPIC_API_KEY در settings تنظیم نشده.")
 
     def get_chat_model(self, **kwargs):
         from langchain_anthropic import ChatAnthropic
@@ -135,7 +141,9 @@ class OpenRouterProvider(BaseLLMProvider):
         from django.conf import settings
         self._model       = model
         self._temperature = temperature
-        self._api_key     = settings.OPENROUTER_API_KEY
+        self._api_key = getattr(settings, "OPENROUTER_API_KEY", None)
+        if not self._api_key:
+            raise ValueError("OPENROUTER_API_KEY در settings تنظیم نشده.")
 
     def get_chat_model(self, **kwargs):
         from langchain_openai import ChatOpenAI
@@ -372,9 +380,10 @@ class LLMClient:
 
     @classmethod
     def _get_default(cls) -> "LLMClient":
-        """Singleton default client"""
         if not hasattr(cls, "_default_instance"):
-            cls._default_instance = cls()
+            with _lock:
+                if not hasattr(cls, "_default_instance"):
+                    cls._default_instance = cls()
         return cls._default_instance
 
     # Shortcut class methods — بدون نیاز به instantiate کردن
