@@ -1,7 +1,7 @@
 import logging
 from typing import Optional, Tuple
 from django.core.mail import send_mail
-from django.core.mail.exceptions import SMTPException
+from smtplib import SMTPException
 
 from .base import BaseNotificationProvider
 
