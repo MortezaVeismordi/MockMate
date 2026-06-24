@@ -1,0 +1,41 @@
+name: CD
+
+on:
+  push:
+    branches: [master, main]
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [master, main]
+
+jobs:
+  deploy:
+    name: Deploy to Railway
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service web --detach
+
+      - name: Run migrations
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway run --service web python manage.py migrate --no-input
+
+      - name: Health check
+        run: |
+          sleep 10
+          curl --fail ${{ secrets.RAILWAY_APP_URL }}/api/health/ || exit 1
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "Deploy failed! Check Railway dashboard."
