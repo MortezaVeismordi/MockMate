@@ -47,8 +47,8 @@ class NotificationService:
 
         # ۲. ارسال هماهنگ به صف Celery (تسک را در گام‌های بعدی می‌نویسیم)
         # ما فقط ID را پاس می‌دهیم تا دیتای سنگین جابجا نشود
-        from .tasks import send_notification_task
-        send_notification_task.delay(notification_id=notification.id)
+        from .tasks import send_otp_notification_task
+        send_otp_notification_task.delay(notification_id=notification.id)
 
         return notification
 

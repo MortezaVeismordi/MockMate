@@ -181,10 +181,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     # Authentication
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "apps.users.authentication.CustomJWTAuthentication",
     ],
 
-    # Permission
+        # Permission
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
@@ -222,8 +222,7 @@ REST_FRAMEWORK = {
         "user": "1000/hour",
         "otp":  "5/hour",       # custom throttle برای OTP
     },
-    "DEFAULT_THROTTLE_CLASSES": [],
-    "DEFAULT_THROTTLE_RATES": {},
+
     # Schema
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 
@@ -254,7 +253,8 @@ SIMPLE_JWT = {
 
     "AUTH_HEADER_TYPES": ("Bearer",),
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
-    "USER_ID_FIELD": "id",
+    
+    "USER_ID_FIELD": "phone_number",
     "USER_ID_CLAIM": "user_id",
 
     "TOKEN_OBTAIN_SERIALIZER":  "apps.users.serializers.CustomTokenObtainSerializer",

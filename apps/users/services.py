@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from django.db import transaction
 from .selectors import UserSelector, OTPSelector
 from .models import OTPCode
+from django.utils import timezone
 from apps.notifications.services import NotificationService
 from apps.notifications.models import Notification
 from rest_framework_simplejwt.tokens import RefreshToken
