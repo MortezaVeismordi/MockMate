@@ -47,3 +47,53 @@ def send_otp_notification_task(self, notification_id: int):
             logger.error(f"Failed to update retry count: {db_err}")
             
         raise self.retry(exc=exc)
+    
+    
+@shared_task(name="apps.notifications.tasks.send_welcome_sms")
+def send_welcome_sms(phone_number: str, first_name: str):
+    """ارسال پیامک خوش‌آمدگویی"""
+    logger.info(f"[Welcome SMS] Sending to {phone_number}")
+    from .models import Notification
+    from .services import NotificationService
+    body = f"سلام {first_name}! به MockMate خوش آمدید."
+    NotificationService.create_notification(
+        recipient=phone_number,
+        body=body,
+        notification_type=Notification.Type.SMS,
+    )
+
+
+@shared_task(name="apps.notifications.tasks.send_welcome_notification")
+def send_welcome_notification(user_id: int):
+    """ارسال نوتیفیکیشن خوش‌آمدگویی"""
+    logger.info(f"[Welcome Notification] user_id={user_id}")
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    try:
+        user = User.objects.get(pk=user_id)
+        send_welcome_sms.delay(
+            phone_number=user.phone_number,
+            first_name=user.first_name or "کاربر عزیز",
+        )
+    except User.DoesNotExist:
+        logger.error(f"User {user_id} not found for welcome notification")
+
+
+@shared_task(name="apps.notifications.tasks.send_profile_completed_notification")
+def send_profile_completed_notification(user_id: int):
+    """ارسال نوتیفیکیشن تکمیل پروفایل"""
+    logger.info(f"[Profile Completed] user_id={user_id}")
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    try:
+        user = User.objects.get(pk=user_id)
+        from .models import Notification
+        from .services import NotificationService
+        NotificationService.create_notification(
+            recipient=user.phone_number,
+            body="پروفایل شما تکمیل شد! آماده شروع مصاحبه هستید.",
+            notification_type=Notification.Type.SMS,
+            user=user,
+        )
+    except User.DoesNotExist:
+        logger.error(f"User {user_id} not found for profile notification")
