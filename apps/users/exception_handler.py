@@ -42,6 +42,18 @@ def custom_exception_handler(exc, context):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
+    # ── 403 → 401 وقتی کاربر احراز هویت نشده ─────────
+    # وقتی هدر Authorization غیبه، JWT authenticator silently
+    # None برمیگردونه و IsAuthenticated یه PermissionDenied (403)
+    # پرتاب میکنه. ما اینجا تبدیلش میکنیم به 401.
+    request = context.get("request")
+    if (
+        response.status_code == status.HTTP_403_FORBIDDEN
+        and request is not None
+        and not getattr(request.user, "is_authenticated", False)
+    ):
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+
     # ── پیام مناسب بر اساس status code ─────────
     message = STATUS_MESSAGES.get(
         response.status_code,

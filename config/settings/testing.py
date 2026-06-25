@@ -79,13 +79,16 @@ CELERY_TASK_EAGER_PROPAGATES = True    # exception ها bubble up میشن
 
 # ─── REST Framework — testing ─────────────────────────────────────────────────
 REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"] = [
-    "rest_framework.authentication.SessionAuthentication",
-    "rest_framework_simplejwt.authentication.JWTAuthentication",
+    "apps.users.authentication.CustomJWTAuthentication",
 ]
-
 # throttle رو خاموش میکنیم — تست‌ها throttle نمیخوان
 REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = []
-REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]   = {}
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
+    "anon": "1000/minute",
+    "user": "1000/minute",
+    "otp": "1000/minute",
+    "login": "1000/minute",
+}
 
 # ─── JWT — توی test token ها خیلی بیشتر دوام میارن ──────────────────────────
 SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"]  = timedelta(days=7)
