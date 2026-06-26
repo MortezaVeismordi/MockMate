@@ -3,6 +3,8 @@
 .env
 logs/
 tests/
+__pycache__/
+apps/users/__pycache__/
 apps/__pycache__/
 config/__pycache__/
 config/settings/__pycache__/
