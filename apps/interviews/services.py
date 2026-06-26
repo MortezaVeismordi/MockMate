@@ -36,8 +36,8 @@ User = get_user_model()
 #  مسئول: ساختن session + انتخاب هوشمند سوالات
 # =============================================================================
 
-class InterviewSetupService:
 
+class InterviewSetupService:
     @staticmethod
     @transaction.atomic
     def create_session(
@@ -54,9 +54,7 @@ class InterviewSetupService:
         """
         # چک session فعال
         if SessionSelector.has_active_session(user):
-            raise ValueError(
-                _("شما یک مصاحبه فعال دارید. ابتدا آن را به پایان برسانید.")
-            )
+            raise ValueError(_("شما یک مصاحبه فعال دارید. ابتدا آن را به پایان برسانید."))
 
         session = InterviewSession.objects.create(
             user=user,
@@ -70,7 +68,9 @@ class InterviewSetupService:
 
         logger.info(
             "Interview session created | user=%s | position=%s | session=%s",
-            user.pk, target_position, session.uuid,
+            user.pk,
+            target_position,
+            session.uuid,
         )
 
         # انتخاب سوالات
@@ -81,16 +81,15 @@ class InterviewSetupService:
         )
 
         if not questions:
-            raise ValueError(
-                _("سوال مناسبی برای این سطح و موضوع یافت نشد.")
-            )
+            raise ValueError(_("سوال مناسبی برای این سطح و موضوع یافت نشد."))
 
         # ثبت سوالات در session
         InterviewSetupService._assign_questions(session, questions)
 
         logger.info(
             "Questions assigned | session=%s | count=%d",
-            session.uuid, len(questions),
+            session.uuid,
+            len(questions),
         )
 
         return session
@@ -114,18 +113,14 @@ class InterviewSetupService:
 
         # فیلتر موضوعی اگه topic داریم
         if focus_topics:
-            base_qs = base_qs.filter(
-                categories__slug__in=focus_topics
-            ).distinct()
+            base_qs = base_qs.filter(categories__slug__in=focus_topics).distinct()
 
         # توزیع بر اساس نوع سوال
         distribution = InterviewSetupService._get_question_distribution(total)
         selected = []
 
         for question_type, count in distribution.items():
-            type_qs = list(
-                base_qs.filter(question_type=question_type)
-            )
+            type_qs = list(base_qs.filter(question_type=question_type))
             if type_qs:
                 picked = random.sample(type_qs, min(count, len(type_qs)))
                 selected.extend(picked)
@@ -133,9 +128,7 @@ class InterviewSetupService:
         # اگه کمتر از total داریم، بقیه رو از کل pool بگیر
         if len(selected) < total:
             existing_ids = {q.pk for q in selected}
-            remaining_qs = list(
-                base_qs.exclude(pk__in=existing_ids)
-            )
+            remaining_qs = list(base_qs.exclude(pk__in=existing_ids))
             needed = total - len(selected)
             if remaining_qs:
                 extra = random.sample(remaining_qs, min(needed, len(remaining_qs)))
@@ -148,11 +141,11 @@ class InterviewSetupService:
     @staticmethod
     def _get_question_distribution(total: int) -> dict:
         raw = {
-            Question.QuestionType.TECHNICAL    : total * 0.40,
+            Question.QuestionType.TECHNICAL: total * 0.40,
             Question.QuestionType.SYSTEM_DESIGN: total * 0.20,
-            Question.QuestionType.ARCHITECTURE : total * 0.15,
-            Question.QuestionType.BEHAVIORAL   : total * 0.15,
-            Question.QuestionType.DEVOPS       : total * 0.10,
+            Question.QuestionType.ARCHITECTURE: total * 0.15,
+            Question.QuestionType.BEHAVIORAL: total * 0.15,
+            Question.QuestionType.DEVOPS: total * 0.10,
         }
 
         # تبدیل به int و تضمین جمع = total
@@ -180,15 +173,17 @@ class InterviewSetupService:
         session: InterviewSession,
         questions: list[Question],
     ) -> None:
-        SessionQuestion.objects.bulk_create([
-            SessionQuestion(
-                session=session,
-                question=q,
-                order=idx,
-                status=SessionQuestion.QuestionStatus.PENDING,
-            )
-            for idx, q in enumerate(questions)
-        ])
+        SessionQuestion.objects.bulk_create(
+            [
+                SessionQuestion(
+                    session=session,
+                    question=q,
+                    order=idx,
+                    status=SessionQuestion.QuestionStatus.PENDING,
+                )
+                for idx, q in enumerate(questions)
+            ]
+        )
 
 
 # =============================================================================
@@ -196,8 +191,8 @@ class InterviewSetupService:
 #  مسئول: مدیریت State Machine + پیام‌ها + tool calls
 # =============================================================================
 
-class InterviewConductService:
 
+class InterviewConductService:
     # ── شروع مصاحبه ──────────────────────────────────────────────────────────
 
     @staticmethod
@@ -270,7 +265,7 @@ class InterviewConductService:
             content=next_q.question.body,
             related_question=next_q,
             metadata={
-                "question_id"   : next_q.question.pk,
+                "question_id": next_q.question.pk,
                 "question_order": next_q.order,
                 "estimated_time": next_q.question.estimated_time,
             },
@@ -278,7 +273,9 @@ class InterviewConductService:
 
         logger.info(
             "Question asked | session=%s | order=%d | question=%d",
-            session.uuid, next_q.order, next_q.question.pk,
+            session.uuid,
+            next_q.order,
+            next_q.question.pk,
         )
 
         return question_msg
@@ -332,11 +329,14 @@ class InterviewConductService:
 
         logger.info(
             "Answer submitted | session=%s | question=%d | answer=%d",
-            session.uuid, current_q.question.pk, answer.pk,
+            session.uuid,
+            current_q.question.pk,
+            answer.pk,
         )
 
         # trigger ارزیابی async
         from .tasks import evaluate_answer_task
+
         evaluate_answer_task.delay(answer.pk)
 
         return answer
@@ -380,7 +380,8 @@ class InterviewConductService:
 
         logger.info(
             "Follow-up asked | session=%s | question=%d",
-            session.uuid, current_q.question.pk if current_q else 0,
+            session.uuid,
+            current_q.question.pk if current_q else 0,
         )
 
         return follow_up_msg
@@ -439,9 +440,10 @@ class InterviewConductService:
 
         # trigger گزارش نهایی async
         from .tasks import generate_report_task
+
         generate_report_task.apply_async(
             args=[session.pk],
-            countdown=5,   # ۵ ثانیه صبر میکنه تا همه evaluate‌ها تموم بشن
+            countdown=5,  # ۵ ثانیه صبر میکنه تا همه evaluate‌ها تموم بشن
         )
 
         logger.info("Interview wrap up | session=%s", session.uuid)
@@ -508,11 +510,7 @@ class InterviewConductService:
 
     @staticmethod
     def _build_wrap_up_message(session: InterviewSession) -> str:
-        return (
-            "مصاحبه به پایان رسید.\n"
-            "از وقتی که گذاشتید متشکرم.\n"
-            "نتایج ارزیابی به زودی آماده خواهد شد."
-        )
+        return "مصاحبه به پایان رسید.\n" "از وقتی که گذاشتید متشکرم.\n" "نتایج ارزیابی به زودی آماده خواهد شد."
 
 
 # =============================================================================
@@ -520,8 +518,8 @@ class InterviewConductService:
 #  مسئول: ارزیابی پاسخ کاربر با LLM
 # =============================================================================
 
-class EvaluationService:
 
+class EvaluationService:
     @staticmethod
     def evaluate_answer(answer: UserAnswer) -> UserAnswer:
         """
@@ -529,9 +527,7 @@ class EvaluationService:
         این متد توسط Celery task صدا زده میشه
         """
         if answer.status == UserAnswer.Status.GRADED:
-            logger.warning(
-                "Answer already graded | answer=%d", answer.pk
-            )
+            logger.warning("Answer already graded | answer=%d", answer.pk)
             return answer
 
         try:
@@ -540,6 +536,7 @@ class EvaluationService:
 
             # صدا زدن LLM
             from apps.core.llm.client import LLMClient
+
             result = LLMClient.evaluate_default(context)
 
             # ذخیره نتیجه
@@ -547,13 +544,15 @@ class EvaluationService:
 
             logger.info(
                 "Answer evaluated | answer=%d | score=%s",
-                answer.pk, answer.score,
+                answer.pk,
+                answer.score,
             )
 
         except Exception as exc:
             logger.error(
                 "Evaluation failed | answer=%d | error=%s",
-                answer.pk, str(exc),
+                answer.pk,
+                str(exc),
                 exc_info=True,
             )
             answer.status = UserAnswer.Status.FAILED
@@ -571,13 +570,13 @@ class EvaluationService:
         """
         question = answer.question
         return {
-            "question_text"      : question.body,
-            "reference_answer"   : question.reference_answer,
+            "question_text": question.body,
+            "reference_answer": question.reference_answer,
             "evaluation_criteria": question.ai_evaluation_criteria,
-            "user_answer"        : answer.answer_text,
-            "follow_up_answer"   : answer.follow_up_answer,
-            "seniority_level"    : answer.session.seniority_level,
-            "target_position"    : answer.session.target_position,
+            "user_answer": answer.answer_text,
+            "follow_up_answer": answer.follow_up_answer,
+            "seniority_level": answer.session.seniority_level,
+            "target_position": answer.session.target_position,
         }
 
     @staticmethod
@@ -585,23 +584,31 @@ class EvaluationService:
         """
         ذخیره نتیجه structured output از LLM
         """
-        answer.status             = UserAnswer.Status.GRADED
-        answer.score              = result.get("score", 0)
+        answer.status = UserAnswer.Status.GRADED
+        answer.score = result.get("score", 0)
         answer.technical_accuracy = result.get("technical_accuracy", "")
-        answer.strengths          = result.get("strengths", [])
-        answer.weaknesses         = result.get("weaknesses", [])
-        answer.missing_keywords   = result.get("missing_keywords", [])
-        answer.feedback           = result.get("feedback", "")
+        answer.strengths = result.get("strengths", [])
+        answer.weaknesses = result.get("weaknesses", [])
+        answer.missing_keywords = result.get("missing_keywords", [])
+        answer.feedback = result.get("feedback", "")
         answer.suggested_follow_up = result.get("suggested_follow_up", "")
-        answer.raw_evaluation     = result
-        answer.evaluated_at       = timezone.now()
+        answer.raw_evaluation = result
+        answer.evaluated_at = timezone.now()
 
-        answer.save(update_fields=[
-            "status", "score", "technical_accuracy",
-            "strengths", "weaknesses", "missing_keywords",
-            "feedback", "suggested_follow_up",
-            "raw_evaluation", "evaluated_at",
-        ])
+        answer.save(
+            update_fields=[
+                "status",
+                "score",
+                "technical_accuracy",
+                "strengths",
+                "weaknesses",
+                "missing_keywords",
+                "feedback",
+                "suggested_follow_up",
+                "raw_evaluation",
+                "evaluated_at",
+            ]
+        )
 
 
 # =============================================================================
@@ -609,8 +616,8 @@ class EvaluationService:
 #  مسئول: تولید گزارش نهایی مصاحبه
 # =============================================================================
 
-class ReportService:
 
+class ReportService:
     @staticmethod
     @transaction.atomic
     def generate_final_report(session: InterviewSession) -> InterviewSession:
@@ -626,7 +633,8 @@ class ReportService:
         if pending_count > 0:
             logger.warning(
                 "Report generation: %d answers still pending | session=%s",
-                pending_count, session.uuid,
+                pending_count,
+                session.uuid,
             )
 
         # جمع‌آوری آمار
@@ -635,25 +643,27 @@ class ReportService:
         # تولید گزارش با LLM
         try:
             from apps.core.llm.client import LLMClient
+
             ai_summary = LLMClient.generate_report_summary(
                 session_data={
                     "target_position": session.target_position,
                     "seniority_level": session.seniority_level,
-                    "stats"          : stats,
-                    "answers"        : ReportService._get_answers_summary(session),
+                    "stats": stats,
+                    "answers": ReportService._get_answers_summary(session),
                 }
             )
         except Exception as exc:
             logger.error(
                 "Report LLM generation failed | session=%s | error=%s",
-                session.uuid, str(exc),
+                session.uuid,
+                str(exc),
             )
             ai_summary = ""
 
         # ذخیره گزارش نهایی
-        session.final_score  = stats["avg_score"]
+        session.final_score = stats["avg_score"]
         session.final_report = {
-            "stats"     : stats,
+            "stats": stats,
             "ai_summary": ai_summary,
             "generated_at": timezone.now().isoformat(),
         }
@@ -662,7 +672,8 @@ class ReportService:
 
         logger.info(
             "Final report generated | session=%s | score=%.1f",
-            session.uuid, session.final_score,
+            session.uuid,
+            session.final_score,
         )
 
         return session
@@ -678,9 +689,9 @@ class ReportService:
         )
         return [
             {
-                "question"  : a.question.title,
-                "score"     : a.score,
-                "strengths" : a.strengths,
+                "question": a.question.title,
+                "score": a.score,
+                "strengths": a.strengths,
                 "weaknesses": a.weaknesses,
             }
             for a in answers

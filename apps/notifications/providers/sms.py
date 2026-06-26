@@ -15,24 +15,18 @@ class ConsoleSMSProvider(BaseNotificationProvider):
     پیامک‌ها را با ساختار بصری واضح در ترمینال کانتینر داکر چاپ می‌کند.
     """
 
-    def send(
-        self,
-        recipient: str,
-        body: str,
-        title: Optional[str] = None
-    ) -> Tuple[bool, Optional[str], Optional[str]]:
-
+    def send(self, recipient: str, body: str, title: Optional[str] = None) -> Tuple[bool, Optional[str], Optional[str]]:
         # لاگ استاندارد برای سیستم‌های مانیتورینگ داخلی داکر
         logger.info(f"[Console-SMS] Simulating SMS delivery to {recipient}")
 
         # شبیه‌سازی بصری خروجی پیامک برای دولوپر
-        print("\n" + "═"*60)
+        print("\n" + "═" * 60)
         print(" 📱 [SMS CONSOLE PROVIDER] — DEV MODE")
         print(f" 👤 گیرنده: {recipient}")
         if title:
             print(f" 📌 عنوان/الگو: {title}")
         print(f" ✉️  متن پیام:\n\n {body}\n")
-        print("═"*60 + "\n")
+        print("═" * 60 + "\n")
 
         # بازگرداندن وضعیت موفقیت، شناسه فرضی پیگیری و خطای خالی
         return True, "mock_sms_id_dev_only", None
@@ -44,13 +38,7 @@ class KavenegarSMSProvider(BaseNotificationProvider):
     اتصال مستقیم و پایدار به وب‌سرویس REST API پنل کاوه‌نگار با مدیریت استثناها.
     """
 
-    def send(
-        self,
-        recipient: str,
-        body: str,
-        title: Optional[str] = None
-    ) -> Tuple[bool, Optional[str], Optional[str]]:
-
+    def send(self, recipient: str, body: str, title: Optional[str] = None) -> Tuple[bool, Optional[str], Optional[str]]:
         api_key = getattr(settings, "KAVENEGAR_API_KEY", "")
         sender = getattr(settings, "KAVENEGAR_SENDER", "")
 
@@ -62,11 +50,7 @@ class KavenegarSMSProvider(BaseNotificationProvider):
 
         # آماده‌سازی مستندات و پارامترهای ارسالی به کاوه‌نگار
         url = f"https://api.kavenegar.com/v1/{api_key}/sms/send.json"
-        payload = {
-            "receptor": recipient,
-            "sender": sender,
-            "message": body
-        }
+        payload = {"receptor": recipient, "sender": sender, "message": body}
 
         logger.info(f"[Kavenegar-SMS] Sending actual SMS to {recipient} via API.")
 

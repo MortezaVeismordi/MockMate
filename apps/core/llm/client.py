@@ -17,16 +17,18 @@ _lock = threading.Lock()
 #  Provider Enum
 # =============================================================================
 
+
 class LLMProvider(str, Enum):
-    OPENAI      = "openai"
-    ANTHROPIC   = "anthropic"
-    OPENROUTER  = "openrouter"
-    OLLAMA      = "ollama"       # local — برای dev بدون هزینه
+    OPENAI = "openai"
+    ANTHROPIC = "anthropic"
+    OPENROUTER = "openrouter"
+    OLLAMA = "ollama"  # local — برای dev بدون هزینه
 
 
 # =============================================================================
 #  Base Provider — Interface
 # =============================================================================
+
 
 class BaseLLMProvider(ABC):
     """
@@ -46,19 +48,19 @@ class BaseLLMProvider(ABC):
 
     @property
     @abstractmethod
-    def provider_name(self) -> str:
-        ...
+    def provider_name(self) -> str: ...
 
 
 # =============================================================================
 #  OpenAI Provider
 # =============================================================================
 
-class OpenAIProvider(BaseLLMProvider):
 
+class OpenAIProvider(BaseLLMProvider):
     def __init__(self, model: str = "gpt-4o", temperature: float = 0.3):
         from django.conf import settings
-        self._model       = model
+
+        self._model = model
         self._temperature = temperature
         self._api_key = getattr(settings, "OPENAI_API_KEY", None)
         if not self._api_key:
@@ -66,6 +68,7 @@ class OpenAIProvider(BaseLLMProvider):
 
     def get_chat_model(self, **kwargs):
         from langchain_openai import ChatOpenAI
+
         return ChatOpenAI(
             model=self._model,
             temperature=kwargs.get("temperature", self._temperature),
@@ -85,15 +88,16 @@ class OpenAIProvider(BaseLLMProvider):
 #  Anthropic Provider
 # =============================================================================
 
-class AnthropicProvider(BaseLLMProvider):
 
+class AnthropicProvider(BaseLLMProvider):
     def __init__(
         self,
         model: str = "claude-sonnet-4-20250514",
         temperature: float = 0.3,
     ):
         from django.conf import settings
-        self._model       = model
+
+        self._model = model
         self._temperature = temperature
         self._api_key = getattr(settings, "ANTHROPIC_API_KEY", None)
         if not self._api_key:
@@ -101,6 +105,7 @@ class AnthropicProvider(BaseLLMProvider):
 
     def get_chat_model(self, **kwargs):
         from langchain_anthropic import ChatAnthropic
+
         return ChatAnthropic(
             model=self._model,
             temperature=kwargs.get("temperature", self._temperature),
@@ -121,6 +126,7 @@ class AnthropicProvider(BaseLLMProvider):
 #  برای تست — دسترسی به مدل‌های مختلف با یه API key
 # =============================================================================
 
+
 class OpenRouterProvider(BaseLLMProvider):
     """
     OpenRouter به عنوان proxy برای مدل‌های مختلف.
@@ -139,7 +145,8 @@ class OpenRouterProvider(BaseLLMProvider):
         temperature: float = 0.3,
     ):
         from django.conf import settings
-        self._model       = model
+
+        self._model = model
         self._temperature = temperature
         self._api_key = getattr(settings, "OPENROUTER_API_KEY", None)
         if not self._api_key:
@@ -147,6 +154,7 @@ class OpenRouterProvider(BaseLLMProvider):
 
     def get_chat_model(self, **kwargs):
         from langchain_openai import ChatOpenAI
+
         return ChatOpenAI(
             model=self._model,
             temperature=kwargs.get("temperature", self._temperature),
@@ -154,7 +162,7 @@ class OpenRouterProvider(BaseLLMProvider):
             base_url="https://openrouter.ai/api/v1",
             default_headers={
                 "HTTP-Referer": "https://ai-interviewer.app",
-                "X-Title"     : "AI Interviewer",
+                "X-Title": "AI Interviewer",
             },
             **{k: v for k, v in kwargs.items() if k != "temperature"},
         )
@@ -171,6 +179,7 @@ class OpenRouterProvider(BaseLLMProvider):
 #  Ollama Provider
 #  برای dev local — کاملاً رایگان
 # =============================================================================
+
 
 class OllamaProvider(BaseLLMProvider):
     """
@@ -189,12 +198,13 @@ class OllamaProvider(BaseLLMProvider):
         temperature: float = 0.3,
         base_url: str = "http://localhost:11434",
     ):
-        self._model       = model
+        self._model = model
         self._temperature = temperature
-        self._base_url    = base_url
+        self._base_url = base_url
 
     def get_chat_model(self, **kwargs):
         from langchain_ollama import ChatOllama
+
         return ChatOllama(
             model=self._model,
             temperature=kwargs.get("temperature", self._temperature),
@@ -213,13 +223,13 @@ class OllamaProvider(BaseLLMProvider):
 #  Provider Factory
 # =============================================================================
 
-class ProviderFactory:
 
+class ProviderFactory:
     _registry: dict[str, type[BaseLLMProvider]] = {
-        LLMProvider.OPENAI    : OpenAIProvider,
-        LLMProvider.ANTHROPIC : AnthropicProvider,
+        LLMProvider.OPENAI: OpenAIProvider,
+        LLMProvider.ANTHROPIC: AnthropicProvider,
         LLMProvider.OPENROUTER: OpenRouterProvider,
-        LLMProvider.OLLAMA    : OllamaProvider,
+        LLMProvider.OLLAMA: OllamaProvider,
     }
 
     @classmethod
@@ -232,10 +242,7 @@ class ProviderFactory:
         provider_class = cls._registry.get(provider)
 
         if not provider_class:
-            raise ValueError(
-                f"Provider ناشناخته: {provider}. "
-                f"گزینه‌های معتبر: {list(cls._registry.keys())}"
-            )
+            raise ValueError(f"Provider ناشناخته: {provider}. " f"گزینه‌های معتبر: {list(cls._registry.keys())}")
 
         kwargs = {"temperature": temperature}
         if model:
@@ -258,6 +265,7 @@ class ProviderFactory:
 # =============================================================================
 #  LLM Client — Main Interface
 # =============================================================================
+
 
 class LLMClient:
     """
@@ -284,7 +292,7 @@ class LLMClient:
 
         # اگه provider مشخص نشده از settings بخون
         _provider = provider or getattr(settings, "LLM_PROVIDER", LLMProvider.OPENAI)
-        _model    = model    or getattr(settings, "LLM_MODEL", None)
+        _model = model or getattr(settings, "LLM_MODEL", None)
 
         self._provider_instance = ProviderFactory.create(
             provider=_provider,
@@ -367,6 +375,7 @@ class LLMClient:
         به agent.py delegate میکنه.
         """
         from .agent import get_agent
+
         agent = get_agent()
 
         return agent.decide_next_action(
@@ -400,6 +409,7 @@ class LLMClient:
 #  Settings Helper
 # =============================================================================
 
+
 def get_provider_from_settings() -> str:
     """
     از settings تشخیص میده کدوم provider رو استفاده کنه.
@@ -411,4 +421,5 @@ def get_provider_from_settings() -> str:
         LLM_PROVIDER = "ollama"        # local dev
     """
     from django.conf import settings
+
     return getattr(settings, "LLM_PROVIDER", LLMProvider.OPENAI)

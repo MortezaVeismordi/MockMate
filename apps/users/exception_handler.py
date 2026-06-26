@@ -8,12 +8,12 @@ logger = logging.getLogger(__name__)
 
 # ── نقشه status code → پیام فارسی ──────────────
 STATUS_MESSAGES = {
-    status.HTTP_400_BAD_REQUEST:            "خطا در اعتبارسنجی",
-    status.HTTP_401_UNAUTHORIZED:           "احراز هویت نشده‌اید",
-    status.HTTP_403_FORBIDDEN:              "دسترسی ندارید",
-    status.HTTP_404_NOT_FOUND:              "یافت نشد",
-    status.HTTP_405_METHOD_NOT_ALLOWED:     "متد مجاز نیست",
-    status.HTTP_429_TOO_MANY_REQUESTS:      "تعداد درخواست بیش از حد مجاز",
+    status.HTTP_400_BAD_REQUEST: "خطا در اعتبارسنجی",
+    status.HTTP_401_UNAUTHORIZED: "احراز هویت نشده‌اید",
+    status.HTTP_403_FORBIDDEN: "دسترسی ندارید",
+    status.HTTP_404_NOT_FOUND: "یافت نشد",
+    status.HTTP_405_METHOD_NOT_ALLOWED: "متد مجاز نیست",
+    status.HTTP_429_TOO_MANY_REQUESTS: "تعداد درخواست بیش از حد مجاز",
 }
 
 

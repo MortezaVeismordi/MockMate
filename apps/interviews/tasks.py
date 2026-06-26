@@ -29,11 +29,7 @@ def evaluate_answer_task(self, answer_id: int) -> dict:
     from .services import EvaluationService
 
     try:
-        answer = (
-            UserAnswer.objects
-            .select_related("question", "session", "user")
-            .get(pk=answer_id)
-        )
+        answer = UserAnswer.objects.select_related("question", "session", "user").get(pk=answer_id)
     except UserAnswer.DoesNotExist:
         logger.error("Answer not found | answer_id=%d", answer_id)
         return {"status": "not_found", "answer_id": answer_id}
@@ -53,20 +49,21 @@ def evaluate_answer_task(self, answer_id: int) -> dict:
                 {
                     "type": "interview.evaluation.done",
                     "data": {
-                        "answer_id" : answer.pk,
-                        "score"     : answer.score,
-                        "feedback"  : answer.feedback,
-                        "strengths" : answer.strengths,
+                        "answer_id": answer.pk,
+                        "score": answer.score,
+                        "feedback": answer.feedback,
+                        "strengths": answer.strengths,
                         "weaknesses": answer.weaknesses,
-                        "passed"    : answer.passed,
-                        "status"    : answer.status,
+                        "passed": answer.passed,
+                        "status": answer.status,
                     },
                 },
             )
 
         logger.info(
             "Evaluation complete | answer_id=%d | score=%s",
-            answer_id, answer.score,
+            answer_id,
+            answer.score,
         )
 
         # چک همه پاسخ‌های session
@@ -76,15 +73,16 @@ def evaluate_answer_task(self, answer_id: int) -> dict:
         )
 
         return {
-            "status"   : "success",
+            "status": "success",
             "answer_id": answer_id,
-            "score"    : answer.score,
+            "score": answer.score,
         }
 
     except Exception as exc:
         logger.error(
             "Evaluation failed | answer_id=%d | error=%s",
-            answer_id, str(exc),
+            answer_id,
+            str(exc),
             exc_info=True,
         )
 
@@ -95,7 +93,7 @@ def evaluate_answer_task(self, answer_id: int) -> dict:
                 async_to_sync(channel_layer.group_send)(
                     f"interview_{answer.session.uuid}",
                     {
-                        "type"   : "interview.error",
+                        "type": "interview.error",
                         "message": "خطا در ارزیابی پاسخ. مجدداً تلاش می‌شود.",
                     },
                 )
@@ -162,11 +160,7 @@ def generate_report_task(self, session_id: int) -> dict:
     from .services import ReportService
 
     try:
-        session = (
-            InterviewSession.objects
-            .select_related("user")
-            .get(pk=session_id)
-        )
+        session = InterviewSession.objects.select_related("user").get(pk=session_id)
     except InterviewSession.DoesNotExist:
         return {"status": "not_found"}
 
@@ -184,21 +178,22 @@ def generate_report_task(self, session_id: int) -> dict:
                 "type": "interview.report.ready",
                 "data": {
                     "session_uuid": str(session.uuid),
-                    "final_score" : session.final_score,
-                    "message"     : "گزارش مصاحبه آماده است.",
+                    "final_score": session.final_score,
+                    "message": "گزارش مصاحبه آماده است.",
                 },
             },
         )
 
     logger.info(
         "Report generated | session=%s | score=%.1f",
-        session.uuid, session.final_score or 0,
+        session.uuid,
+        session.final_score or 0,
     )
 
     return {
-        "status"    : "success",
+        "status": "success",
         "session_id": session_id,
-        "score"     : session.final_score,
+        "score": session.final_score,
     }
 
 
@@ -243,7 +238,7 @@ def retry_failed_evaluations() -> dict:
     count = 0
 
     for answer in failed_answers:
-        answer.status    = UserAnswer.Status.PENDING
+        answer.status = UserAnswer.Status.PENDING
         answer.error_log = ""
         answer.save(update_fields=["status", "error_log"])
         evaluate_answer_task.delay(answer.pk)

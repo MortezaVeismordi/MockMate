@@ -10,14 +10,7 @@ from apps.questions.models import Question
 logger = logging.getLogger(__name__)
 
 
-def submit_and_grade_answer(
-    *,
-    user_id: int,
-    session_id: int,
-    question_id: int,
-    user_answer_text: str
-) -> UserAnswer:
-
+def submit_and_grade_answer(*, user_id: int, session_id: int, question_id: int, user_answer_text: str) -> UserAnswer:
     # ۱. اعتبارسنجی‌های اولیه بیزینس (Business Validation)
     if not user_answer_text.strip():
         raise ValidationError("پاسخ ارسال شده نمی‌تواند خالی باشد.")
@@ -34,7 +27,7 @@ def submit_and_grade_answer(
             session_id=session_id,
             question=question,
             answer_text=user_answer_text,
-            status=UserAnswer.Status.PENDING
+            status=UserAnswer.Status.PENDING,
         )
 
     ai_prompt = _build_evaluation_prompt(question=question, user_answer=user_answer_text)
@@ -58,7 +51,9 @@ def submit_and_grade_answer(
         user_answer_record.save()  # این Save حالا چون بیرون اتمیکه، Commit میشه و باقی میمونه
 
         # خط آخر مربوط به set_rollback هم از اینجا حذف شد چون دیگه تراکنش سراسری نداریم
-        exc_clean = exc.__class__(f"در حال حاضر ارتباط با موتور هوش مصنوعی برقرار نشد. پاسخ شما ذخیره شد و بعداً تصحیح می‌شود. (Original: {str(exc)})")
+        exc_clean = exc.__class__(
+            f"در حال حاضر ارتباط با موتور هوش مصنوعی برقرار نشد. پاسخ شما ذخیره شد و بعداً تصحیح می‌شود. (Original: {str(exc)})"
+        )
         raise exc_clean
 
     return user_answer_record

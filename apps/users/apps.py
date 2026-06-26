@@ -58,6 +58,7 @@ class UsersConfig(AppConfig):
             چک میکنه AUTH_USER_MODEL درست تنظیم شده باشه.
             """
             from django.conf import settings
+
             errors = []
 
             expected = "users.CustomUser"
@@ -65,10 +66,10 @@ class UsersConfig(AppConfig):
 
             if actual != expected:
                 from django.core.checks import Error
+
                 errors.append(
                     Error(
-                        f"AUTH_USER_MODEL باید '{expected}' باشد، "
-                        f"ولی '{actual}' تنظیم شده.",
+                        f"AUTH_USER_MODEL باید '{expected}' باشد، " f"ولی '{actual}' تنظیم شده.",
                         hint=f'AUTH_USER_MODEL = "{expected}" را در settings قرار دهید.',
                         obj=settings,
                         id="users.E001",
@@ -157,10 +158,7 @@ class UsersConfig(AppConfig):
                 issues.append(
                     Error(
                         "SIMPLE_JWT در settings تعریف نشده.",
-                        hint=(
-                            "pip install djangorestframework-simplejwt\n"
-                            "و SIMPLE_JWT را در settings تنظیم کنید."
-                        ),
+                        hint=("pip install djangorestframework-simplejwt\n" "و SIMPLE_JWT را در settings تنظیم کنید."),
                         id="users.E002",
                     )
                 )

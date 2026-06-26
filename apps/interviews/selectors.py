@@ -20,8 +20,8 @@ User = get_user_model()
 #  Session Selectors
 # =============================================================================
 
-class SessionSelector:
 
+class SessionSelector:
     @staticmethod
     def get_by_uuid(uuid: UUID) -> Optional[InterviewSession]:
         """
@@ -29,14 +29,11 @@ class SessionSelector:
         """
         try:
             return (
-                InterviewSession.objects
-                .select_related("user")
+                InterviewSession.objects.select_related("user")
                 .prefetch_related(
                     Prefetch(
                         "session_questions",
-                        queryset=SessionQuestion.objects
-                            .select_related("question")
-                            .order_by("order"),
+                        queryset=SessionQuestion.objects.select_related("question").order_by("order"),
                     )
                 )
                 .get(uuid=uuid)
@@ -59,14 +56,13 @@ class SessionSelector:
         فقط یه session فعال در هر لحظه مجاز است
         """
         return (
-            InterviewSession.objects
-            .filter(
+            InterviewSession.objects.filter(
                 user=user,
                 status__in=[
                     InterviewSession.Status.INTRO,
                     InterviewSession.Status.QUESTIONING,
                     InterviewSession.Status.DRILLING,
-                ]
+                ],
             )
             .select_related("user")
             .order_by("-created_at")
@@ -81,7 +77,7 @@ class SessionSelector:
                 InterviewSession.Status.INTRO,
                 InterviewSession.Status.QUESTIONING,
                 InterviewSession.Status.DRILLING,
-            ]
+            ],
         ).exists()
 
     @staticmethod
@@ -94,8 +90,7 @@ class SessionSelector:
         تاریخچه مصاحبه‌های کاربر با آمار خلاصه
         """
         qs = (
-            InterviewSession.objects
-            .filter(user=user)
+            InterviewSession.objects.filter(user=user)
             .annotate(
                 answers_count=Count("answers", distinct=True),
                 avg_score=Avg("answers__score"),
@@ -111,8 +106,7 @@ class SessionSelector:
     @staticmethod
     def get_completed_sessions(user) -> QuerySet:
         return (
-            InterviewSession.objects
-            .filter(user=user, status=InterviewSession.Status.COMPLETED)
+            InterviewSession.objects.filter(user=user, status=InterviewSession.Status.COMPLETED)
             .annotate(avg_score=Avg("answers__score"))
             .order_by("-completed_at")
         )
@@ -123,8 +117,7 @@ class SessionSelector:
         سوال فعلی بر اساس current_question_index
         """
         return (
-            SessionQuestion.objects
-            .filter(
+            SessionQuestion.objects.filter(
                 session=session,
                 order=session.current_question_index,
             )
@@ -138,8 +131,7 @@ class SessionSelector:
         اولین سوال pending بعد از سوال فعلی
         """
         return (
-            SessionQuestion.objects
-            .filter(
+            SessionQuestion.objects.filter(
                 session=session,
                 status=SessionQuestion.QuestionStatus.PENDING,
                 order__gt=session.current_question_index,
@@ -152,8 +144,7 @@ class SessionSelector:
     @staticmethod
     def get_session_questions(session: InterviewSession) -> QuerySet:
         return (
-            SessionQuestion.objects
-            .filter(session=session)
+            SessionQuestion.objects.filter(session=session)
             .select_related("question")
             .prefetch_related("question__categories")
             .order_by("order")
@@ -164,8 +155,8 @@ class SessionSelector:
 #  Message Selectors
 # =============================================================================
 
-class MessageSelector:
 
+class MessageSelector:
     @staticmethod
     def get_conversation_history(
         session: InterviewSession,
@@ -177,8 +168,7 @@ class MessageSelector:
         ترتیب: قدیمی‌ترین اول (برای context صحیح)
         """
         qs = (
-            InterviewMessage.objects
-            .filter(session=session)
+            InterviewMessage.objects.filter(session=session)
             .select_related("related_question__question")
             .order_by("turn_number")
         )
@@ -189,13 +179,10 @@ class MessageSelector:
         if limit:
             # آخرین N پیام + همه system messages
             system_msgs = qs.filter(role=InterviewMessage.Role.SYSTEM)
-            recent_msgs = qs.exclude(
-                role=InterviewMessage.Role.SYSTEM
-            ).order_by("-turn_number")[:limit]
+            recent_msgs = qs.exclude(role=InterviewMessage.Role.SYSTEM).order_by("-turn_number")[:limit]
 
             # ترکیب و مرتب‌سازی
-            ids = list(system_msgs.values_list("id", flat=True)) + \
-                  list(recent_msgs.values_list("id", flat=True))
+            ids = list(system_msgs.values_list("id", flat=True)) + list(recent_msgs.values_list("id", flat=True))
             qs = InterviewMessage.objects.filter(id__in=ids).order_by("turn_number")
 
         return qs
@@ -211,29 +198,20 @@ class MessageSelector:
 
         فقط role های user و assistant — system جداگانه handle میشه
         """
-        messages = (
-            InterviewMessage.objects
-            .filter(
-                session=session,
-                role__in=[
-                    InterviewMessage.Role.USER,
-                    InterviewMessage.Role.ASSISTANT,
-                ]
-            )
-            .order_by("-turn_number")[:last_n]
-        )
+        messages = InterviewMessage.objects.filter(
+            session=session,
+            role__in=[
+                InterviewMessage.Role.USER,
+                InterviewMessage.Role.ASSISTANT,
+            ],
+        ).order_by("-turn_number")[:last_n]
 
         # برعکس کن تا قدیمی‌ترین اول باشه
-        return [
-            {"role": msg.role, "content": msg.content}
-            for msg in reversed(list(messages))
-        ]
+        return [{"role": msg.role, "content": msg.content} for msg in reversed(list(messages))]
 
     @staticmethod
     def get_last_turn_number(session: InterviewSession) -> int:
-        result = InterviewMessage.objects.filter(
-            session=session
-        ).aggregate(max_turn=Max("turn_number"))
+        result = InterviewMessage.objects.filter(session=session).aggregate(max_turn=Max("turn_number"))
         return result["max_turn"] or 0
 
     @staticmethod
@@ -241,19 +219,15 @@ class MessageSelector:
         session: InterviewSession,
         message_type: str,
     ) -> QuerySet:
-        return (
-            InterviewMessage.objects
-            .filter(session=session, message_type=message_type)
-            .order_by("turn_number")
-        )
+        return InterviewMessage.objects.filter(session=session, message_type=message_type).order_by("turn_number")
 
 
 # =============================================================================
 #  Answer Selectors
 # =============================================================================
 
-class AnswerSelector:
 
+class AnswerSelector:
     @staticmethod
     def get_by_session_question(
         session: InterviewSession,
@@ -276,8 +250,7 @@ class AnswerSelector:
         همه پاسخ‌های یه session — برای گزارش نهایی
         """
         qs = (
-            UserAnswer.objects
-            .filter(session=session)
+            UserAnswer.objects.filter(session=session)
             .select_related("question")
             .prefetch_related("question__categories")
             .order_by("created_at")
@@ -294,8 +267,7 @@ class AnswerSelector:
         پاسخ‌های منتظر ارزیابی — برای Celery worker
         """
         return (
-            UserAnswer.objects
-            .filter(status=UserAnswer.Status.PENDING)
+            UserAnswer.objects.filter(status=UserAnswer.Status.PENDING)
             .select_related("question", "session", "user")
             .order_by("created_at")
         )[:limit]
@@ -306,8 +278,7 @@ class AnswerSelector:
         پاسخ‌هایی که ارزیابیشون fail شده — برای retry
         """
         return (
-            UserAnswer.objects
-            .filter(status=UserAnswer.Status.FAILED)
+            UserAnswer.objects.filter(status=UserAnswer.Status.FAILED)
             .select_related("question", "session", "user")
             .order_by("created_at")
         )[:limit]
@@ -327,8 +298,8 @@ class AnswerSelector:
 #  Stats Selectors
 # =============================================================================
 
-class InterviewStatsSelector:
 
+class InterviewStatsSelector:
     @staticmethod
     def get_session_stats(session: InterviewSession) -> dict:
         """
@@ -351,8 +322,7 @@ class InterviewStatsSelector:
 
         # breakdown بر اساس نوع سوال
         type_breakdown = (
-            answers
-            .values("question__question_type")
+            answers.values("question__question_type")
             .annotate(
                 count=Count("id"),
                 avg=Avg("score"),
@@ -363,16 +333,16 @@ class InterviewStatsSelector:
         total = aggregation["total_answered"] or 1
 
         return {
-            "total_questions"   : session.total_questions,
-            "total_answered"    : aggregation["total_answered"] or 0,
-            "avg_score"         : round(aggregation["avg_score"] or 0, 1),
-            "max_score"         : aggregation["max_score"] or 0,
-            "min_score"         : aggregation["min_score"] or 0,
-            "passed_count"      : aggregation["passed_count"] or 0,
-            "pass_rate"         : round((aggregation["passed_count"] or 0) / total * 100, 1),
-            "follow_up_rate"    : round((aggregation["follow_up_count"] or 0) / total * 100, 1),
+            "total_questions": session.total_questions,
+            "total_answered": aggregation["total_answered"] or 0,
+            "avg_score": round(aggregation["avg_score"] or 0, 1),
+            "max_score": aggregation["max_score"] or 0,
+            "min_score": aggregation["min_score"] or 0,
+            "passed_count": aggregation["passed_count"] or 0,
+            "pass_rate": round((aggregation["passed_count"] or 0) / total * 100, 1),
+            "follow_up_rate": round((aggregation["follow_up_count"] or 0) / total * 100, 1),
             "total_duration_min": round((aggregation["total_duration"] or 0) / 60, 1),
-            "type_breakdown"    : list(type_breakdown),
+            "type_breakdown": list(type_breakdown),
         }
 
     @staticmethod
@@ -403,20 +373,19 @@ class InterviewStatsSelector:
 
         # سوالاتی که بیشتر غلط جواب داده
         weak_topics = (
-            answers
-            .filter(score__lt=60)
+            answers.filter(score__lt=60)
             .values("question__question_type")
             .annotate(fail_count=Count("id"))
             .order_by("-fail_count")
         )[:5]
 
         return {
-            "total_sessions"   : aggregation["total_sessions"] or 0,
-            "avg_final_score"  : round(aggregation["avg_final_score"] or 0, 1),
-            "best_score"       : aggregation["best_score"] or 0,
-            "total_answers"    : answer_stats["total_answers"] or 0,
-            "overall_avg"      : round(answer_stats["overall_avg"] or 0, 1),
-            "weak_topics"      : list(weak_topics),
+            "total_sessions": aggregation["total_sessions"] or 0,
+            "avg_final_score": round(aggregation["avg_final_score"] or 0, 1),
+            "best_score": aggregation["best_score"] or 0,
+            "total_answers": answer_stats["total_answers"] or 0,
+            "overall_avg": round(answer_stats["overall_avg"] or 0, 1),
+            "weak_topics": list(weak_topics),
         }
 
     @staticmethod
@@ -426,8 +395,7 @@ class InterviewStatsSelector:
         برای نمایش در داشبورد
         """
         return list(
-            InterviewSession.objects
-            .filter(
+            InterviewSession.objects.filter(
                 user=user,
                 status=InterviewSession.Status.COMPLETED,
                 final_score__isnull=False,

@@ -30,12 +30,14 @@ logger = logging.getLogger(__name__)
 #  Session Views
 # =============================================================================
 
+
 class InterviewSessionCreateView(APIView):
     """
     POST /api/v1/interviews/
     ساختن session جدید + شروع مصاحبه
     response: uuid برای اتصال WebSocket
     """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -60,7 +62,8 @@ class InterviewSessionCreateView(APIView):
         except Exception as exc:
             logger.error(
                 "Session creation failed | user=%s | error=%s",
-                request.user.pk, str(exc),
+                request.user.pk,
+                str(exc),
                 exc_info=True,
             )
             return APIResponse.error(
@@ -70,11 +73,11 @@ class InterviewSessionCreateView(APIView):
 
         return APIResponse.created(
             data={
-                "uuid"           : str(session.uuid),
-                "status"         : session.status,
+                "uuid": str(session.uuid),
+                "status": session.status,
                 "target_position": session.target_position,
                 "total_questions": session.total_questions,
-                "ws_url"         : f"/ws/interviews/{session.uuid}/",
+                "ws_url": f"/ws/interviews/{session.uuid}/",
             },
             message=_("مصاحبه با موفقیت ایجاد شد."),
         )
@@ -85,6 +88,7 @@ class InterviewSessionListView(APIView):
     GET /api/v1/interviews/
     تاریخچه مصاحبه‌های کاربر
     """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -101,7 +105,7 @@ class InterviewSessionListView(APIView):
         return APIResponse.success(
             data={
                 "results": serializer.data,
-                "count"  : sessions.count() if hasattr(sessions, "count") else len(serializer.data),
+                "count": sessions.count() if hasattr(sessions, "count") else len(serializer.data),
             },
             message=_("لیست مصاحبه‌ها."),
         )
@@ -112,6 +116,7 @@ class InterviewSessionDetailView(APIView):
     GET    /api/v1/interviews/<uuid>/  ← وضعیت فعلی
     DELETE /api/v1/interviews/<uuid>/  ← abandon کردن
     """
+
     permission_classes = [IsAuthenticated]
 
     def _get_session_or_403(self, uuid: str, user):
@@ -154,7 +159,8 @@ class InterviewSessionDetailView(APIView):
 
         logger.info(
             "Session abandoned | uuid=%s | user=%s",
-            uuid, request.user.pk,
+            uuid,
+            request.user.pk,
         )
 
         return APIResponse.success(
@@ -166,11 +172,13 @@ class InterviewSessionDetailView(APIView):
 #  Active Session View
 # =============================================================================
 
+
 class ActiveSessionView(APIView):
     """
     GET /api/v1/interviews/active/
     session فعال فعلی کاربر — برای resume کردن
     """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -193,11 +201,13 @@ class ActiveSessionView(APIView):
 #  Report View
 # =============================================================================
 
+
 class InterviewReportView(APIView):
     """
     GET /api/v1/interviews/<uuid>/report/
     گزارش کامل نهایی — فقط اگه COMPLETED باشه
     """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, uuid: str):
@@ -230,11 +240,13 @@ class InterviewReportView(APIView):
 #  User Stats View
 # =============================================================================
 
+
 class UserInterviewStatsView(APIView):
     """
     GET /api/v1/interviews/stats/
     آمار کلی کاربر از همه مصاحبه‌هاش — داشبورد
     """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -247,7 +259,7 @@ class UserInterviewStatsView(APIView):
         return APIResponse.success(
             data={
                 "overview": stats,
-                "trend"   : trend,
+                "trend": trend,
             },
         )
 
@@ -256,17 +268,19 @@ class UserInterviewStatsView(APIView):
 #  Admin Views
 # =============================================================================
 
+
 class AdminSessionListView(APIView):
     """
     GET /api/v1/interviews/admin/sessions/
     لیست همه sessions با فیلتر — فقط ادمین
     """
+
     permission_classes = [IsAdminUser]
 
     def get(self, request):
         status_filter = request.query_params.get("status")
-        user_id       = request.query_params.get("user_id")
-        limit         = int(request.query_params.get("limit", 50))
+        user_id = request.query_params.get("user_id")
+        limit = int(request.query_params.get("limit", 50))
 
         qs = InterviewSession.objects.select_related("user").order_by("-created_at")
 
@@ -282,7 +296,7 @@ class AdminSessionListView(APIView):
         return APIResponse.success(
             data={
                 "results": serializer.data,
-                "count"  : len(serializer.data),
+                "count": len(serializer.data),
             },
         )
 
@@ -292,6 +306,7 @@ class AdminSessionDetailView(APIView):
     GET /api/v1/interviews/admin/sessions/<uuid>/
     جزئیات کامل یه session — فقط ادمین
     """
+
     permission_classes = [IsAdminUser]
 
     def get(self, request, uuid: str):
@@ -312,17 +327,14 @@ class AdminAnswerDetailView(APIView):
     GET /api/v1/interviews/admin/answers/<pk>/
     جزئیات یه answer برای debug و بررسی ارزیابی
     """
+
     permission_classes = [IsAdminUser]
 
     def get(self, request, pk: int):
         from .models import UserAnswer
 
         try:
-            answer = (
-                UserAnswer.objects
-                .select_related("question", "session", "user")
-                .get(pk=pk)
-            )
+            answer = UserAnswer.objects.select_related("question", "session", "user").get(pk=pk)
         except UserAnswer.DoesNotExist:
             return APIResponse.error(
                 message=_("پاسخ یافت نشد."),
@@ -335,8 +347,8 @@ class AdminAnswerDetailView(APIView):
             data={
                 **serializer.data,
                 "raw_evaluation": answer.raw_evaluation,
-                "error_log"     : answer.error_log,
-                "session_uuid"  : str(answer.session.uuid),
+                "error_log": answer.error_log,
+                "session_uuid": str(answer.session.uuid),
             },
         )
 
@@ -346,6 +358,7 @@ class AdminRetriggerEvaluationView(APIView):
     POST /api/v1/interviews/admin/answers/<pk>/retrigger/
     trigger مجدد ارزیابی یه answer — برای failed یا pending
     """
+
     permission_classes = [IsAdminUser]
 
     def post(self, request, pk: int):
@@ -367,7 +380,7 @@ class AdminRetriggerEvaluationView(APIView):
             )
 
         # reset و trigger
-        answer.status    = UserAnswer.Status.PENDING
+        answer.status = UserAnswer.Status.PENDING
         answer.error_log = ""
         answer.save(update_fields=["status", "error_log"])
 
@@ -375,7 +388,8 @@ class AdminRetriggerEvaluationView(APIView):
 
         logger.info(
             "Evaluation retriggered | answer=%d | admin=%s",
-            pk, request.user.pk,
+            pk,
+            request.user.pk,
         )
 
         return APIResponse.success(

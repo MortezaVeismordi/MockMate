@@ -5,7 +5,9 @@ from django.db.models import QuerySet
 from apps.questions.models import Question
 
 
-def question_list(*, is_active: bool = True, category_slug: str = None, seniority_level: str = None) -> QuerySet[Question]:
+def question_list(
+    *, is_active: bool = True, category_slug: str = None, seniority_level: str = None
+) -> QuerySet[Question]:
     """
     سلکتور پایه و بهینه برای واکشی و فیلتر کردن سوالات مصاحبه.
 
@@ -14,7 +16,7 @@ def question_list(*, is_active: bool = True, category_slug: str = None, seniorit
     * دغدغه ارشدیت: آرگومان‌ها با (*,) قفل شده‌اند تا صراحت ورود دیتا تضمین شود.
     """
     # بهینه‌سازی لایه دیتابیس برای روابط ManyToMany
-    qs = Question.objects.prefetch_related('categories').filter(is_active=is_active)
+    qs = Question.objects.prefetch_related("categories").filter(is_active=is_active)
 
     if category_slug:
         # فیلتر مستقیم و بدون افزونگی روی اسلاگ دسته‌بندی
@@ -24,10 +26,12 @@ def question_list(*, is_active: bool = True, category_slug: str = None, seniorit
         qs = qs.filter(seniority_level=seniority_level)
 
     # استفاده از distinct برای جلوگیری از رکوردهای تکراری ناشی از Join با لایه دسته‌بندی‌ها
-    return qs.distinct().order_by('-created_at')
+    return qs.distinct().order_by("-created_at")
 
 
-def get_random_interview_set(*, category_slug: str = None, seniority_level: str = None, limit: int = 5) -> list[Question]:
+def get_random_interview_set(
+    *, category_slug: str = None, seniority_level: str = None, limit: int = 5
+) -> list[Question]:
     """
     یک سلکتور هوشمند برای چیدن سناریوی مصاحبه رندوم.
 
@@ -39,7 +43,7 @@ def get_random_interview_set(*, category_slug: str = None, seniority_level: str 
     base_qs = question_list(category_slug=category_slug, seniority_level=seniority_level)
 
     # واکشی فوق‌العاده سبک و بهینه فقط برای لایه IDها
-    question_ids = list(base_qs.values_list('id', flat=True))
+    question_ids = list(base_qs.values_list("id", flat=True))
 
     if not question_ids:
         return []
@@ -48,7 +52,4 @@ def get_random_interview_set(*, category_slug: str = None, seniority_level: str 
     sampled_ids = random.sample(question_ids, min(len(question_ids), limit))
 
     # واکشی نهایی رکوردهای گلچین‌شده همراه با بهینه‌سازی لایه روابط
-    return list(
-        Question.objects.prefetch_related('categories')
-        .filter(id__in=sampled_ids)
-    )
+    return list(Question.objects.prefetch_related("categories").filter(id__in=sampled_ids))

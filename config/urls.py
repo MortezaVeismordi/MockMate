@@ -13,11 +13,7 @@ def health_check(request):
     بررسی وضعیت سرویس‌های اصلی.
     Nginx و Docker healthcheck از این استفاده میکنن.
     """
-    checks = {
-        "status": "ok",
-        "timestamp": timezone.now().isoformat(),
-        "services": {}
-    }
+    checks = {"status": "ok", "timestamp": timezone.now().isoformat(), "services": {}}
 
     # ── چک Database ───────────────────────────
     try:
@@ -41,15 +37,16 @@ def health_check(request):
 
 
 urlpatterns = [
-    path("super-admin/",    admin.site.urls),
-    path("health/",   health_check, name="health-check"),
-    path("api/v1/",   include("apps.users.urls", namespace="users")),
-    path('api/v1/questions/', include('apps.questions.urls', namespace='v1-questions')),
+    path("super-admin/", admin.site.urls),
+    path("health/", health_check, name="health-check"),
+    path("api/v1/", include("apps.users.urls", namespace="users")),
+    path("api/v1/questions/", include("apps.questions.urls", namespace="v1-questions")),
     path("api/v1/interviews/", include("apps.interviews.urls", namespace="interviews")),
 ]
 
 if settings.DEBUG:
     import debug_toolbar
+
     urlpatterns = [
         path("__debug__/", include(debug_toolbar.urls)),
     ] + urlpatterns

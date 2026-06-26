@@ -34,6 +34,7 @@ user_returned = Signal()
 #  Helpers
 # ─────────────────────────────────────────────────────────────────
 
+
 def _get_changed_fields(instance) -> set:
     """
     فیلدهایی که نسبت به دیتابیس تغییر کردن رو برمیگردونه.
@@ -61,10 +62,7 @@ def _is_profile_now_complete(old_instance, new_instance) -> bool:
     آیا پروفایل در این save از ناقص به کامل تبدیل شد؟
     """
     was_complete = bool(
-        old_instance.first_name
-        and old_instance.last_name
-        and old_instance.job_title
-        and old_instance.experience_level
+        old_instance.first_name and old_instance.last_name and old_instance.job_title and old_instance.experience_level
     )
     return not was_complete and new_instance.is_profile_complete
 
@@ -72,6 +70,7 @@ def _is_profile_now_complete(old_instance, new_instance) -> bool:
 # ─────────────────────────────────────────────────────────────────
 #  pre_save  →  تغییرات رو قبل از ذخیره ثبت میکنیم
 # ─────────────────────────────────────────────────────────────────
+
 
 @receiver(pre_save, sender=User)
 def capture_user_state_before_save(sender, instance, **kwargs):
@@ -94,6 +93,7 @@ def capture_user_state_before_save(sender, instance, **kwargs):
 # ─────────────────────────────────────────────────────────────────
 #  post_save  →  بعد از ذخیره واکنش نشون میدیم
 # ─────────────────────────────────────────────────────────────────
+
 
 @receiver(post_save, sender=User)
 def handle_user_created(sender, instance, created, **kwargs):
@@ -222,6 +222,7 @@ def handle_account_deactivated(sender, instance, created, **kwargs):
 #  post_delete
 # ─────────────────────────────────────────────────────────────────
 
+
 @receiver(post_delete, sender=User)
 def handle_user_deleted(sender, instance, **kwargs):
     """
@@ -240,6 +241,7 @@ def handle_user_deleted(sender, instance, **kwargs):
 #  Custom Signal Receivers
 # ─────────────────────────────────────────────────────────────────
 
+
 @receiver(user_phone_verified)
 def on_phone_verified_send_welcome_sms(sender, user, timestamp, **kwargs):
     """
@@ -247,6 +249,7 @@ def on_phone_verified_send_welcome_sms(sender, user, timestamp, **kwargs):
     """
     try:
         from apps.notifications.tasks import send_welcome_sms
+
         send_welcome_sms.delay(
             phone_number=user.phone_number,
             first_name=user.first_name or _("کاربر عزیز"),
@@ -271,6 +274,7 @@ def on_profile_completed(sender, user, **kwargs):
 
     try:
         from apps.notifications.tasks import send_profile_completed_notification
+
         send_profile_completed_notification.delay(user_id=user.pk)
     except Exception as exc:
         logger.error(
@@ -284,10 +288,12 @@ def on_profile_completed(sender, user, **kwargs):
 #  Private Helpers
 # ─────────────────────────────────────────────────────────────────
 
+
 def _send_welcome_notification(user) -> None:
     """ارسال نوتیف خوش‌آمدگویی از طریق Celery."""
     try:
         from apps.notifications.tasks import send_welcome_notification
+
         send_welcome_notification.delay(user_id=user.pk)
     except Exception as exc:
         logger.error(

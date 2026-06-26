@@ -11,14 +11,14 @@ class Notification(models.Model):
     """
 
     class Type(models.TextChoices):
-        SMS    = "sms",    _("پیامک")
-        EMAIL  = "email",  _("ایمیل")
+        SMS = "sms", _("پیامک")
+        EMAIL = "email", _("ایمیل")
         IN_APP = "in_app", _("درون‌برنامه‌ای / پاپ‌آپ")
 
     class Status(models.TextChoices):
         PENDING = "pending", _("در انتظار ارسال")
-        SENT    = "sent",    _("ارسال شده")
-        FAILED  = "failed",  _("ناموفق")
+        SENT = "sent", _("ارسال شده")
+        FAILED = "failed", _("ناموفق")
 
     # ── ارتباطات ──────────────────────────────
     # برای پیامک‌های OTP قبل از ثبت‌نام کامل یا سناریوهای عمومی، کاربر می‌تواند null باشد.

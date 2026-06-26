@@ -13,6 +13,7 @@ from .selectors import OTPSelector, UserSelector
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
+
 class OTPService:
     @staticmethod
     def send_otp(phone_number, purpose, ip_address):
@@ -29,10 +30,15 @@ class OTPService:
 
             if user:
                 # چک cooldown با lock
-                latest_otp = OTPCode.objects.select_for_update().filter(
-                    user=user,
-                    purpose=purpose,
-                ).order_by("-created_at").first()
+                latest_otp = (
+                    OTPCode.objects.select_for_update()
+                    .filter(
+                        user=user,
+                        purpose=purpose,
+                    )
+                    .order_by("-created_at")
+                    .first()
+                )
 
                 if latest_otp:
                     elapsed = (timezone.now() - latest_otp.created_at).total_seconds()
@@ -73,14 +79,13 @@ class OTPService:
                 recipient=phone_number,
                 body=sms_body,
                 notification_type=Notification.Type.SMS,
-                status=Notification.Status.PENDING
+                status=Notification.Status.PENDING,
             )
 
         # on_commit خارج از with هست ولی بعد از commit اجرا میشه ✓
         from apps.notifications.tasks import send_otp_notification_task
-        transaction.on_commit(
-            lambda: send_otp_notification_task.delay(notification_id=notification_record.id)
-        )
+
+        transaction.on_commit(lambda: send_otp_notification_task.delay(notification_id=notification_record.id))
 
         return {
             "success": True,

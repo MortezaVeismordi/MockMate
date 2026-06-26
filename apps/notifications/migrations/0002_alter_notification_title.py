@@ -4,15 +4,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('notifications', '0001_initial'),
+        ("notifications", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='notification',
-            name='title',
-            field=models.CharField(blank=True, help_text='بیشتر برای ایمیل و اعلان\u200cهای درون\u200cبرنامه\u200cای', max_length=255, null=True, verbose_name='عنوان'),
+            model_name="notification",
+            name="title",
+            field=models.CharField(
+                blank=True,
+                help_text="بیشتر برای ایمیل و اعلان\u200cهای درون\u200cبرنامه\u200cای",
+                max_length=255,
+                null=True,
+                verbose_name="عنوان",
+            ),
         ),
     ]

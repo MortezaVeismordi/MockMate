@@ -39,10 +39,10 @@ class CustomJWTAuthentication(JWTAuthentication):
         header = self.get_header(request)
 
         if header is None:
-            return ''  # یعنی 401 بده
+            return ""  # یعنی 401 بده
 
         raw_token = super().get_raw_token(header)
         if raw_token is None:
-            return ''
+            return ""
 
         return super().authenticate_header(request)

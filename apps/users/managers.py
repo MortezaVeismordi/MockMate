@@ -5,7 +5,6 @@ from django.utils.translation import gettext_lazy as _
 
 
 class CustomUserManager(BaseUserManager):
-
     def create_user(self, phone_number: str, password=None, **extra_fields):
         if not phone_number:
             raise ValueError(_("شماره تلفن الزامی است"))

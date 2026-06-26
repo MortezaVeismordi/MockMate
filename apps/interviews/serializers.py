@@ -17,15 +17,17 @@ from .models import (
 #  Question Serializers (nested)
 # =============================================================================
 
+
 class SessionQuestionBriefSerializer(serializers.ModelSerializer):
     """
     نمایش مختصر سوال داخل session — بدون reference_answer
     """
-    question_type_display    = serializers.CharField(
+
+    question_type_display = serializers.CharField(
         source="question.get_question_type_display",
         read_only=True,
     )
-    seniority_level_display  = serializers.CharField(
+    seniority_level_display = serializers.CharField(
         source="question.get_seniority_level_display",
         read_only=True,
     )
@@ -36,7 +38,7 @@ class SessionQuestionBriefSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model  = SessionQuestion
+        model = SessionQuestion
         fields = [
             "order",
             "status",
@@ -51,24 +53,25 @@ class SessionQuestionDetailSerializer(serializers.ModelSerializer):
     نمایش کامل سوال فعلی — برای نمایش به کاربر
     reference_answer و criteria مخفی هستن
     """
-    id             = serializers.IntegerField(source="question.id", read_only=True)
-    title          = serializers.CharField(source="question.title",          read_only=True)
-    body           = serializers.CharField(source="question.body",           read_only=True)
+
+    id = serializers.IntegerField(source="question.id", read_only=True)
+    title = serializers.CharField(source="question.title", read_only=True)
+    body = serializers.CharField(source="question.body", read_only=True)
     estimated_time = serializers.IntegerField(source="question.estimated_time", read_only=True)
-    code_template  = serializers.CharField(
+    code_template = serializers.CharField(
         source="question.code_template",
         read_only=True,
         allow_null=True,
     )
-    question_type  = serializers.CharField(source="question.question_type",  read_only=True)
-    categories     = serializers.StringRelatedField(
+    question_type = serializers.CharField(source="question.question_type", read_only=True)
+    categories = serializers.StringRelatedField(
         source="question.categories",
         many=True,
         read_only=True,
     )
 
     class Meta:
-        model  = SessionQuestion
+        model = SessionQuestion
         fields = [
             "id",
             "order",
@@ -86,10 +89,12 @@ class SessionQuestionDetailSerializer(serializers.ModelSerializer):
 #  Session Serializers
 # =============================================================================
 
+
 class InterviewSessionCreateSerializer(serializers.Serializer):
     """
     ورودی ساختن session جدید — Onboarding wizard
     """
+
     target_position = serializers.CharField(
         max_length=150,
         error_messages={"required": _("موقعیت شغلی الزامی است.")},
@@ -120,17 +125,12 @@ class InterviewSessionCreateSerializer(serializers.Serializer):
     def validate_focus_topics(self, value: list) -> list:
         """چک میکنه topics معتبر هستن"""
         from apps.questions.models import QuestionCategory
+
         if value:
-            valid_slugs = set(
-                QuestionCategory.objects
-                .filter(slug__in=value)
-                .values_list("slug", flat=True)
-            )
+            valid_slugs = set(QuestionCategory.objects.filter(slug__in=value).values_list("slug", flat=True))
             invalid = set(value) - valid_slugs
             if invalid:
-                raise serializers.ValidationError(
-                    _(f"موضوعات نامعتبر: {', '.join(invalid)}")
-                )
+                raise serializers.ValidationError(_(f"موضوعات نامعتبر: {', '.join(invalid)}"))
         return value
 
 
@@ -138,7 +138,8 @@ class InterviewSessionListSerializer(serializers.ModelSerializer):
     """
     لیست مصاحبه‌های کاربر — کارت‌های داشبورد
     """
-    status_display          = serializers.CharField(
+
+    status_display = serializers.CharField(
         source="get_status_display",
         read_only=True,
     )
@@ -146,15 +147,15 @@ class InterviewSessionListSerializer(serializers.ModelSerializer):
         source="get_seniority_level_display",
         read_only=True,
     )
-    duration_minutes        = serializers.IntegerField(read_only=True)
-    progress_percentage     = serializers.FloatField(read_only=True)
-    avg_score               = serializers.FloatField(
+    duration_minutes = serializers.IntegerField(read_only=True)
+    progress_percentage = serializers.FloatField(read_only=True)
+    avg_score = serializers.FloatField(
         read_only=True,
         allow_null=True,
     )
 
     class Meta:
-        model  = InterviewSession
+        model = InterviewSession
         fields = [
             "uuid",
             "target_position",
@@ -175,7 +176,8 @@ class InterviewSessionDetailSerializer(serializers.ModelSerializer):
     """
     جزئیات کامل یه session — صفحه مصاحبه
     """
-    status_display          = serializers.CharField(
+
+    status_display = serializers.CharField(
         source="get_status_display",
         read_only=True,
     )
@@ -183,13 +185,13 @@ class InterviewSessionDetailSerializer(serializers.ModelSerializer):
         source="get_seniority_level_display",
         read_only=True,
     )
-    duration_minutes        = serializers.IntegerField(read_only=True)
-    progress_percentage     = serializers.FloatField(read_only=True)
-    is_active               = serializers.BooleanField(read_only=True)
-    current_question        = serializers.SerializerMethodField()
+    duration_minutes = serializers.IntegerField(read_only=True)
+    progress_percentage = serializers.FloatField(read_only=True)
+    is_active = serializers.BooleanField(read_only=True)
+    current_question = serializers.SerializerMethodField()
 
     class Meta:
-        model  = InterviewSession
+        model = InterviewSession
         fields = [
             "uuid",
             "target_position",
@@ -212,6 +214,7 @@ class InterviewSessionDetailSerializer(serializers.ModelSerializer):
 
     def get_current_question(self, obj: InterviewSession):
         from .selectors import SessionSelector
+
         sq = SessionSelector.get_current_question(obj)
         if sq:
             return SessionQuestionDetailSerializer(sq).data
@@ -222,11 +225,13 @@ class InterviewSessionDetailSerializer(serializers.ModelSerializer):
 #  Message Serializers
 # =============================================================================
 
+
 class InterviewMessageSerializer(serializers.ModelSerializer):
     """
     نمایش پیام‌های مکالمه — برای UI چت
     """
-    role_display         = serializers.CharField(
+
+    role_display = serializers.CharField(
         source="get_role_display",
         read_only=True,
     )
@@ -236,7 +241,7 @@ class InterviewMessageSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model  = InterviewMessage
+        model = InterviewMessage
         fields = [
             "id",
             "role",
@@ -255,16 +260,18 @@ class InterviewMessageSerializer(serializers.ModelSerializer):
 #  Answer Serializers
 # =============================================================================
 
+
 class SubmitAnswerSerializer(serializers.Serializer):
     """
     ورودی ثبت پاسخ کاربر
     """
-    answer_text     = serializers.CharField(
+
+    answer_text = serializers.CharField(
         min_length=10,
         max_length=5000,
         error_messages={
             "min_length": _("پاسخ حداقل ۱۰ کاراکتر باید داشته باشد."),
-            "required"  : _("متن پاسخ الزامی است."),
+            "required": _("متن پاسخ الزامی است."),
         },
     )
     answer_duration = serializers.IntegerField(
@@ -279,6 +286,7 @@ class SubmitFollowUpSerializer(serializers.Serializer):
     """
     ورودی پاسخ سوال تعقیبی
     """
+
     answer_text = serializers.CharField(
         min_length=5,
         max_length=5000,
@@ -289,23 +297,24 @@ class UserAnswerEvaluationSerializer(serializers.ModelSerializer):
     """
     نمایش نتیجه ارزیابی — بعد از graded شدن
     """
-    status_display  = serializers.CharField(
+
+    status_display = serializers.CharField(
         source="get_status_display",
         read_only=True,
     )
-    question_title  = serializers.CharField(
+    question_title = serializers.CharField(
         source="question.title",
         read_only=True,
     )
-    question_type   = serializers.CharField(
+    question_type = serializers.CharField(
         source="question.question_type",
         read_only=True,
     )
-    is_evaluated    = serializers.BooleanField(read_only=True)
-    passed          = serializers.BooleanField(read_only=True)
+    is_evaluated = serializers.BooleanField(read_only=True)
+    passed = serializers.BooleanField(read_only=True)
 
     class Meta:
-        model  = UserAnswer
+        model = UserAnswer
         fields = [
             "id",
             "question_title",
@@ -334,20 +343,22 @@ class UserAnswerEvaluationSerializer(serializers.ModelSerializer):
 #  Report Serializers
 # =============================================================================
 
+
 class InterviewReportSerializer(serializers.ModelSerializer):
     """
     گزارش کامل نهایی مصاحبه — صفحه کارنامه
     """
+
     seniority_level_display = serializers.CharField(
         source="get_seniority_level_display",
         read_only=True,
     )
-    duration_minutes        = serializers.IntegerField(read_only=True)
-    answers                 = serializers.SerializerMethodField()
-    stats                   = serializers.SerializerMethodField()
+    duration_minutes = serializers.IntegerField(read_only=True)
+    answers = serializers.SerializerMethodField()
+    stats = serializers.SerializerMethodField()
 
     class Meta:
-        model  = InterviewSession
+        model = InterviewSession
         fields = [
             "uuid",
             "target_position",
@@ -367,9 +378,11 @@ class InterviewReportSerializer(serializers.ModelSerializer):
 
     def get_answers(self, obj: InterviewSession):
         from .selectors import AnswerSelector
+
         answers = AnswerSelector.get_session_answers(obj)
         return UserAnswerEvaluationSerializer(answers, many=True).data
 
     def get_stats(self, obj: InterviewSession):
         from .selectors import InterviewStatsSelector
+
         return InterviewStatsSelector.get_session_stats(obj)

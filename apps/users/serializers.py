@@ -35,6 +35,7 @@ otp_code_validator = RegexValidator(
 #  Mixins
 # ═══════════════════════════════════════════════════════════════════
 
+
 class PhoneNormalizerMixin:
     """نرمال‌سازی شماره تلفن ایرانی."""
 
@@ -103,8 +104,8 @@ class SendOTPSerializer(PhoneNormalizerMixin, serializers.Serializer):
         help_text=_("مثال: 09123456789"),
     )
     purpose = serializers.ChoiceField(
-    choices=OTPCode.Purpose.choices,
-    label=_("هدف"),
+        choices=OTPCode.Purpose.choices,
+        label=_("هدف"),
     )
 
     def validate(self, attrs: dict) -> dict:
@@ -114,9 +115,7 @@ class SendOTPSerializer(PhoneNormalizerMixin, serializers.Serializer):
         # ── هدف reset: کاربر باید وجود داشته باشه
         if purpose == OTPCode.Purpose.RESET:
             if not User.objects.filter(phone_number=phone_number).exists():
-                raise serializers.ValidationError(
-                    {"phone_number": _("کاربری با این شماره یافت نشد")}
-                )
+                raise serializers.ValidationError({"phone_number": _("کاربری با این شماره یافت نشد")})
 
         # ── چک cooldown: آیا هنوز کد قبلی معتبره؟
         try:
@@ -131,11 +130,7 @@ class SendOTPSerializer(PhoneNormalizerMixin, serializers.Serializer):
                 remaining = latest_otp.remaining_seconds
                 if remaining > 90:  # اگه بیشتر از ۹۰ ثانیه مونده
                     raise serializers.ValidationError(
-                        {
-                            "phone_number": _(
-                                f"کد قبلی هنوز معتبره. {remaining} ثانیه صبر کنید"
-                            )
-                        }
+                        {"phone_number": _(f"کد قبلی هنوز معتبره. {remaining} ثانیه صبر کنید")}
                     )
         except (User.DoesNotExist, OTPCode.DoesNotExist):
             pass
@@ -178,9 +173,7 @@ class ResendOTPSerializer(PhoneNormalizerMixin, serializers.Serializer):
         try:
             user = User.objects.get(phone_number=phone_number)
         except User.DoesNotExist:
-            raise serializers.ValidationError(
-                {"phone_number": _("ابتدا باید درخواست ارسال OTP بدید")}
-            )
+            raise serializers.ValidationError({"phone_number": _("ابتدا باید درخواست ارسال OTP بدید")})
 
         # ── چک cooldown: حداقل ۶۰ ثانیه بین هر resend
         try:
@@ -193,23 +186,15 @@ class ResendOTPSerializer(PhoneNormalizerMixin, serializers.Serializer):
             min_interval = 60  # حداقل ۶۰ ثانیه
             if elapsed < min_interval:
                 wait = int(min_interval - elapsed)
-                raise serializers.ValidationError(
-                    {"phone_number": _(f"{wait} ثانیه تا ارسال مجدد صبر کنید")}
-                )
+                raise serializers.ValidationError({"phone_number": _(f"{wait} ثانیه تا ارسال مجدد صبر کنید")})
         except OTPCode.DoesNotExist:
-            raise serializers.ValidationError(
-                {"phone_number": _("ابتدا باید درخواست ارسال OTP بدید")}
-            )
+            raise serializers.ValidationError({"phone_number": _("ابتدا باید درخواست ارسال OTP بدید")})
 
         # ── چک سقف روزانه
         daily_count = OTPCode.get_daily_resend_count(user)
         if daily_count >= OTPCode.MAX_RESEND_PER_DAY:
             raise serializers.ValidationError(
-                {
-                    "phone_number": _(
-                        "تعداد درخواست OTP امروز به حد مجاز رسیده. فردا تلاش کنید"
-                    )
-                }
+                {"phone_number": _("تعداد درخواست OTP امروز به حد مجاز رسیده. فردا تلاش کنید")}
             )
 
         attrs["_user"] = user
@@ -217,9 +202,7 @@ class ResendOTPSerializer(PhoneNormalizerMixin, serializers.Serializer):
         return attrs
 
 
-class VerifyOTPSerializer(
-    PhoneNormalizerMixin, TokenGeneratorMixin, serializers.Serializer
-):
+class VerifyOTPSerializer(PhoneNormalizerMixin, TokenGeneratorMixin, serializers.Serializer):
     """
     POST /auth/verify-otp/
 
@@ -300,16 +283,15 @@ class RefreshTokenSerializer(serializers.Serializer):
         try:
             self._token = RefreshToken(value)
         except Exception:
-            raise serializers.ValidationError(
-                _("توکن نامعتبر یا منقضی شده است")
-            )
+            raise serializers.ValidationError(_("توکن نامعتبر یا منقضی شده است"))
         return value
 
     def to_representation(self, validated_data) -> dict:
-    # blacklist کردن token قدیمی
+        # blacklist کردن token قدیمی
         self._token.blacklist()
         # ساختن token کاملاً جدید برای همون user
         from apps.users.models import CustomUser
+
         user_id = self._token.payload.get("user_id")
         user = CustomUser.objects.get(phone_number=user_id)
         new_token = RefreshToken.for_user(user)
@@ -335,9 +317,7 @@ class LogoutSerializer(serializers.Serializer):
         try:
             self._token = RefreshToken(value)
         except Exception:
-            raise serializers.ValidationError(
-                _("توکن نامعتبر یا منقضی شده است")
-            )
+            raise serializers.ValidationError(_("توکن نامعتبر یا منقضی شده است"))
         return value
 
     def save(self) -> None:
@@ -345,9 +325,7 @@ class LogoutSerializer(serializers.Serializer):
             self._token.blacklist()
         except Exception as exc:
             logger.error("Logout blacklist error: %s", exc)
-            raise serializers.ValidationError(
-                _("خطا در خروج از سیستم")
-            )
+            raise serializers.ValidationError(_("خطا در خروج از سیستم"))
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -453,48 +431,36 @@ class UserMeSerializer(AvatarURLMixin, serializers.ModelSerializer):
             qs = qs.exclude(pk=self.instance.pk)
 
         if qs.exists():
-            raise serializers.ValidationError(
-                _("این ایمیل قبلاً ثبت شده است")
-            )
+            raise serializers.ValidationError(_("این ایمیل قبلاً ثبت شده است"))
         return value
 
     def validate_first_name(self, value: str) -> str:
         value = value.strip()
         if value and len(value) < 2:
-            raise serializers.ValidationError(
-                _("نام باید حداقل ۲ کاراکتر باشد")
-            )
+            raise serializers.ValidationError(_("نام باید حداقل ۲ کاراکتر باشد"))
         return value
 
     def validate_last_name(self, value: str) -> str:
         value = value.strip()
         if value and len(value) < 2:
-            raise serializers.ValidationError(
-                _("نام خانوادگی باید حداقل ۲ کاراکتر باشد")
-            )
+            raise serializers.ValidationError(_("نام خانوادگی باید حداقل ۲ کاراکتر باشد"))
         return value
 
     def validate_years_of_experience(self, value: int) -> int:
         if value is not None and (value < 0 or value > 50):
-            raise serializers.ValidationError(
-                _("سال‌های تجربه باید بین ۰ تا ۵۰ باشد")
-            )
+            raise serializers.ValidationError(_("سال‌های تجربه باید بین ۰ تا ۵۰ باشد"))
         return value
 
     def validate_skills(self, value: list) -> list:
         cleaned = list({skill.strip() for skill in value if skill.strip()})
         if len(cleaned) > 30:
-            raise serializers.ValidationError(
-                _("حداکثر ۳۰ مهارت مجاز است")
-            )
+            raise serializers.ValidationError(_("حداکثر ۳۰ مهارت مجاز است"))
         return sorted(cleaned)
 
     def validate_bio(self, value: str) -> str:
         value = value.strip()
         if len(value) > 500:
-            raise serializers.ValidationError(
-                _("بیوگرافی نباید بیشتر از ۵۰۰ کاراکتر باشد")
-            )
+            raise serializers.ValidationError(_("بیوگرافی نباید بیشتر از ۵۰۰ کاراکتر باشد"))
         return value
 
     # ── Cross-field Validation ─────────────────────
@@ -511,11 +477,7 @@ class UserMeSerializer(AvatarURLMixin, serializers.ModelSerializer):
 
         if exp_level and years is None:
             raise serializers.ValidationError(
-                {
-                    "years_of_experience": _(
-                        "با انتخاب سطح تجربه، سال‌های تجربه هم الزامی است"
-                    )
-                }
+                {"years_of_experience": _("با انتخاب سطح تجربه، سال‌های تجربه هم الزامی است")}
             )
 
         # سازگاری سطح با سال تجربه
@@ -529,12 +491,7 @@ class UserMeSerializer(AvatarURLMixin, serializers.ModelSerializer):
             min_y, max_y = level_year_map.get(exp_level, (0, 50))
             if not (min_y <= years <= max_y):
                 raise serializers.ValidationError(
-                    {
-                        "years_of_experience": _(
-                            f"برای سطح {exp_level}، تجربه باید بین "
-                            f"{min_y} تا {max_y} سال باشد"
-                        )
-                    }
+                    {"years_of_experience": _(f"برای سطح {exp_level}، تجربه باید بین " f"{min_y} تا {max_y} سال باشد")}
                 )
 
         return attrs
@@ -596,8 +553,6 @@ class CompleteProfileSerializer(serializers.ModelSerializer):
         choices=User.ExperienceLevel.choices,
     )
 
-
-
     class Meta:
         model = User
         fields = (
@@ -614,40 +569,30 @@ class CompleteProfileSerializer(serializers.ModelSerializer):
     def validate_first_name(self, value: str) -> str:
         value = value.strip()
         if len(value) < 2:
-            raise serializers.ValidationError(
-                _("نام باید حداقل ۲ کاراکتر باشد")
-            )
+            raise serializers.ValidationError(_("نام باید حداقل ۲ کاراکتر باشد"))
         return value
 
     def validate_last_name(self, value: str) -> str:
         value = value.strip()
         if len(value) < 2:
-            raise serializers.ValidationError(
-                _("نام خانوادگی باید حداقل ۲ کاراکتر باشد")
-            )
+            raise serializers.ValidationError(_("نام خانوادگی باید حداقل ۲ کاراکتر باشد"))
         return value
 
     def validate_years_of_experience(self, value: int) -> int:
         if value < 0 or value > 50:
-            raise serializers.ValidationError(
-                _("سال‌های تجربه باید بین ۰ تا ۵۰ باشد")
-            )
+            raise serializers.ValidationError(_("سال‌های تجربه باید بین ۰ تا ۵۰ باشد"))
         return value
 
     def validate_skills(self, value: list) -> list:
         cleaned = list({s.strip() for s in value if s.strip()})
         if not cleaned:
-            raise serializers.ValidationError(
-                _("حداقل یک مهارت الزامی است")
-            )
+            raise serializers.ValidationError(_("حداقل یک مهارت الزامی است"))
         return sorted(cleaned)
 
     def validate(self, attrs: dict) -> dict:
         # اگه پروفایل قبلاً کامل شده، اجازه نده
         if self.instance and self.instance.is_profile_complete:
-            raise serializers.ValidationError(
-                _("پروفایل شما قبلاً تکمیل شده. از ویرایش پروفایل استفاده کنید")
-            )
+            raise serializers.ValidationError(_("پروفایل شما قبلاً تکمیل شده. از ویرایش پروفایل استفاده کنید"))
         return attrs
 
     def update(self, instance, validated_data: dict):
@@ -685,14 +630,10 @@ class AvatarSerializer(serializers.ModelSerializer):
     def validate_avatar(self, image):
         max_bytes = self.MAX_SIZE_MB * 1024 * 1024
         if image.size > max_bytes:
-            raise serializers.ValidationError(
-                _(f"حجم تصویر نباید بیشتر از {self.MAX_SIZE_MB} مگابایت باشد")
-            )
+            raise serializers.ValidationError(_(f"حجم تصویر نباید بیشتر از {self.MAX_SIZE_MB} مگابایت باشد"))
 
         if image.content_type not in self.ALLOWED_TYPES:
-            raise serializers.ValidationError(
-                _("فرمت تصویر باید JPEG، PNG یا WebP باشد")
-            )
+            raise serializers.ValidationError(_("فرمت تصویر باید JPEG، PNG یا WebP باشد"))
 
         # چک ابعاد تصویر
         from PIL import Image as PILImage
@@ -701,19 +642,13 @@ class AvatarSerializer(serializers.ModelSerializer):
             img = PILImage.open(image)
             width, height = img.size
             if width > 2000 or height > 2000:
-                raise serializers.ValidationError(
-                    _("ابعاد تصویر نباید بیشتر از 2000x2000 پیکسل باشد")
-                )
+                raise serializers.ValidationError(_("ابعاد تصویر نباید بیشتر از 2000x2000 پیکسل باشد"))
             if width < 100 or height < 100:
-                raise serializers.ValidationError(
-                    _("ابعاد تصویر نباید کمتر از 100x100 پیکسل باشد")
-                )
+                raise serializers.ValidationError(_("ابعاد تصویر نباید کمتر از 100x100 پیکسل باشد"))
         except Exception as exc:
             if "ابعاد" in str(exc):
                 raise
-            raise serializers.ValidationError(
-                _("فایل آپلود شده یک تصویر معتبر نیست")
-            )
+            raise serializers.ValidationError(_("فایل آپلود شده یک تصویر معتبر نیست"))
 
         # برگردوندن pointer به ابتدا
         image.seek(0)
@@ -762,7 +697,6 @@ class DeleteAccountSerializer(serializers.Serializer):
         )
         if not result["success"]:
             raise serializers.ValidationError({"code": result["message"]})
-
 
         return attrs
 
@@ -844,9 +778,7 @@ class AdminUserListSerializer(AvatarURLMixin, serializers.ModelSerializer):
     def get_interview_count(self, obj) -> int:
         if hasattr(obj, "_interview_count"):
             return obj._interview_count
-        return getattr(
-            obj, "interview_sessions", obj.__class__.objects.none()
-        ).count()
+        return getattr(obj, "interview_sessions", obj.__class__.objects.none()).count()
 
 
 class AdminUserDetailSerializer(AvatarURLMixin, serializers.ModelSerializer):
@@ -905,30 +837,22 @@ class AdminUserDetailSerializer(AvatarURLMixin, serializers.ModelSerializer):
         request_user = self.context["request"].user
         if self.instance and self.instance.pk == request_user.pk:
             if "is_active" in attrs and not attrs["is_active"]:
-                raise serializers.ValidationError(
-                    {"is_active": _("نمیتوانید حساب خودتان را غیرفعال کنید")}
-                )
+                raise serializers.ValidationError({"is_active": _("نمیتوانید حساب خودتان را غیرفعال کنید")})
             if "is_staff" in attrs and not attrs["is_staff"]:
-                raise serializers.ValidationError(
-                    {"is_staff": _("نمیتوانید دسترسی ادمین خودتان را بردارید")}
-                )
+                raise serializers.ValidationError({"is_staff": _("نمیتوانید دسترسی ادمین خودتان را بردارید")})
         return attrs
 
     def get_otp_summary(self, obj) -> dict:
         otps = obj.otp_codes.all()
         total = otps.count()
-        last_24h = otps.filter(
-            created_at__gte=timezone.now() - timedelta(hours=24)
-        ).count()
+        last_24h = otps.filter(created_at__gte=timezone.now() - timedelta(hours=24)).count()
         return {
             "total": total,
             "last_24h": last_24h,
         }
 
     def get_interview_summary(self, obj) -> dict:
-        sessions = getattr(
-            obj, "interview_sessions", obj.__class__.objects.none()
-        )
+        sessions = getattr(obj, "interview_sessions", obj.__class__.objects.none())
         if hasattr(sessions, "count"):
             total = sessions.count()
         else:
@@ -955,15 +879,11 @@ class AdminSoftDeleteSerializer(serializers.Serializer):
         user = self.context["user_to_delete"]
 
         if user.is_superuser:
-            raise serializers.ValidationError(
-                _("حساب سوپریوزر قابل حذف نیست")
-            )
+            raise serializers.ValidationError(_("حساب سوپریوزر قابل حذف نیست"))
 
         request_user = self.context["request"].user
         if user.pk == request_user.pk:
-            raise serializers.ValidationError(
-                _("نمیتوانید حساب خودتان را حذف کنید")
-            )
+            raise serializers.ValidationError(_("نمیتوانید حساب خودتان را حذف کنید"))
 
         return attrs
 
@@ -1006,17 +926,11 @@ class AdminSuspendSerializer(serializers.Serializer):
         user = self.context["user_to_suspend"]
 
         if not user.is_active:
-            raise serializers.ValidationError(
-                _("کاربر از قبل غیرفعال است")
-            )
+            raise serializers.ValidationError(_("کاربر از قبل غیرفعال است"))
         if user.is_superuser:
-            raise serializers.ValidationError(
-                _("سوپریوزر قابل تعلیق نیست")
-            )
+            raise serializers.ValidationError(_("سوپریوزر قابل تعلیق نیست"))
         if user.pk == self.context["request"].user.pk:
-            raise serializers.ValidationError(
-                _("نمیتوانید خودتان را تعلیق کنید")
-            )
+            raise serializers.ValidationError(_("نمیتوانید خودتان را تعلیق کنید"))
 
         return attrs
 
@@ -1039,6 +953,7 @@ class AdminSuspendSerializer(serializers.Serializer):
         # Task برای رفع تعلیق خودکار
         try:
             from apps.notifications.tasks import auto_unsuspend_user
+
             auto_unsuspend_user.apply_async(
                 args=[user.pk],
                 countdown=duration * 3600,
@@ -1063,9 +978,7 @@ class AdminUnsuspendSerializer(serializers.Serializer):
         user = self.context["user_to_unsuspend"]
 
         if user.is_active:
-            raise serializers.ValidationError(
-                _("کاربر در حال حاضر فعال است")
-            )
+            raise serializers.ValidationError(_("کاربر در حال حاضر فعال است"))
 
         return attrs
 
@@ -1097,18 +1010,12 @@ class AdminBanSerializer(serializers.Serializer):
         user = self.context["user_to_ban"]
 
         if user.is_superuser:
-            raise serializers.ValidationError(
-                _("سوپریوزر قابل بن شدن نیست")
-            )
+            raise serializers.ValidationError(_("سوپریوزر قابل بن شدن نیست"))
         if user.pk == self.context["request"].user.pk:
-            raise serializers.ValidationError(
-                _("نمیتوانید خودتان را بن کنید")
-            )
+            raise serializers.ValidationError(_("نمیتوانید خودتان را بن کنید"))
         # چک نکنه دوباره بن بشه
         if user.phone_number.startswith("banned_"):
-            raise serializers.ValidationError(
-                _("این کاربر قبلاً بن شده است")
-            )
+            raise serializers.ValidationError(_("این کاربر قبلاً بن شده است"))
 
         return attrs
 
@@ -1180,6 +1087,7 @@ class OTPHistorySerializer(serializers.ModelSerializer):
 # ═══════════════════════════════════════════════════════════════════
 #                        STATS SERIALIZER
 # ═══════════════════════════════════════════════════════════════════
+
 
 # moved it to state selector for better performance and separation of concerns
 class AdminStatsSerializer(serializers.Serializer):
@@ -1296,27 +1204,21 @@ class AdminStatsSerializer(serializers.Serializer):
             "otp_stats": otp_stats,
         }
 
+
 class LoginWithPasswordSerializer(PhoneNormalizerMixin, serializers.Serializer):
     """اعتبارسنجی ورود کاربران با شماره موبایل و رمز عبور"""
+
     phone_number = serializers.CharField(validators=[phone_validator])
-    password = serializers.CharField(
-        write_only=True,
-        style={'input_type': 'password'},
-        label=_("رمز عبور")
-    )
+    password = serializers.CharField(write_only=True, style={"input_type": "password"}, label=_("رمز عبور"))
 
     def validate(self, attrs):
         # نرمال‌سازی شماره تلفن با استفاده از میکسین خودتان
-        phone_number = self.validate_phone_number(attrs.get('phone_number'))
-        password = attrs.get('password')
+        phone_number = self.validate_phone_number(attrs.get("phone_number"))
+        password = attrs.get("password")
 
         if phone_number and password:
             # جنگو در پشت صحنه از فیلد UNIQUE شما (phone_number) برای authenticate استفاده میکنه
-            user = authenticate(
-                request=self.context.get('request'),
-                username=phone_number,
-                password=password
-            )
+            user = authenticate(request=self.context.get("request"), username=phone_number, password=password)
 
             if not user:
                 raise serializers.ValidationError(_("شماره موبایل یا رمز عبور اشتباه است"))
@@ -1324,57 +1226,48 @@ class LoginWithPasswordSerializer(PhoneNormalizerMixin, serializers.Serializer):
             if not user.is_active:
                 raise serializers.ValidationError(_("حساب کاربری شما غیرفعال شده است"))
 
-            if getattr(user, 'is_banned', False):
+            if getattr(user, "is_banned", False):
                 raise serializers.ValidationError(_("حساب کاربری شما مسدود شده است"))
         else:
             raise serializers.ValidationError(_("ارسال شماره موبایل و رمز عبور الزامی است"))
 
-        attrs['user'] = user
+        attrs["user"] = user
         return attrs
-
 
 
 class SetPasswordSerializer(serializers.Serializer):
     """سریالایزر برای تعیین یا تغییر رمز عبور کاربر احراز هویت شده"""
+
     current_password = serializers.CharField(
-        style={'input_type': 'password'},
-        required=False,
-        allow_blank=True,
-        label=_("رمز عبور فعلی")
+        style={"input_type": "password"}, required=False, allow_blank=True, label=_("رمز عبور فعلی")
     )
     new_password = serializers.CharField(
         write_only=True,
-        style={'input_type': 'password'},
-        validators=[validate_password], # استفاده از ولیدیتورهای نیتیو جنگو
-        label=_("رمز عبور جدید")
+        style={"input_type": "password"},
+        validators=[validate_password],  # استفاده از ولیدیتورهای نیتیو جنگو
+        label=_("رمز عبور جدید"),
     )
     confirm_password = serializers.CharField(
-        write_only=True,
-        style={'input_type': 'password'},
-        label=_("تکرار رمز عبور جدید")
+        write_only=True, style={"input_type": "password"}, label=_("تکرار رمز عبور جدید")
     )
 
     def validate(self, attrs):
-        user = self.context['request'].user
-        current_password = attrs.get('current_password')
-        new_password = attrs.get('new_password')
-        confirm_password = attrs.get('confirm_password')
+        user = self.context["request"].user
+        current_password = attrs.get("current_password")
+        new_password = attrs.get("new_password")
+        confirm_password = attrs.get("confirm_password")
 
         # ۱. بررسی تطابق رمز عبور جدید و تکرار آن
         if new_password != confirm_password:
-            raise serializers.ValidationError({
-                "confirm_password": _("رمز عبور جدید و تکرار آن مطابقت ندارند")
-            })
+            raise serializers.ValidationError({"confirm_password": _("رمز عبور جدید و تکرار آن مطابقت ندارند")})
 
         # ۲. اگر کاربر از قبل رمز عبور دارد، وارد کردن رمز عبور فعلی الزامی است
         if user.has_usable_password():
             if not current_password:
-                raise serializers.ValidationError({
-                    "current_password": _("برای تغییر رمز عبور، وارد کردن رمز عبور فعلی الزامی است")
-                })
+                raise serializers.ValidationError(
+                    {"current_password": _("برای تغییر رمز عبور، وارد کردن رمز عبور فعلی الزامی است")}
+                )
             if not user.check_password(current_password):
-                raise serializers.ValidationError({
-                    "current_password": _("رمز عبور فعلی اشتباه است")
-                })
+                raise serializers.ValidationError({"current_password": _("رمز عبور فعلی اشتباه است")})
 
         return attrs

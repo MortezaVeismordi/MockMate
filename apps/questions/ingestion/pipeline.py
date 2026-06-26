@@ -8,6 +8,7 @@ from .devops_adapter import DevOpsExercisesAdapter
 
 logger = logging.getLogger(__name__)
 
+
 class QuestionIngestionPipeline:
     """
     ارکستراتور و مدیریت‌کننده کلان خط لوله پورت داده‌ها از گیت‌هاب.
@@ -16,16 +17,16 @@ class QuestionIngestionPipeline:
 
     # مپ کردن نام‌های ورودی ترمینال به ریپوزیوری‌های واقعی گیت‌هاب
     REPO_REGISTRY = {
-        'devops': {
-            'url': 'https://github.com/bregman-arie/devops-exercises.git',
-            'dir_name': 'devops-exercises',
-            'adapter_class': DevOpsExercisesAdapter
+        "devops": {
+            "url": "https://github.com/bregman-arie/devops-exercises.git",
+            "dir_name": "devops-exercises",
+            "adapter_class": DevOpsExercisesAdapter,
         },
-        'awesome': {
-            'url': 'https://github.com/0xAX/linux-insides.git',  # به عنوان نمونه برای awesome
-            'dir_name': 'awesome-questions',
-            'adapter_class': None  # بعداً تکمیل می‌شود
-        }
+        "awesome": {
+            "url": "https://github.com/0xAX/linux-insides.git",  # به عنوان نمونه برای awesome
+            "dir_name": "awesome-questions",
+            "adapter_class": None,  # بعداً تکمیل می‌شود
+        },
     }
 
     def __init__(
@@ -34,7 +35,7 @@ class QuestionIngestionPipeline:
         limit: Optional[int] = None,
         sub_path: Optional[str] = None,
         category: Optional[str] = None,
-        level: Optional[str] = None
+        level: Optional[str] = None,
     ):
         self.adapter_name = adapter_name.lower()
         self.limit = limit
@@ -48,8 +49,8 @@ class QuestionIngestionPipeline:
         self.repo_config = self.REPO_REGISTRY[self.adapter_name]
 
         # تعیین پوشه محلی برای دانلود ریپوها (داخل کانتینر در مسیر /app/downloads)
-        self.base_download_dir = os.path.join(os.getcwd(), 'downloads')
-        self.local_repo_path = os.path.join(self.base_download_dir, self.repo_config['dir_name'])
+        self.base_download_dir = os.path.join(os.getcwd(), "downloads")
+        self.local_repo_path = os.path.join(self.base_download_dir, self.repo_config["dir_name"])
 
     def _setup_repository(self):
         """
@@ -63,8 +64,10 @@ class QuestionIngestionPipeline:
             logger.info(f"Trying to clone repository via Git: {self.repo_config['url']}...")
             try:
                 subprocess.run(
-                    ['git', 'clone', '--depth', '1', self.repo_config['url'], self.local_repo_path],
-                    check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                    ["git", "clone", "--depth", "1", self.repo_config["url"], self.local_repo_path],
+                    check=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
                 )
                 logger.info("Git clone completed successfully.")
             except subprocess.CalledProcessError:
@@ -81,24 +84,23 @@ class QuestionIngestionPipeline:
         import zipfile
 
         # تبدیل آدرس ریپو به لینک دانلود مستقیم زیپ از گیت‌هاب
-        zip_url = self.repo_config['url'].replace('.git', '/archive/refs/heads/master.zip')
+        zip_url = self.repo_config["url"].replace(".git", "/archive/refs/heads/master.zip")
         # در برخی ریپوها شاخه اصلی main است
-        if 'devops-exercises' in zip_url:
-            zip_url = self.repo_config['url'].replace('.git', '/archive/refs/heads/master.zip')
+        if "devops-exercises" in zip_url:
+            zip_url = self.repo_config["url"].replace(".git", "/archive/refs/heads/master.zip")
 
-        temp_zip_path = os.path.join(self.base_download_dir, 'repo.zip')
-        extracted_temp_dir = os.path.join(self.base_download_dir, 'temp_extracted')
+        temp_zip_path = os.path.join(self.base_download_dir, "repo.zip")
+        extracted_temp_dir = os.path.join(self.base_download_dir, "temp_extracted")
 
         logger.info(f"Downloading ZIP fallback from: {zip_url}")
         try:
             # استفاده از curl بومی داخل کانتینر (که قبلا در داکرفایل نصب کردیم)
             subprocess.run(
-                ['curl', '-L', zip_url, '-o', temp_zip_path],
-                check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                ["curl", "-L", zip_url, "-o", temp_zip_path], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
 
             logger.info("Extracting ZIP archive...")
-            with zipfile.ZipFile(temp_zip_path, 'r') as zip_ref:
+            with zipfile.ZipFile(temp_zip_path, "r") as zip_ref:
                 zip_ref.extractall(extracted_temp_dir)
 
             # گیت‌هاب پوشه را با نام ریپو + اسم برانچ اکسترکت می‌کند (مثلا devops-exercises-master)
@@ -133,7 +135,7 @@ class QuestionIngestionPipeline:
             logger.error("Skipping repository setup due to git error, trying to parse existing workspace...")
 
         # ۲. یافتن آداپتور متناظر (Factory Pattern)
-        adapter_class = self.repo_config['adapter_class']
+        adapter_class = self.repo_config["adapter_class"]
         if not adapter_class:
             logger.error(f"Adapter class for '{self.adapter_name}' is not implemented yet!")
             return 0
@@ -144,7 +146,7 @@ class QuestionIngestionPipeline:
             limit=self.limit,
             sub_path=self.sub_path,
             category=self.category,
-            level=self.level
+            level=self.level,
         )
 
         # ۴. جادوی اصلی: سپردن کار به لایه لودر کلاس پایه

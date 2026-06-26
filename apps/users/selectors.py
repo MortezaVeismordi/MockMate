@@ -69,11 +69,7 @@ class UserSelector:
         مناسب برای Admin Detail View.
         """
         try:
-            return (
-                User.objects
-                .prefetch_related("otp_codes", "groups", "user_permissions")
-                .get(pk=user_id)
-            )
+            return User.objects.prefetch_related("otp_codes", "groups", "user_permissions").get(pk=user_id)
         except User.DoesNotExist:
             return None
 
@@ -132,8 +128,7 @@ class UserSelector:
         مناسب برای Admin List View.
         """
         return (
-            User.objects
-            .annotate(
+            User.objects.annotate(
                 _otp_count=Count("otp_codes"),
                 _full_name=Case(
                     When(
@@ -150,10 +145,7 @@ class UserSelector:
                 ),
                 _is_profile_complete=Case(
                     When(
-                        Q(first_name__gt="")
-                        & Q(last_name__gt="")
-                        & Q(job_title__gt="")
-                        & Q(experience_level__gt=""),
+                        Q(first_name__gt="") & Q(last_name__gt="") & Q(job_title__gt="") & Q(experience_level__gt=""),
                         then=Value(True),
                     ),
                     default=Value(False),
@@ -161,11 +153,19 @@ class UserSelector:
                 ),
             )
             .only(
-                "id", "phone_number", "email",
-                "first_name", "last_name", "avatar",
-                "job_title", "experience_level",
-                "is_active", "is_staff", "is_phone_verified",
-                "date_joined", "last_login",
+                "id",
+                "phone_number",
+                "email",
+                "first_name",
+                "last_name",
+                "avatar",
+                "job_title",
+                "experience_level",
+                "is_active",
+                "is_staff",
+                "is_phone_verified",
+                "date_joined",
+                "last_login",
             )
             .order_by("-date_joined")
         )
@@ -188,18 +188,12 @@ class UserSelector:
     @staticmethod
     def get_users_with_complete_profile() -> QuerySet:
         """کاربرانی که پروفایل‌شون کامله."""
-        return (
-            UserSelector.get_all_users()
-            .filter(_is_profile_complete=True)
-        )
+        return UserSelector.get_all_users().filter(_is_profile_complete=True)
 
     @staticmethod
     def get_users_with_incomplete_profile() -> QuerySet:
         """کاربرانی که پروفایل‌شون ناقصه."""
-        return (
-            UserSelector.get_all_users()
-            .filter(_is_profile_complete=False, is_active=True)
-        )
+        return UserSelector.get_all_users().filter(_is_profile_complete=False, is_active=True)
 
     # ──────────────────────────────────────────
     #  Filtered Queries
@@ -208,10 +202,7 @@ class UserSelector:
     @staticmethod
     def get_users_by_experience(level: str) -> QuerySet:
         """فیلتر بر اساس سطح تجربه."""
-        return (
-            UserSelector.get_active_users()
-            .filter(experience_level=level)
-        )
+        return UserSelector.get_active_users().filter(experience_level=level)
 
     @staticmethod
     def get_users_by_skill(skill: str) -> QuerySet:
@@ -219,10 +210,7 @@ class UserSelector:
         کاربرانی که یک مهارت خاص دارن.
         skills فیلد JSONField هست.
         """
-        return (
-            UserSelector.get_active_users()
-            .filter(skills__contains=[skill])
-        )
+        return UserSelector.get_active_users().filter(skills__contains=[skill])
 
     @staticmethod
     def search_users(query: str) -> QuerySet:
@@ -230,15 +218,12 @@ class UserSelector:
         if not query or len(query) < 2:
             return User.objects.none()
 
-        return (
-            UserSelector.get_all_users()
-            .filter(
-                Q(phone_number__icontains=query)
-                | Q(first_name__icontains=query)
-                | Q(last_name__icontains=query)
-                | Q(email__icontains=query)
-                | Q(job_title__icontains=query)
-            )
+        return UserSelector.get_all_users().filter(
+            Q(phone_number__icontains=query)
+            | Q(first_name__icontains=query)
+            | Q(last_name__icontains=query)
+            | Q(email__icontains=query)
+            | Q(job_title__icontains=query)
         )
 
     # ──────────────────────────────────────────
@@ -248,16 +233,16 @@ class UserSelector:
     @staticmethod
     def get_new_users_since(since: timezone) -> QuerySet:
         """کاربران ثبت‌نام‌شده از یک تاریخ مشخص."""
-        return (
-            UserSelector.get_all_users()
-            .filter(date_joined__gte=since)
-        )
+        return UserSelector.get_all_users().filter(date_joined__gte=since)
 
     @staticmethod
     def get_new_users_today() -> QuerySet:
         """کاربران ثبت‌نام‌شده امروز."""
         today = timezone.now().replace(
-            hour=0, minute=0, second=0, microsecond=0,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
         )
         return UserSelector.get_new_users_since(today)
 
@@ -266,7 +251,10 @@ class UserSelector:
         """کاربران ثبت‌نام‌شده این هفته."""
         now = timezone.now()
         week_start = now.replace(
-            hour=0, minute=0, second=0, microsecond=0,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
         ) - timedelta(days=now.weekday())
         return UserSelector.get_new_users_since(week_start)
 
@@ -274,7 +262,11 @@ class UserSelector:
     def get_new_users_this_month() -> QuerySet:
         """کاربران ثبت‌نام‌شده این ماه."""
         month_start = timezone.now().replace(
-            day=1, hour=0, minute=0, second=0, microsecond=0,
+            day=1,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
         )
         return UserSelector.get_new_users_since(month_start)
 
@@ -285,22 +277,13 @@ class UserSelector:
         مناسب برای ارسال نوتیفیکیشن بازگشت.
         """
         threshold = timezone.now() - timedelta(days=days)
-        return (
-            UserSelector.get_active_users()
-            .filter(
-                Q(last_login__lt=threshold)
-                | Q(last_login__isnull=True)
-            )
-        )
+        return UserSelector.get_active_users().filter(Q(last_login__lt=threshold) | Q(last_login__isnull=True))
 
     @staticmethod
     def get_recently_active(hours: int = 24) -> QuerySet:
         """کاربرانی که اخیراً فعال بودن."""
         since = timezone.now() - timedelta(hours=hours)
-        return (
-            UserSelector.get_active_users()
-            .filter(last_login__gte=since)
-        )
+        return UserSelector.get_active_users().filter(last_login__gte=since)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -325,15 +308,11 @@ class OTPSelector:
     ) -> Optional[OTPCode]:
         """آخرین OTP فعال (استفاده‌نشده و منقضی‌نشده)."""
         try:
-            otp = (
-                OTPCode.objects
-                .filter(
-                    user=user,
-                    purpose=purpose,
-                    is_used=False,
-                )
-                .latest("created_at")
-            )
+            otp = OTPCode.objects.filter(
+                user=user,
+                purpose=purpose,
+                is_used=False,
+            ).latest("created_at")
             if otp.is_valid:
                 return otp
             return None
@@ -347,11 +326,7 @@ class OTPSelector:
     ) -> Optional[OTPCode]:
         """آخرین OTP (فعال یا غیرفعال)."""
         try:
-            return (
-                OTPCode.objects
-                .filter(user=user, purpose=purpose)
-                .latest("created_at")
-            )
+            return OTPCode.objects.filter(user=user, purpose=purpose).latest("created_at")
         except OTPCode.DoesNotExist:
             return None
 
@@ -429,12 +404,7 @@ class OTPSelector:
         limit: int = None,
     ) -> QuerySet:
         """تاریخچه OTP یک کاربر."""
-        qs = (
-            OTPCode.objects
-            .filter(user_id=user_id)
-            .select_related("user")
-            .order_by("-created_at")
-        )
+        qs = OTPCode.objects.filter(user_id=user_id).select_related("user").order_by("-created_at")
         if limit:
             qs = qs[:limit]
         return qs
@@ -450,19 +420,14 @@ class OTPSelector:
     @staticmethod
     def get_all_otps() -> QuerySet:
         """همه OTPها — برای ادمین."""
-        return (
-            OTPCode.objects
-            .select_related("user")
-            .order_by("-created_at")
-        )
+        return OTPCode.objects.select_related("user").order_by("-created_at")
 
     @staticmethod
     def get_failed_otps(hours: int = 24) -> QuerySet:
         """OTPهایی که تلاش ناموفق داشتن (مشکوک به brute force)."""
         since = timezone.now() - timedelta(hours=hours)
         return (
-            OTPCode.objects
-            .filter(
+            OTPCode.objects.filter(
                 created_at__gte=since,
                 failed_attempts__gt=0,
             )
@@ -481,8 +446,7 @@ class OTPSelector:
         """
         since = timezone.now() - timedelta(hours=hours)
         return (
-            OTPCode.objects
-            .filter(
+            OTPCode.objects.filter(
                 created_at__gte=since,
                 ip_address__isnull=False,
             )
@@ -531,13 +495,16 @@ class StatsSelector:
                 ),
             ),
             new_today=Count(
-                "id", filter=Q(date_joined__gte=today),
+                "id",
+                filter=Q(date_joined__gte=today),
             ),
             new_this_week=Count(
-                "id", filter=Q(date_joined__gte=week_start),
+                "id",
+                filter=Q(date_joined__gte=week_start),
             ),
             new_this_month=Count(
-                "id", filter=Q(date_joined__gte=month_start),
+                "id",
+                filter=Q(date_joined__gte=month_start),
             ),
         )
 
@@ -562,7 +529,10 @@ class StatsSelector:
     def get_otp_stats() -> dict:
         """آمار OTP در یک کوئری."""
         today = timezone.now().replace(
-            hour=0, minute=0, second=0, microsecond=0,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
         )
 
         agg = OTPCode.objects.aggregate(
@@ -574,7 +544,8 @@ class StatsSelector:
                 filter=Q(created_at__gte=today, is_used=True),
             ),
             total_failed=Count(
-                "id", filter=Q(failed_attempts__gt=0),
+                "id",
+                filter=Q(failed_attempts__gt=0),
             ),
         )
 

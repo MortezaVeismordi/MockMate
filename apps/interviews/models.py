@@ -17,23 +17,23 @@ from apps.questions.models import Question
 #  Interview Session
 # ─────────────────────────────────────────────────────────────────────────────
 
-class InterviewSession(models.Model):
 
+class InterviewSession(models.Model):
     class Status(models.TextChoices):
-        SETUP       = "setup",       _("در حال تنظیم")
-        INTRO       = "intro",       _("معارفه")
+        SETUP = "setup", _("در حال تنظیم")
+        INTRO = "intro", _("معارفه")
         QUESTIONING = "questioning", _("در حال سوال")
-        DRILLING    = "drilling",    _("سوال تعقیبی")
-        WRAP_UP     = "wrap_up",     _("جمع‌بندی")
-        COMPLETED   = "completed",   _("تکمیل شده")
-        ABANDONED   = "abandoned",   _("رها شده")
+        DRILLING = "drilling", _("سوال تعقیبی")
+        WRAP_UP = "wrap_up", _("جمع‌بندی")
+        COMPLETED = "completed", _("تکمیل شده")
+        ABANDONED = "abandoned", _("رها شده")
 
     class SeniorityLevel(models.TextChoices):
-        INTERN    = "intern",    _("کارآموز")
-        JUNIOR    = "junior",    _("جونیور")
+        INTERN = "intern", _("کارآموز")
+        JUNIOR = "junior", _("جونیور")
         MID_LEVEL = "mid_level", _("میدلول")
-        SENIOR    = "senior",    _("سنیور")
-        LEAD      = "lead",      _("لید")
+        SENIOR = "senior", _("سنیور")
+        LEAD = "lead", _("لید")
 
     # ── شناسه یکتا (برای URL امن) ─────────────────────────────────────────
     uuid = models.UUIDField(
@@ -135,11 +135,11 @@ class InterviewSession(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("زمان بروزرسانی"))
 
     class Meta:
-        verbose_name        = _("جلسه مصاحبه")
+        verbose_name = _("جلسه مصاحبه")
         verbose_name_plural = _("جلسات مصاحبه")
-        db_table            = "interview_sessions"
-        ordering            = ["-created_at"]
-        indexes             = [
+        db_table = "interview_sessions"
+        ordering = ["-created_at"]
+        indexes = [
             models.Index(fields=["user", "status"]),
             models.Index(fields=["user", "created_at"]),
         ]
@@ -172,14 +172,14 @@ class InterviewSession(models.Model):
 
     # ── Methods ───────────────────────────────────────────────────────────
     VALID_TRANSITIONS = {
-    Status.SETUP:       [Status.INTRO, Status.ABANDONED],
-    Status.INTRO:       [Status.QUESTIONING, Status.ABANDONED],
-    Status.QUESTIONING: [Status.DRILLING, Status.WRAP_UP, Status.ABANDONED],
-    Status.DRILLING:    [Status.QUESTIONING, Status.WRAP_UP, Status.ABANDONED],
-    Status.WRAP_UP:     [Status.COMPLETED, Status.ABANDONED],
-    Status.COMPLETED:   [],
-    Status.ABANDONED:   [],
-}
+        Status.SETUP: [Status.INTRO, Status.ABANDONED],
+        Status.INTRO: [Status.QUESTIONING, Status.ABANDONED],
+        Status.QUESTIONING: [Status.DRILLING, Status.WRAP_UP, Status.ABANDONED],
+        Status.DRILLING: [Status.QUESTIONING, Status.WRAP_UP, Status.ABANDONED],
+        Status.WRAP_UP: [Status.COMPLETED, Status.ABANDONED],
+        Status.COMPLETED: [],
+        Status.ABANDONED: [],
+    }
 
     def transition_to(self, new_status: str) -> None:
         allowed = self.VALID_TRANSITIONS.get(self.status, [])
@@ -203,28 +203,28 @@ class InterviewSession(models.Model):
 #  ترتیب و وضعیت هر سوال داخل session
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class SessionQuestion(models.Model):
-
     class QuestionStatus(models.TextChoices):
-        PENDING   = "pending",   _("در انتظار")
-        ACTIVE    = "active",    _("فعال")
-        ANSWERED  = "answered",  _("پاسخ داده شده")
-        SKIPPED   = "skipped",   _("رد شده")
+        PENDING = "pending", _("در انتظار")
+        ACTIVE = "active", _("فعال")
+        ANSWERED = "answered", _("پاسخ داده شده")
+        SKIPPED = "skipped", _("رد شده")
 
-    session  = models.ForeignKey(
+    session = models.ForeignKey(
         InterviewSession,
         on_delete=models.CASCADE,
         related_name="session_questions",
     )
     question = models.ForeignKey(
         Question,
-        on_delete=models.PROTECT,   # سوال حذف نمیشه اگه در session باشه
+        on_delete=models.PROTECT,  # سوال حذف نمیشه اگه در session باشه
         related_name="session_entries",
     )
-    order    = models.PositiveSmallIntegerField(
+    order = models.PositiveSmallIntegerField(
         verbose_name=_("ترتیب"),
     )
-    status   = models.CharField(
+    status = models.CharField(
         max_length=20,
         choices=QuestionStatus.choices,
         default=QuestionStatus.PENDING,
@@ -232,11 +232,11 @@ class SessionQuestion(models.Model):
     )
 
     class Meta:
-        verbose_name        = _("سوال جلسه")
+        verbose_name = _("سوال جلسه")
         verbose_name_plural = _("سوالات جلسه")
-        db_table            = "session_questions"
-        ordering            = ["order"]
-        unique_together     = [("session", "question"), ("session", "order")]
+        db_table = "session_questions"
+        ordering = ["order"]
+        unique_together = [("session", "question"), ("session", "order")]
 
     def __str__(self):
         return f"Session {self.session_id} | Q{self.order}: {self.question}"
@@ -247,30 +247,30 @@ class SessionQuestion(models.Model):
 #  تاریخچه کامل مکالمه (برای LLM context)
 # ─────────────────────────────────────────────────────────────────────────────
 
-class InterviewMessage(models.Model):
 
+class InterviewMessage(models.Model):
     class Role(models.TextChoices):
-        SYSTEM    = "system",    _("سیستم")
+        SYSTEM = "system", _("سیستم")
         ASSISTANT = "assistant", _("مصاحبه‌کننده")
-        USER      = "user",      _("کاربر")
+        USER = "user", _("کاربر")
 
     class MessageType(models.TextChoices):
-        GREETING     = "greeting",     _("خوش‌آمدگویی")
-        QUESTION     = "question",     _("سوال اصلی")
-        FOLLOW_UP    = "follow_up",    _("سوال تعقیبی")
-        USER_ANSWER  = "user_answer",  _("پاسخ کاربر")
-        FEEDBACK     = "feedback",     _("بازخورد")
-        TRANSITION   = "transition",   _("انتقال بین سوالات")
-        WRAP_UP      = "wrap_up",      _("جمع‌بندی")
+        GREETING = "greeting", _("خوش‌آمدگویی")
+        QUESTION = "question", _("سوال اصلی")
+        FOLLOW_UP = "follow_up", _("سوال تعقیبی")
+        USER_ANSWER = "user_answer", _("پاسخ کاربر")
+        FEEDBACK = "feedback", _("بازخورد")
+        TRANSITION = "transition", _("انتقال بین سوالات")
+        WRAP_UP = "wrap_up", _("جمع‌بندی")
         SYSTEM_EVENT = "system_event", _("رویداد سیستمی")
 
-    session      = models.ForeignKey(
+    session = models.ForeignKey(
         InterviewSession,
         on_delete=models.CASCADE,
         related_name="messages",
         verbose_name=_("جلسه"),
     )
-    role         = models.CharField(
+    role = models.CharField(
         max_length=20,
         choices=Role.choices,
         verbose_name=_("نقش"),
@@ -281,10 +281,10 @@ class InterviewMessage(models.Model):
         default=MessageType.USER_ANSWER,
         verbose_name=_("نوع پیام"),
     )
-    content      = models.TextField(
+    content = models.TextField(
         verbose_name=_("محتوا"),
     )
-    turn_number  = models.PositiveSmallIntegerField(
+    turn_number = models.PositiveSmallIntegerField(
         verbose_name=_("شماره نوبت"),
     )
 
@@ -313,11 +313,11 @@ class InterviewMessage(models.Model):
     )
 
     class Meta:
-        verbose_name        = _("پیام مصاحبه")
+        verbose_name = _("پیام مصاحبه")
         verbose_name_plural = _("پیام‌های مصاحبه")
-        db_table            = "interview_messages"
-        ordering            = ["turn_number"]
-        indexes             = [
+        db_table = "interview_messages"
+        ordering = ["turn_number"]
+        indexes = [
             models.Index(fields=["session", "turn_number"]),
             models.Index(fields=["session", "role"]),
         ]
@@ -331,21 +331,21 @@ class InterviewMessage(models.Model):
 #  ترکیب مدل تو + مدل پیشنهادی من
 # ─────────────────────────────────────────────────────────────────────────────
 
-class UserAnswer(models.Model):
 
+class UserAnswer(models.Model):
     class Status(models.TextChoices):
         PENDING = "pending", _("در انتظار تصحیح")
-        GRADED  = "graded",  _("تصحیح شده")
-        FAILED  = "failed",  _("خطا در تصحیح")
+        GRADED = "graded", _("تصحیح شده")
+        FAILED = "failed", _("خطا در تصحیح")
 
     # ── روابط ────────────────────────────────────────────────────────────
-    session  = models.ForeignKey(
+    session = models.ForeignKey(
         InterviewSession,
         on_delete=models.CASCADE,
         related_name="answers",
         verbose_name=_("جلسه"),
     )
-    user     = models.ForeignKey(
+    user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="answers",
@@ -359,7 +359,7 @@ class UserAnswer(models.Model):
     )
 
     # ── پاسخ کاربر ───────────────────────────────────────────────────────
-    answer_text     = models.TextField(
+    answer_text = models.TextField(
         verbose_name=_("متن پاسخ"),
     )
     answer_duration = models.PositiveIntegerField(
@@ -396,22 +396,22 @@ class UserAnswer(models.Model):
         blank=True,
         verbose_name=_("دقت فنی"),
     )
-    strengths          = models.JSONField(
+    strengths = models.JSONField(
         default=list,
         blank=True,
         verbose_name=_("نقاط قوت"),
     )
-    weaknesses         = models.JSONField(
+    weaknesses = models.JSONField(
         default=list,
         blank=True,
         verbose_name=_("نقاط ضعف"),
     )
-    missing_keywords   = models.JSONField(
+    missing_keywords = models.JSONField(
         default=list,
         blank=True,
         verbose_name=_("کلیدواژه‌های جامانده"),
     )
-    feedback           = models.TextField(
+    feedback = models.TextField(
         blank=True,
         verbose_name=_("بازخورد تشریحی"),
     )
@@ -432,23 +432,23 @@ class UserAnswer(models.Model):
     )
 
     # ── زمان‌بندی ─────────────────────────────────────────────────────────
-    created_at  = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان ایجاد"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان ایجاد"))
     evaluated_at = models.DateTimeField(
         null=True,
         blank=True,
         verbose_name=_("زمان ارزیابی"),
     )
-    updated_at  = models.DateTimeField(auto_now=True,     verbose_name=_("زمان بروزرسانی"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("زمان بروزرسانی"))
 
     class Meta:
-        verbose_name        = _("پاسخ کاربر")
+        verbose_name = _("پاسخ کاربر")
         verbose_name_plural = _("پاسخ‌های کاربران")
-        db_table            = "user_answers"
-        ordering            = ["-created_at"]
-        unique_together     = [("session", "question")]  # هر سوال فقط یه پاسخ در هر session
-        indexes             = [
+        db_table = "user_answers"
+        ordering = ["-created_at"]
+        unique_together = [("session", "question")]  # هر سوال فقط یه پاسخ در هر session
+        indexes = [
             models.Index(fields=["session", "status"]),
-            models.Index(fields=["user",    "status"]),
+            models.Index(fields=["user", "status"]),
         ]
 
     def __str__(self):

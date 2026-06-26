@@ -26,11 +26,13 @@ logger = logging.getLogger(__name__)
 # ۱. اندپوینت‌های بخش کاربر / داوطلب (Candidate Endpoints)
 # =====================================================================
 
+
 class QuestionListAPI(APIView):
     """
     اندپوینت ۱: مشاهده و فیلتر بانک سوالات عمومی توسط داوطلبان.
     دسترسی: عمومی (بدون نیاز به پین)، همراه با Pagination اجباری.
     """
+
     permission_classes = [IsAuthenticated]
 
     class ApiPagination(LimitOffsetPagination):
@@ -38,15 +40,11 @@ class QuestionListAPI(APIView):
         max_limit = 50
 
     def get(self, request):
-        category_slug = request.query_params.get('category')
-        seniority_level = request.query_params.get('seniority')
+        category_slug = request.query_params.get("category")
+        seniority_level = request.query_params.get("seniority")
 
         # واکشی داده‌های تصفیه شده از لایه سلکتور
-        questions = question_list(
-            category_slug=category_slug,
-            seniority_level=seniority_level,
-            is_active=True
-        )
+        questions = question_list(category_slug=category_slug, seniority_level=seniority_level, is_active=True)
 
         paginator = self.ApiPagination()
         page = paginator.paginate_queryset(questions, request, view=self)
@@ -63,6 +61,7 @@ class QuestionDetailAPI(APIView):
     """
     اندپوینت ۲: مشاهده جزییات غیرحساس یک سوال خاص برای داوطلب.
     """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, id):
@@ -75,12 +74,13 @@ class RandomInterviewSetAPI(APIView):
     """
     اندپوینت ۳: چیدن پکت مصاحبه تصادفی بدون به خطر انداختن پرفورمنس دیتابیس.
     """
+
     permission_classes = [IsAuthenticated]  # یا IsAuthenticated بسته به سیاست بیزینس شما
 
     def get(self, request):
-        category_slug = request.query_params.get('category')
-        seniority_level = request.query_params.get('seniority')
-        limit = request.query_params.get('limit', 5)
+        category_slug = request.query_params.get("category")
+        seniority_level = request.query_params.get("seniority")
+        limit = request.query_params.get("limit", 5)
 
         try:
             limit = int(limit)
@@ -88,9 +88,7 @@ class RandomInterviewSetAPI(APIView):
             limit = 5
 
         random_questions = get_random_interview_set(
-            category_slug=category_slug,
-            seniority_level=seniority_level,
-            limit=limit
+            category_slug=category_slug, seniority_level=seniority_level, limit=limit
         )
 
         serializer = CandidateQuestionDetailSerializer(random_questions, many=True)
@@ -101,10 +99,11 @@ class CategoryListAPI(APIView):
     """
     اندپوینت ۴: دریافت لیست تمام دسته‌بندی‌ها جهت استفاده در فیلترهای فرانت‌بند.
     """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        categories = QuestionCategory.objects.all().order_by('title')
+        categories = QuestionCategory.objects.all().order_by("title")
         serializer = CategorySerializer(categories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -113,11 +112,13 @@ class CategoryListAPI(APIView):
 # ۲. اندپوینت‌های بخش ادمین / پنل مدیریت (Admin CRUD Endpoints)
 # =====================================================================
 
+
 class AdminQuestionListCreateAPI(APIView):
     """
     اندپوینت ۵ و ۶: لیست کامل سوالات ادمین + ساخت دستی سوال جدید.
     دسترسی: کاملاً محدود به ادمین سیستم.
     """
+
     permission_classes = [IsAdminUser]
 
     class AdminPagination(LimitOffsetPagination):
@@ -126,7 +127,7 @@ class AdminQuestionListCreateAPI(APIView):
 
     def get(self, request):
         # ادمین باید بتواند سوالات غیرفعال (is_active=False) را هم ببیند
-        questions = Question.objects.prefetch_related('categories').all().order_by('-created_at')
+        questions = Question.objects.prefetch_related("categories").all().order_by("-created_at")
 
         paginator = self.AdminPagination()
         page = paginator.paginate_queryset(questions, request, view=self)
@@ -147,6 +148,7 @@ class AdminQuestionDetailAPI(APIView):
     """
     اندپوینت ۷، ۸ و ۹: جزئیات کامل، ویرایش تکی و حذف سوال توسط ادمین.
     """
+
     permission_classes = [IsAdminUser]
 
     def get(self, request, id):
@@ -173,6 +175,7 @@ class AdminCategoryListCreateAPI(APIView):
     """
     اندپوینت مدیریت دسته‌بندی‌ها توسط ادمین.
     """
+
     permission_classes = [IsAdminUser]
 
     def post(self, request):
@@ -186,17 +189,19 @@ class AdminCategoryListCreateAPI(APIView):
 # ۳. اندپوینت‌های بخش اتوماسیون و ایمپورت گیت‌هاب (Automation Endpoints)
 # =====================================================================
 
+
 class AdminGitHubIngestAPI(APIView):
     """
     اندپوینت ۱۰: استارت زدن پایپ‌لاین خزنده گیت‌هاب به صورت دستی از پنل ادمین.
     """
+
     permission_classes = [IsAdminUser]
 
     def post(self, request):
         serializer = GitHubIngestInputSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        github_url = serializer.validated_data['github_url']
+        github_url = serializer.validated_data["github_url"]
 
         # در اینجا متد آداپتور یا تسک Celery شما صدا زده می‌شود:
         # trigger_github_ingestion.delay(repo_url=github_url)
@@ -204,5 +209,5 @@ class AdminGitHubIngestAPI(APIView):
         logger.info(f"GitHub ingestion triggered by Admin {request.user.id} for repo: {github_url}")
         return Response(
             {"detail": "فرآیند استخراج و بارگذاری سوالات از گیت‌هاب با موفقیت در پس‌زمینه آغاز شد."},
-            status=status.HTTP_202_ACCEPTED
+            status=status.HTTP_202_ACCEPTED,
         )

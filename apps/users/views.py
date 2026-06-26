@@ -49,6 +49,7 @@ User = get_user_model()
 #  Throttles
 # ═══════════════════════════════════════════════════════════════
 
+
 class OTPSendThrottle(AnonRateThrottle):
     rate = "5/min"
 
@@ -64,6 +65,7 @@ class AuthThrottle(AnonRateThrottle):
 # ═══════════════════════════════════════════════════════════════
 #  Mixins
 # ═══════════════════════════════════════════════════════════════
+
 
 class GetClientIPMixin:
     """استخراج IP واقعی کاربر (پشتیبانی از Reverse Proxy)."""
@@ -146,7 +148,9 @@ class SendOTPView(GetClientIPMixin, GenericAPIView):
 
         logger.info(
             "OTP sent | phone=%s | purpose=%s | ip=%s",
-            phone, purpose, ip,
+            phone,
+            purpose,
+            ip,
         )
 
         return APIResponse.success(
@@ -206,9 +210,7 @@ class ResendOTPView(GetClientIPMixin, GenericAPIView):
             message=_("کد OTP مجدداً ارسال شد"),
             data={
                 "remaining_seconds": result.get("remaining_seconds", 120),
-                "daily_remaining": serializer.validated_data.get(
-                    "_daily_remaining"
-                ),
+                "daily_remaining": serializer.validated_data.get("_daily_remaining"),
             },
         )
 
@@ -257,7 +259,9 @@ class VerifyOTPView(GetClientIPMixin, GenericAPIView):
 
         logger.info(
             "OTP verified | phone=%s | pk=%s | ip=%s",
-            user.phone_number, user.pk, ip,
+            user.phone_number,
+            user.pk,
+            ip,
         )
 
         return APIResponse.success(
@@ -673,7 +677,9 @@ class AdminUserDetailView(GetUserOrNotFoundMixin, APIView):
 
         logger.info(
             "Admin updated user | pk=%s | by=%s | fields=%s",
-            pk, request.user.pk, list(request.data.keys()),
+            pk,
+            request.user.pk,
+            list(request.data.keys()),
         )
 
         return APIResponse.success(
@@ -880,11 +886,7 @@ class AdminOTPHistoryView(ListAPIView):
     ordering = ["-created_at"]
 
     def get_queryset(self):
-        return (
-            OTPCode.objects
-            .filter(user_id=self.kwargs["user_id"])
-            .select_related("user")
-        )
+        return OTPCode.objects.filter(user_id=self.kwargs["user_id"]).select_related("user")
 
     def list(self, request, *args, **kwargs):
         # ── چک وجود کاربر قبل از کوئری ────────
@@ -960,15 +962,16 @@ class LoginWithPasswordView(GenericAPIView):
     POST /api/v1/users/auth/login-password/
     ورود کاربران با استفاده از شماره موبایل و رمز عبور
     """
+
     permission_classes = [AllowAny]
     serializer_class = LoginWithPasswordSerializer
-    throttle_classes = [AnonRateThrottle] # برای جلوگیری از حملات حدس رمز عبور
+    throttle_classes = [AnonRateThrottle]  # برای جلوگیری از حملات حدس رمز عبور
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        user = serializer.validated_data['user']
+        user = serializer.validated_data["user"]
 
         # تولید توکن‌های JWT (دقیقاً همگام با منطق پروژه شما)
         refresh = RefreshToken.for_user(user)
@@ -981,18 +984,14 @@ class LoginWithPasswordView(GenericAPIView):
                 "phone_number": user.phone_number,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
-            }
+            },
         }
 
         # به‌روزرسانی زمان آخرین ورود کاربر
         user.last_login = timezone.now()
-        user.save(update_fields=['last_login'])
+        user.save(update_fields=["last_login"])
 
-        return APIResponse.success(
-            data=data,
-            message=_("ورود با موفقیت انجام شد")
-        )
-
+        return APIResponse.success(data=data, message=_("ورود با موفقیت انجام شد"))
 
 
 class SetPasswordView(GenericAPIView):
@@ -1000,22 +999,21 @@ class SetPasswordView(GenericAPIView):
     POST /api/v1/users/profile/set-password/
     تعیین رمز عبور برای بار اول یا تغییر آن برای کاربران لاگین شده
     """
+
     permission_classes = [IsAuthenticated]
     serializer_class = SetPasswordSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer = self.get_serializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
 
         user = request.user
-        new_password = serializer.validated_data['new_password']
+        new_password = serializer.validated_data["new_password"]
 
         # هش کردن و ذخیره رمز عبور جدید
         user.set_password(new_password)
-        user.save(update_fields=['password'])
+        user.save(update_fields=["password"])
 
         logger.info(f"User {user.id} successfully updated/set their password.")
 
-        return APIResponse.success(
-            message=_("رمز عبور با موفقیت ثبت و به‌روزرسانی شد")
-        )
+        return APIResponse.success(message=_("رمز عبور با موفقیت ثبت و به‌روزرسانی شد"))

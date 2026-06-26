@@ -24,13 +24,13 @@ phone_regex = RegexValidator(
 #  Custom User
 # ─────────────────────────────────────────────
 
-class CustomUser(AbstractBaseUser, PermissionsMixin):
 
+class CustomUser(AbstractBaseUser, PermissionsMixin):
     class ExperienceLevel(models.TextChoices):
-        JUNIOR     = "junior",     _("جونیور")
-        MID_LEVEL  = "mid_level",  _("میدلول")
-        SENIOR     = "senior",     _("سنیور")
-        LEAD       = "lead",       _("لید")
+        JUNIOR = "junior", _("جونیور")
+        MID_LEVEL = "mid_level", _("میدلول")
+        SENIOR = "senior", _("سنیور")
+        LEAD = "lead", _("لید")
 
     # ── فیلدهای اصلی ──────────────────────────
     phone_number = models.CharField(
@@ -107,9 +107,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         verbose_name=_("تلفن تایید شده"),
     )
     is_banned = models.BooleanField(
-    default=False,
-    verbose_name=_("مسدود شده"),
-    db_index=True,
+        default=False,
+        verbose_name=_("مسدود شده"),
+        db_index=True,
     )
 
     # ── تاریخ‌ها ───────────────────────────────
@@ -125,13 +125,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     objects = CustomUserManager()
 
-    USERNAME_FIELD  = "phone_number"
+    USERNAME_FIELD = "phone_number"
     REQUIRED_FIELDS = []
 
     class Meta:
-        verbose_name        = _("کاربر")
+        verbose_name = _("کاربر")
         verbose_name_plural = _("کاربران")
-        db_table            = "users"
+        db_table = "users"
 
     def __str__(self):
         return self.full_name or self.phone_number
@@ -143,30 +143,25 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_profile_complete(self) -> bool:
-        return bool(
-            self.first_name
-            and self.last_name
-            and self.job_title
-            and self.experience_level
-        )
+        return bool(self.first_name and self.last_name and self.job_title and self.experience_level)
 
 
 # ─────────────────────────────────────────────
 #  OTP Code
 # ─────────────────────────────────────────────
 
-class OTPCode(models.Model):
 
+class OTPCode(models.Model):
     # ── تنظیمات ───────────────────────────────
-    EXPIRE_MINUTES      = getattr(settings, "OTP_EXPIRE_MINUTES", 2)
-    CODE_LENGTH         = getattr(settings, "OTP_CODE_LENGTH", 6)
-    MAX_ATTEMPTS        = getattr(settings, "OTP_MAX_ATTEMPTS", 3)
-    MAX_RESEND_PER_DAY  = getattr(settings, "OTP_MAX_RESEND_PER_DAY", 5)
+    EXPIRE_MINUTES = getattr(settings, "OTP_EXPIRE_MINUTES", 2)
+    CODE_LENGTH = getattr(settings, "OTP_CODE_LENGTH", 6)
+    MAX_ATTEMPTS = getattr(settings, "OTP_MAX_ATTEMPTS", 3)
+    MAX_RESEND_PER_DAY = getattr(settings, "OTP_MAX_RESEND_PER_DAY", 5)
 
     class Purpose(models.TextChoices):
         REGISTER = "register", _("ثبت‌نام")
-        LOGIN    = "login",    _("ورود")
-        RESET    = "reset",    _("بازیابی رمز")
+        LOGIN = "login", _("ورود")
+        RESET = "reset", _("بازیابی رمز")
 
     # ── فیلدها ────────────────────────────────
     user = models.ForeignKey(
@@ -209,11 +204,11 @@ class OTPCode(models.Model):
     )
 
     class Meta:
-        verbose_name        = _("کد OTP")
+        verbose_name = _("کد OTP")
         verbose_name_plural = _("کدهای OTP")
-        db_table            = "otp_codes"
-        ordering            = ["-created_at"]
-        indexes             = [
+        db_table = "otp_codes"
+        ordering = ["-created_at"]
+        indexes = [
             models.Index(fields=["user", "is_used", "created_at"]),
             models.Index(fields=["user", "purpose"]),
         ]
@@ -242,11 +237,7 @@ class OTPCode(models.Model):
 
     @property
     def is_valid(self) -> bool:
-        return (
-            not self.is_used
-            and not self.is_expired
-            and not self.is_max_attempts_reached
-        )
+        return not self.is_used and not self.is_expired and not self.is_max_attempts_reached
 
     @property
     def remaining_seconds(self) -> int:
@@ -288,9 +279,7 @@ class OTPCode(models.Model):
         # چک تعداد روزانه
         daily_count = cls.get_daily_resend_count(user)
         if daily_count >= cls.MAX_RESEND_PER_DAY:
-            raise ValueError(
-                _("تعداد درخواست OTP امروز به حد مجاز رسیده. فردا دوباره تلاش کنید")
-            )
+            raise ValueError(_("تعداد درخواست OTP امروز به حد مجاز رسیده. فردا دوباره تلاش کنید"))
 
         # غیرمعتبر کردن کدهای قبلی
         cls.invalidate_previous(user, purpose)

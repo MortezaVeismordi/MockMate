@@ -5,15 +5,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('users', '0002_customuser_is_banned'),
+        ("users", "0002_customuser_is_banned"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='customuser',
-            name='phone_number',
-            field=models.CharField(db_index=True, max_length=50, unique=True, validators=[django.core.validators.RegexValidator(message='شماره تلفن باید با فرمت 09XXXXXXXXX باشد', regex='^09[0-9]{9}$')], verbose_name='شماره تلفن'),
+            model_name="customuser",
+            name="phone_number",
+            field=models.CharField(
+                db_index=True,
+                max_length=50,
+                unique=True,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        message="شماره تلفن باید با فرمت 09XXXXXXXXX باشد", regex="^09[0-9]{9}$"
+                    )
+                ],
+                verbose_name="شماره تلفن",
+            ),
         ),
     ]

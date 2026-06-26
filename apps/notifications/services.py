@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 #  1. سرویس ارکستراتور اعلان‌ها (Notification Coordinator Service)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class NotificationService:
     """
     سرویس اصلی مدیریت چرخه عمر اعلان‌ها در لایه بیزینس پروژه.
@@ -22,12 +23,7 @@ class NotificationService:
 
     @classmethod
     def create_notification(
-        cls,
-        recipient: str,
-        body: str,
-        notification_type: str = Notification.Type.SMS,
-        user = None,
-        title: str = ""
+        cls, recipient: str, body: str, notification_type: str = Notification.Type.SMS, user=None, title: str = ""
     ) -> Notification:
         """
         گام اول: ثبت سریع اعلان در دیتابیس لوکال و هماهنگی با Celery برای ارسال آسنکرون.
@@ -39,18 +35,21 @@ class NotificationService:
             recipient=recipient,
             title=title,
             body=body,
-            status=Notification.Status.PENDING
+            status=Notification.Status.PENDING,
         )
 
         # ۲. ارسال هماهنگ به صف Celery (تسک را در گام‌های بعدی می‌نویسیم)
         # ما فقط ID را پاس می‌دهیم تا دیتای سنگین جابجا نشود
         from .tasks import send_otp_notification_task
+
         send_otp_notification_task.delay(notification_id=notification.id)
 
         return notification
 
     @classmethod
-    def send_notification(cls, notification_id: int, provider_class: Optional[Type[BaseNotificationProvider]] = None) -> None:
+    def send_notification(
+        cls, notification_id: int, provider_class: Optional[Type[BaseNotificationProvider]] = None
+    ) -> None:
         """
         این متد درون ورکر Celery اجرا می‌شود و وظیفه ارسال واقعی و مدیریت خطا را دارد.
         """
@@ -70,7 +69,9 @@ class NotificationService:
 
         if not provider_class:
             logger.error(f"No valid provider class found for notification type: {notification.notification_type}")
-            notification.mark_as_failed(error=f"No valid provider class found for notification type: {notification.notification_type}")
+            notification.mark_as_failed(
+                error=f"No valid provider class found for notification type: {notification.notification_type}"
+            )
             return
         # ──────────────────────────────────────────────────────────────────────────
 
@@ -81,9 +82,7 @@ class NotificationService:
 
         # صدا زدن متد ارسالِ پرووایدر
         success, provider_id, error_msg = provider.send(
-            recipient=notification.recipient,
-            body=notification.body,
-            title=notification.title
+            recipient=notification.recipient, body=notification.body, title=notification.title
         )
 
         if success:

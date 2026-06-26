@@ -9,6 +9,7 @@ from apps.questions.models import Question, QuestionCategory, QuestionOption
 
 logger = logging.getLogger(__name__)
 
+
 class BaseQuestionAdapter:
     """
     کلاس پایه‌ی انترپرایز برای خط لوله ETL استخراج سوالات از گیت‌هاب.
@@ -21,7 +22,7 @@ class BaseQuestionAdapter:
         limit: Optional[int] = None,
         sub_path: Optional[str] = None,
         category: Optional[str] = None,
-        level: Optional[str] = None
+        level: Optional[str] = None,
     ):
         self.repo_path = repo_path
         self.limit = limit
@@ -89,9 +90,9 @@ class BaseQuestionAdapter:
         لایه دفاعی اعتبارسنجی داده‌ها قبل از ورود به دیتابیس.
         تضمین می‌کند که فیلدهای حیاتی پر هستند و طول فیلد تایتل از حد مجاز دیتابیس بیشتر نیست.
         """
-        title = question_data.get('title', '').strip()
-        body = question_data.get('body', '').strip()
-        reference_answer = question_data.get('reference_answer', '').strip()
+        title = question_data.get("title", "").strip()
+        body = question_data.get("body", "").strip()
+        reference_answer = question_data.get("reference_answer", "").strip()
 
         if not title or not body:
             logger.warning("Validation failed: Question skipped due to empty title or body.")
@@ -99,10 +100,10 @@ class BaseQuestionAdapter:
 
         # خلاصه کردن عنوان در صورت فراتر رفتن از حد مجاز VARCHAR(255) دیتابیس
         if len(title) > 255:
-            question_data['title'] = title[:250] + "..."
+            question_data["title"] = title[:250] + "..."
 
-        question_data['body'] = self.clean_text(body)
-        question_data['reference_answer'] = self.clean_text(reference_answer)
+        question_data["body"] = self.clean_text(body)
+        question_data["reference_answer"] = self.clean_text(reference_answer)
 
         return question_data
 
@@ -111,12 +112,9 @@ class BaseQuestionAdapter:
         متد کمکی برای ساخت داینامیک و امن دسته‌بندی‌ها بر اساس فولدربندی گیت‌هاب.
         """
         clean_name = category_name.strip().title()
-        slug = slugify(clean_name) or clean_name.lower().replace(' ', '-')
+        slug = slugify(clean_name) or clean_name.lower().replace(" ", "-")
 
-        category, created = QuestionCategory.objects.get_or_create(
-            slug=slug,
-            defaults={'title': clean_name}
-        )
+        category, created = QuestionCategory.objects.get_or_create(slug=slug, defaults={"title": clean_name})
         return category
 
     def load(self, questions_data: List[Dict[str, Any]]) -> int:
@@ -135,23 +133,25 @@ class BaseQuestionAdapter:
                         if not validated_data:
                             continue
 
-                        categories_list = validated_data.pop('categories_metadata', [])
-                        options_list = validated_data.pop('options_metadata', [])
+                        categories_list = validated_data.pop("categories_metadata", [])
+                        options_list = validated_data.pop("options_metadata", [])
 
                         question, created = Question.objects.update_or_create(
-                            title=validated_data['title'],
-                            source_url=validated_data.get('source_url'),
+                            title=validated_data["title"],
+                            source_url=validated_data.get("source_url"),
                             defaults={
-                                'body': validated_data['body'],
-                                'question_type': validated_data.get('question_type', Question.QuestionType.TECHNICAL),
-                                'seniority_level': validated_data.get('seniority_level', Question.SeniorityLevel.MID_LEVEL),
-                                'reference_answer': validated_data['reference_answer'],
-                                'ai_evaluation_criteria': validated_data.get('ai_evaluation_criteria', {}),
-                                'estimated_time': validated_data.get('estimated_time', 120),
-                                'code_template': validated_data.get('code_template'),
-                                'source': Question.SourceType.GITHUB_IMPORT,
-                                'is_active': True
-                            }
+                                "body": validated_data["body"],
+                                "question_type": validated_data.get("question_type", Question.QuestionType.TECHNICAL),
+                                "seniority_level": validated_data.get(
+                                    "seniority_level", Question.SeniorityLevel.MID_LEVEL
+                                ),
+                                "reference_answer": validated_data["reference_answer"],
+                                "ai_evaluation_criteria": validated_data.get("ai_evaluation_criteria", {}),
+                                "estimated_time": validated_data.get("estimated_time", 120),
+                                "code_template": validated_data.get("code_template"),
+                                "source": Question.SourceType.GITHUB_IMPORT,
+                                "is_active": True,
+                            },
                         )
 
                         for cat_name in categories_list:
@@ -160,13 +160,14 @@ class BaseQuestionAdapter:
 
                         if options_list:
                             question.options.all().delete()
-                            QuestionOption.objects.bulk_create([
-                                QuestionOption(
-                                    question=question,
-                                    text=opt['text'],
-                                    is_correct=opt.get('is_correct', False)
-                                ) for opt in options_list
-                            ])
+                            QuestionOption.objects.bulk_create(
+                                [
+                                    QuestionOption(
+                                        question=question, text=opt["text"], is_correct=opt.get("is_correct", False)
+                                    )
+                                    for opt in options_list
+                                ]
+                            )
 
                         success_count += 1
 

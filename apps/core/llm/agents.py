@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 #  Tools — ابزارهایی که Agent میتونه صدا بزنه
 # =============================================================================
 
+
 @tool
 def trigger_next_question() -> dict:
     """
@@ -36,7 +37,7 @@ def request_follow_up(follow_up_question: str) -> dict:
         follow_up_question: سوال تعقیبی که میخوای بپرسی
     """
     return {
-        "action"           : "follow_up",
+        "action": "follow_up",
         "follow_up_question": follow_up_question,
     }
 
@@ -53,6 +54,7 @@ def finalize_interview() -> dict:
 #  Interview Agent
 # =============================================================================
 
+
 class InterviewAgent:
     """
     Agent هوشمند مصاحبه با قابلیت‌های:
@@ -67,7 +69,7 @@ class InterviewAgent:
 
         self._llm = ChatOpenAI(
             model="gpt-4o",
-            temperature=0.3,       # کمی خلاقیت ولی mostly deterministic
+            temperature=0.3,  # کمی خلاقیت ولی mostly deterministic
             api_key=settings.OPENAI_API_KEY,
         )
 
@@ -81,10 +83,12 @@ class InterviewAgent:
 
         # LLM با structured output برای ارزیابی
         from .schemas import EvaluationResult
+
         self._llm_evaluator = self._llm.with_structured_output(EvaluationResult)
 
         # LLM با structured output برای گزارش
         from .schemas import FinalReport
+
         self._llm_reporter = self._llm.with_structured_output(FinalReport)
 
     # ── تصمیم‌گیری بعد از پاسخ کاربر ────────────────────────────────────────
@@ -140,21 +144,21 @@ class InterviewAgent:
 
                 if tool_name == "trigger_next_question":
                     return {
-                        "action"            : "next_question",
+                        "action": "next_question",
                         "follow_up_question": None,
-                        "reasoning"         : "پاسخ کافی بود.",
+                        "reasoning": "پاسخ کافی بود.",
                     }
                 elif tool_name == "request_follow_up":
                     return {
-                        "action"            : "follow_up",
+                        "action": "follow_up",
                         "follow_up_question": tool_args.get("follow_up_question", ""),
-                        "reasoning"         : "پاسخ ناقص بود.",
+                        "reasoning": "پاسخ ناقص بود.",
                     }
                 elif tool_name == "finalize_interview":
                     return {
-                        "action"            : "wrap_up",
+                        "action": "wrap_up",
                         "follow_up_question": None,
-                        "reasoning"         : "مصاحبه تموم شد.",
+                        "reasoning": "مصاحبه تموم شد.",
                     }
 
             # اگه tool call نداشت — default به next_question
@@ -163,22 +167,23 @@ class InterviewAgent:
                 session_context.get("session_uuid"),
             )
             return {
-                "action"            : "next_question",
+                "action": "next_question",
                 "follow_up_question": None,
-                "reasoning"         : "default",
+                "reasoning": "default",
             }
 
         except Exception as exc:
             logger.error(
                 "Agent decision failed | session=%s | error=%s",
-                session_context.get("session_uuid"), str(exc),
+                session_context.get("session_uuid"),
+                str(exc),
                 exc_info=True,
             )
             # fail-safe — برو سوال بعدی
             return {
-                "action"            : "next_question",
+                "action": "next_question",
                 "follow_up_question": None,
-                "reasoning"         : f"error: {str(exc)}",
+                "reasoning": f"error: {str(exc)}",
             }
 
     # ── ارزیابی پاسخ ─────────────────────────────────────────────────────────
@@ -223,7 +228,8 @@ class InterviewAgent:
         except Exception as exc:
             logger.error(
                 "Evaluation failed | session=%s | error=%s",
-                session_context.get("session_uuid"), str(exc),
+                session_context.get("session_uuid"),
+                str(exc),
                 exc_info=True,
             )
             raise
@@ -256,7 +262,8 @@ class InterviewAgent:
         except Exception as exc:
             logger.error(
                 "Report generation failed | session=%s | error=%s",
-                session_data.get("session_uuid"), str(exc),
+                session_data.get("session_uuid"),
+                str(exc),
                 exc_info=True,
             )
             raise
@@ -275,7 +282,7 @@ class InterviewAgent:
         messages = [SystemMessage(content=system_prompt)]
 
         for msg in history:
-            role    = msg.get("role")
+            role = msg.get("role")
             content = msg.get("content", "")
 
             if role == "user":

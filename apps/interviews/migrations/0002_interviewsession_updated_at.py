@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('interviews', '0001_initial'),
+        ("interviews", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='interviewsession',
-            name='updated_at',
-            field=models.DateTimeField(auto_now=True, verbose_name='زمان بروزرسانی'),
+            model_name="interviewsession",
+            name="updated_at",
+            field=models.DateTimeField(auto_now=True, verbose_name="زمان بروزرسانی"),
         ),
     ]

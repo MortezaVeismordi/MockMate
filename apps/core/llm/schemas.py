@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 #  خروجی ارزیابی هر پاسخ کاربر
 # =============================================================================
 
+
 class EvaluationResult(BaseModel):
     """
     ساختار خروجی ارزیابی هر پاسخ.
@@ -129,9 +130,7 @@ class EvaluationResult(BaseModel):
     def low_score_needs_weaknesses(self) -> "EvaluationResult":
         """پاسخ ضعیف باید حداقل یه ضعف داشته باشه"""
         if self.score < 40 and not self.weaknesses:
-            raise ValueError(
-                "پاسخ با نمره زیر ۴۰ باید حداقل یه نقطه ضعف داشته باشه."
-            )
+            raise ValueError("پاسخ با نمره زیر ۴۰ باید حداقل یه نقطه ضعف داشته باشه.")
         return self
 
 
@@ -139,6 +138,7 @@ class EvaluationResult(BaseModel):
 #  Agent Decision
 #  تصمیم agent بعد از هر پاسخ کاربر
 # =============================================================================
+
 
 class AgentDecision(BaseModel):
     """
@@ -159,18 +159,14 @@ class AgentDecision(BaseModel):
         default=None,
         max_length=300,
         description=(
-            "سوال تعقیبی — فقط وقتی action=follow_up باشه. "
-            "سوال باید مشخص، کوتاه و مستقیماً مرتبط با پاسخ کاربر باشه."
+            "سوال تعقیبی — فقط وقتی action=follow_up باشه. " "سوال باید مشخص، کوتاه و مستقیماً مرتبط با پاسخ کاربر باشه."
         ),
     )
 
     reasoning: str = Field(
         min_length=10,
         max_length=300,
-        description=(
-            "دلیل این تصمیم به زبان فارسی. "
-            "کوتاه و واضح توضیح بده چرا این action رو انتخاب کردی."
-        ),
+        description=("دلیل این تصمیم به زبان فارسی. " "کوتاه و واضح توضیح بده چرا این action رو انتخاب کردی."),
     )
 
     # ── Validators ────────────────────────────────────────────────────────────
@@ -178,9 +174,7 @@ class AgentDecision(BaseModel):
     @model_validator(mode="after")
     def follow_up_required_when_action_is_follow_up(self) -> "AgentDecision":
         if self.action == "follow_up" and not self.follow_up_question:
-            raise ValueError(
-                "وقتی action=follow_up هست باید follow_up_question مشخص باشه."
-            )
+            raise ValueError("وقتی action=follow_up هست باید follow_up_question مشخص باشه.")
         if self.action != "follow_up" and self.follow_up_question:
             self.follow_up_question = None
         return self
@@ -191,10 +185,11 @@ class AgentDecision(BaseModel):
 #  گزارش نهایی مصاحبه
 # =============================================================================
 
+
 class SkillAssessment(BaseModel):
     """ارزیابی یه مهارت خاص"""
 
-    skill_name : str = Field(
+    skill_name: str = Field(
         description="نام مهارت یا حوزه فنی — به فارسی یا انگلیسی",
     )
     level: Literal["weak", "developing", "proficient", "strong", "expert"] = Field(
@@ -230,59 +225,41 @@ class FinalReport(BaseModel):
     )
 
     technical_level: Literal["intern", "junior", "mid_level", "senior", "lead"] = Field(
-        description=(
-            "سطح فنی واقعی کاربر بر اساس پاسخ‌های مصاحبه. "
-            "ممکنه با سطح درخواستی کاربر متفاوت باشه."
-        ),
+        description=("سطح فنی واقعی کاربر بر اساس پاسخ‌های مصاحبه. " "ممکنه با سطح درخواستی کاربر متفاوت باشه."),
     )
 
     skill_breakdown: list[SkillAssessment] = Field(
         min_length=2,
         max_length=8,
-        description=(
-            "تحلیل مهارت‌های مختلف کاربر. "
-            "فقط مهارت‌هایی که در مصاحبه بررسی شدن رو بنویس."
-        ),
+        description=("تحلیل مهارت‌های مختلف کاربر. " "فقط مهارت‌هایی که در مصاحبه بررسی شدن رو بنویس."),
     )
 
     strongest_areas: list[str] = Field(
         min_length=1,
         max_length=5,
-        description=(
-            "قوی‌ترین حوزه‌های کاربر بر اساس مصاحبه. "
-            "مشخص و فنی باشه — مثال: 'طراحی دیتابیس و ایندکس‌گذاری'."
-        ),
+        description=("قوی‌ترین حوزه‌های کاربر بر اساس مصاحبه. " "مشخص و فنی باشه — مثال: 'طراحی دیتابیس و ایندکس‌گذاری'."),
     )
 
     improvement_areas: list[str] = Field(
         min_length=1,
         max_length=5,
-        description=(
-            "حوزه‌هایی که کاربر نیاز به تقویت داره. "
-            "سازنده و قابل اقدام باشه."
-        ),
+        description=("حوزه‌هایی که کاربر نیاز به تقویت داره. " "سازنده و قابل اقدام باشه."),
     )
 
     hiring_recommendation: Literal[
-        "strong_yes",   # قطعاً استخدام کن
-        "yes",          # استخدام پیشنهاد میشه
-        "maybe",        # بستگی به نیاز داره
-        "no",           # پیشنهاد نمیشه
-        "strong_no",    # قطعاً استخدام نکن
+        "strong_yes",  # قطعاً استخدام کن
+        "yes",  # استخدام پیشنهاد میشه
+        "maybe",  # بستگی به نیاز داره
+        "no",  # پیشنهاد نمیشه
+        "strong_no",  # قطعاً استخدام نکن
     ] = Field(
-        description=(
-            "توصیه استخدام بر اساس عملکرد کلی. "
-            "فقط بر اساس مصاحبه قضاوت کن."
-        ),
+        description=("توصیه استخدام بر اساس عملکرد کلی. " "فقط بر اساس مصاحبه قضاوت کن."),
     )
 
     hiring_reasoning: str = Field(
         min_length=50,
         max_length=400,
-        description=(
-            "دلیل توصیه استخدام به زبان فارسی. "
-            "مشخص و مستند به پاسخ‌های مصاحبه باشه."
-        ),
+        description=("دلیل توصیه استخدام به زبان فارسی. " "مشخص و مستند به پاسخ‌های مصاحبه باشه."),
     )
 
     study_suggestions: list[str] = Field(
@@ -320,10 +297,7 @@ class FinalReport(BaseModel):
         hiring_recommendation نباید strong_yes باشه
         """
         weak_levels = {"intern", "junior"}
-        if (
-            self.technical_level in weak_levels
-            and self.hiring_recommendation == "strong_yes"
-        ):
+        if self.technical_level in weak_levels and self.hiring_recommendation == "strong_yes":
             self.hiring_recommendation = "maybe"
         return self
 
@@ -332,6 +306,7 @@ class FinalReport(BaseModel):
 #  Streaming Chunk
 #  برای streaming پاسخ LLM از طریق WebSocket
 # =============================================================================
+
 
 class StreamingChunk(BaseModel):
     """
@@ -342,11 +317,11 @@ class StreamingChunk(BaseModel):
     chunk_type: Literal["token", "tool_call", "done", "error"] = Field(
         description="نوع chunk",
     )
-    content   : str = Field(
+    content: str = Field(
         default="",
         description="محتوای chunk",
     )
-    metadata  : dict = Field(
+    metadata: dict = Field(
         default_factory=dict,
         description="اطلاعات اضافی — مثل tool_name یا error_message",
     )

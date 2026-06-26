@@ -7,6 +7,7 @@ from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
+
 # نام متد دقیقا مطابق با CELERY_TASK_ROUTES در فایل production.py شما
 @shared_task(
     bind=True,
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
     autoretry_for=(RuntimeError, Exception),
     retry_backoff=True,
     retry_backoff_max=600,
-    retry_jitter=True
+    retry_jitter=True,
 )
 def send_otp_notification_task(self, notification_id: int):
     """
@@ -56,6 +57,7 @@ def send_welcome_sms(phone_number: str, first_name: str):
     logger.info(f"[Welcome SMS] Sending to {phone_number}")
     from .models import Notification
     from .services import NotificationService
+
     body = f"سلام {first_name}! به MockMate خوش آمدید."
     NotificationService.create_notification(
         recipient=phone_number,
@@ -69,6 +71,7 @@ def send_welcome_notification(user_id: int):
     """ارسال نوتیفیکیشن خوش‌آمدگویی"""
     logger.info(f"[Welcome Notification] user_id={user_id}")
     from django.contrib.auth import get_user_model
+
     User = get_user_model()
     try:
         user = User.objects.get(pk=user_id)
@@ -85,11 +88,13 @@ def send_profile_completed_notification(user_id: int):
     """ارسال نوتیفیکیشن تکمیل پروفایل"""
     logger.info(f"[Profile Completed] user_id={user_id}")
     from django.contrib.auth import get_user_model
+
     User = get_user_model()
     try:
         user = User.objects.get(pk=user_id)
         from .models import Notification
         from .services import NotificationService
+
         NotificationService.create_notification(
             recipient=user.phone_number,
             body="پروفایل شما تکمیل شد! آماده شروع مصاحبه هستید.",

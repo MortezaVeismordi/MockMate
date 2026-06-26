@@ -16,7 +16,7 @@ DJANGO_ENV = "development"
 # ─── Apps & Middleware (فقط development) ─────────────────────────────────────
 INSTALLED_APPS += [
     # "debug_toolbar",
-    "django_extensions",        # shell_plus، graph_models، ...
+    "django_extensions",  # shell_plus، graph_models، ...
 ]
 
 # MIDDLEWARE += [
@@ -25,14 +25,14 @@ INSTALLED_APPS += [
 
 # ─── Database ────────────────────────────────────────────────────────────────
 # همون base ولی با logging کامل query ها
-DATABASES["default"]["OPTIONS"]["options"] = (   # noqa: F405
-    "-c statement_timeout=60000"                 # توی dev بیشتر صبر میکنیم
+DATABASES["default"]["OPTIONS"]["options"] = (  # noqa: F405
+    "-c statement_timeout=60000"  # توی dev بیشتر صبر میکنیم
 )
 
 # ─── Cache ────────────────────────────────────────────────────────────────────
 # توی development میتونیم dummy cache هم بذاریم
 # ولی Redis رو نگه میداریم که رفتار production رو شبیه‌سازی کنیم
-CACHES["default"]["OPTIONS"]["SOCKET_TIMEOUT"] = 10    # کمی relaxed‌تر
+CACHES["default"]["OPTIONS"]["SOCKET_TIMEOUT"] = 10  # کمی relaxed‌تر
 
 # ─── Email — فقط console ──────────────────────────────────────────────────────
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
@@ -40,17 +40,17 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # ─── REST Framework — development overrides ───────────────────────────────────
 REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = [
     "rest_framework.renderers.JSONRenderer",
-    "rest_framework.renderers.BrowsableAPIRenderer",   # ← فقط dev
+    "rest_framework.renderers.BrowsableAPIRenderer",  # ← فقط dev
 ]
 
 REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
-    "anon": "1000/hour",       # توی dev محدودیت نمیخوایم
+    "anon": "1000/hour",  # توی dev محدودیت نمیخوایم
     "user": "10000/hour",
-    "otp":  "100/hour",
+    "otp": "100/hour",
 }
 
 # ─── JWT — توی dev token ها بیشتر دوام میارن ──────────────────────────────────
-SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"]  = timedelta(days=1)
+SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"] = timedelta(days=1)
 SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"] = timedelta(days=30)
 
 # ─── CORS — توی dev همه رو قبول میکنیم ───────────────────────────────────────
@@ -65,7 +65,7 @@ INTERNAL_IPS = [
 DEBUG_TOOLBAR_CONFIG = {
     "SHOW_TOOLBAR_CALLBACK": lambda request: DEBUG,
     "SHOW_COLLAPSED": True,
-    "SQL_WARNING_THRESHOLD": 100,    # query های بالای 100ms رو highlight میکنه
+    "SQL_WARNING_THRESHOLD": 100,  # query های بالای 100ms رو highlight میکنه
     "IS_RUNNING_TESTS": False,
 }
 
@@ -76,10 +76,10 @@ DEBUG_TOOLBAR_PANELS = [
     "debug_toolbar.panels.settings.SettingsPanel",
     "debug_toolbar.panels.headers.HeadersPanel",
     "debug_toolbar.panels.request.RequestPanel",
-    "debug_toolbar.panels.sql.SQLPanel",            # ← مهم‌ترین
+    "debug_toolbar.panels.sql.SQLPanel",  # ← مهم‌ترین
     "debug_toolbar.panels.staticfiles.StaticFilesPanel",
     "debug_toolbar.panels.templates.TemplatesPanel",
-    "debug_toolbar.panels.cache.CachePanel",        # ← Redis hits/misses
+    "debug_toolbar.panels.cache.CachePanel",  # ← Redis hits/misses
     "debug_toolbar.panels.signals.SignalsPanel",
     "debug_toolbar.panels.logging.LoggingPanel",
     "debug_toolbar.panels.redirects.RedirectsPanel",
@@ -88,7 +88,7 @@ DEBUG_TOOLBAR_PANELS = [
 
 # ─── Django Extensions ────────────────────────────────────────────────────────
 SHELL_PLUS = "ipython"
-SHELL_PLUS_PRINT_SQL = True                  # هر query رو print میکنه
+SHELL_PLUS_PRINT_SQL = True  # هر query رو print میکنه
 
 SHELL_PLUS_IMPORTS = [
     "from apps.users.models import User",
@@ -112,12 +112,12 @@ GRAPH_MODELS = {
 # CELERY_TASK_EAGER_PROPAGATES = True
 
 # ─── OTP — توی dev همیشه یه کد ثابت ─────────────────────────────────────────
-OTP_DEV_BYPASS = True              # توی کد چک میشه: if settings.OTP_DEV_BYPASS
-OTP_DEV_CODE   = "123456"          # کد ثابت برای تست
+OTP_DEV_BYPASS = True  # توی کد چک میشه: if settings.OTP_DEV_BYPASS
+OTP_DEV_CODE = "123456"  # کد ثابت برای تست
 
 # ─── Logging overrides ────────────────────────────────────────────────────────
 # query های دیتابیس رو هم لاگ میکنیم
-LOGGING["loggers"]["django.db.backends"] = {    # noqa: F405
+LOGGING["loggers"]["django.db.backends"] = {  # noqa: F405
     "handlers": ["console"],
     "level": "DEBUG",
     "propagate": False,

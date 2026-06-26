@@ -9,7 +9,7 @@ from .base import *  # noqa: F401, F403
 from .base import LOGGING, MIDDLEWARE, REST_FRAMEWORK, SIMPLE_JWT
 
 # ─── Core ─────────────────────────────────────────────────────────────────────
-DEBUG = False                      # production رفتار رو شبیه‌سازی میکنیم
+DEBUG = False  # production رفتار رو شبیه‌سازی میکنیم
 DJANGO_ENV = "testing"
 
 ALLOWED_HOSTS = ["*"]
@@ -21,11 +21,11 @@ SECRET_KEY = "test-secret-key-not-for-production-use-only-testing"  # noqa: S106
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME":     os.environ.get("TEST_DB_NAME", "test_ai_interviewer"),  # noqa: F405
-        "USER":     os.environ.get("DB_USER", "postgres"),                  # noqa: F405
-        "PASSWORD": os.environ.get("DB_PASSWORD", "postgres"),              # noqa: F405
-        "HOST":     os.environ.get("DB_HOST", "db"),                        # noqa: F405
-        "PORT":     os.environ.get("DB_PORT", "5432"),                      # noqa: F405
+        "NAME": os.environ.get("TEST_DB_NAME", "test_ai_interviewer"),  # noqa: F405
+        "USER": os.environ.get("DB_USER", "postgres"),  # noqa: F405
+        "PASSWORD": os.environ.get("DB_PASSWORD", "postgres"),  # noqa: F405
+        "HOST": os.environ.get("DB_HOST", "db"),  # noqa: F405
+        "PORT": os.environ.get("DB_PORT", "5432"),  # noqa: F405
         "TEST": {
             "NAME": "test_ai_interviewer",
             # هر test run یه دیتابیس تازه میسازه
@@ -73,8 +73,8 @@ import tempfile  # noqa: E402
 MEDIA_ROOT = tempfile.mkdtemp()
 
 # ─── Celery — همه چیز sync ───────────────────────────────────────────────────
-CELERY_TASK_ALWAYS_EAGER    = True     # بدون worker اجرا میشه
-CELERY_TASK_EAGER_PROPAGATES = True    # exception ها bubble up میشن
+CELERY_TASK_ALWAYS_EAGER = True  # بدون worker اجرا میشه
+CELERY_TASK_EAGER_PROPAGATES = True  # exception ها bubble up میشن
 
 # ─── REST Framework — testing ─────────────────────────────────────────────────
 REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"] = [
@@ -90,19 +90,21 @@ REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
 }
 
 # ─── JWT — توی test token ها خیلی بیشتر دوام میارن ──────────────────────────
-SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"]  = timedelta(days=7)
+SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"] = timedelta(days=7)
 SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"] = timedelta(days=30)
 
 # ─── OTP ─────────────────────────────────────────────────────────────────────
-OTP_DEV_BYPASS  = True
-OTP_DEV_CODE    = "123456"
-OTP_EXPIRY_SECONDS  = 300          # توی test بیشتر وقت داریم
-OTP_MAX_ATTEMPTS    = 10           # توی test سخت‌گیری نمیکنیم
+OTP_DEV_BYPASS = True
+OTP_DEV_CODE = "123456"
+OTP_EXPIRY_SECONDS = 300  # توی test بیشتر وقت داریم
+OTP_MAX_ATTEMPTS = 10  # توی test سخت‌گیری نمیکنیم
 
 # ─── Middleware — حذف موارد غیرضروری برای سرعت ───────────────────────────────
 MIDDLEWARE = [
-    m for m in MIDDLEWARE
-    if m not in [
+    m
+    for m in MIDDLEWARE
+    if m
+    not in [
         "django.middleware.clickjacking.XFrameOptionsMiddleware",
         "django.middleware.security.SecurityMiddleware",
     ]
@@ -110,9 +112,9 @@ MIDDLEWARE = [
 
 # ─── Logging — توی test فقط error ─────────────────────────────────────────────
 # نمیخوایم test output با لاگ پر بشه
-LOGGING["root"]["level"] = "ERROR"                      # noqa: F405
+LOGGING["root"]["level"] = "ERROR"  # noqa: F405
 
-for _logger in LOGGING["loggers"].values():             # noqa: F405
+for _logger in LOGGING["loggers"].values():  # noqa: F405
     _logger["level"] = "ERROR"
 
 # ─── Test Runner ──────────────────────────────────────────────────────────────
@@ -126,7 +128,7 @@ TEST_RUNNER_PARALLEL = multiprocessing.cpu_count()
 
 # ─── Fixtures ────────────────────────────────────────────────────────────────
 FIXTURE_DIRS = [
-    BASE_DIR / "tests" / "fixtures",                    # noqa: F405
+    BASE_DIR / "tests" / "fixtures",  # noqa: F405
 ]
 
 # ─── Factory Boy — برای test data ─────────────────────────────────────────────
@@ -146,7 +148,7 @@ COVERAGE_CONFIG = {
         ],
     },
     "report": {
-        "fail_under": 80,          # زیر ۸۰٪ coverage = fail
+        "fail_under": 80,  # زیر ۸۰٪ coverage = fail
         "show_missing": True,
     },
 }
