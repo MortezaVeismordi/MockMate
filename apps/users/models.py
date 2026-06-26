@@ -36,7 +36,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     # ── فیلدهای اصلی ──────────────────────────
     phone_number = models.CharField(
-        max_length=11,
+        max_length=50,
         unique=True,
         validators=[phone_regex],
         verbose_name=_("شماره تلفن"),

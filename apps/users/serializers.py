@@ -104,9 +104,8 @@ class SendOTPSerializer(PhoneNormalizerMixin, serializers.Serializer):
         help_text=_("مثال: 09123456789"),
     )
     purpose = serializers.ChoiceField(
-        choices=OTPCode.Purpose.choices,
-        default=OTPCode.Purpose.LOGIN,
-        label=_("هدف"),
+    choices=OTPCode.Purpose.choices,
+    label=_("هدف"),
     )
 
     def validate(self, attrs: dict) -> dict:
@@ -308,9 +307,16 @@ class RefreshTokenSerializer(serializers.Serializer):
         return value
 
     def to_representation(self, validated_data) -> dict:
+    # blacklist کردن token قدیمی
+        self._token.blacklist()
+        # ساختن token کاملاً جدید برای همون user
+        from apps.users.models import CustomUser
+        user_id = self._token.payload.get("user_id")
+        user = CustomUser.objects.get(phone_number=user_id)
+        new_token = RefreshToken.for_user(user)
         return {
-            "access": str(self._token.access_token),
-            "refresh": str(self._token),
+            "access": str(new_token.access_token),
+            "refresh": str(new_token),
         }
 
 
@@ -583,6 +589,16 @@ class CompleteProfileSerializer(serializers.ModelSerializer):
         label=_("مهارت‌ها"),
     )
 
+    first_name = serializers.CharField(required=True, max_length=50)
+    last_name = serializers.CharField(required=True, max_length=50)
+    job_title = serializers.CharField(required=True, max_length=100)
+    experience_level = serializers.ChoiceField(
+        required=True,
+        choices=User.ExperienceLevel.choices,
+    )
+    
+    
+    
     class Meta:
         model = User
         fields = (
@@ -740,14 +756,14 @@ class DeleteAccountSerializer(serializers.Serializer):
         user = self.context["request"].user
         from .services import OTPService
         
-        success, message = OTPService.verify_otp_for_action(
+        result = OTPService.verify_otp_for_action(
             user=user,
             code=attrs["code"],
             purpose=OTPCode.Purpose.RESET,
         )
+        if not result["success"]:
+            raise serializers.ValidationError({"code": result["message"]})
 
-        if not success:
-            raise serializers.ValidationError({"code": message})
 
         return attrs
 
