@@ -50,7 +50,7 @@ class UsersConfig(AppConfig):
         ثبت بررسی‌های سفارشی جنگو.
         موقع اجرای `python manage.py check` اجرا میشن.
         """
-        from django.core.checks import register, Tags
+        from django.core.checks import Tags, register
 
         @register(Tags.models)
         def check_auth_user_model(app_configs, **kwargs):
@@ -147,7 +147,7 @@ class UsersConfig(AppConfig):
             چک میکنه تنظیمات JWT درست باشن.
             """
             from django.conf import settings
-            from django.core.checks import Warning, Error
+            from django.core.checks import Error, Warning
 
             issues = []
 

@@ -13,13 +13,18 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.questions.models import Question
+
 from .models import (
-    InterviewSession, SessionQuestion,
-    InterviewMessage, UserAnswer,
+    InterviewMessage,
+    InterviewSession,
+    SessionQuestion,
+    UserAnswer,
 )
 from .selectors import (
-    SessionSelector, MessageSelector,
-    AnswerSelector, InterviewStatsSelector,
+    AnswerSelector,
+    InterviewStatsSelector,
+    MessageSelector,
+    SessionSelector,
 )
 
 logger = logging.getLogger(__name__)
@@ -152,7 +157,7 @@ class InterviewSetupService:
 
         # تبدیل به int و تضمین جمع = total
         distribution = {k: int(v) for k, v in raw.items()}
-        
+
         # کسری که گم شده رو به بزرگترین bucket اضافه کن
         deficit = total - sum(distribution.values())
         if deficit > 0:
@@ -504,9 +509,9 @@ class InterviewConductService:
     @staticmethod
     def _build_wrap_up_message(session: InterviewSession) -> str:
         return (
-            f"مصاحبه به پایان رسید.\n"
-            f"از وقتی که گذاشتید متشکرم.\n"
-            f"نتایج ارزیابی به زودی آماده خواهد شد."
+            "مصاحبه به پایان رسید.\n"
+            "از وقتی که گذاشتید متشکرم.\n"
+            "نتایج ارزیابی به زودی آماده خواهد شد."
         )
 
 

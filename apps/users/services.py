@@ -1,15 +1,14 @@
-from django.contrib.auth import get_user_model
-from django.utils.translation import gettext_lazy as _
-from django.db import transaction
-from .selectors import UserSelector, OTPSelector
-from .models import OTPCode
-from django.utils import timezone
-from apps.notifications.services import NotificationService
-from apps.notifications.models import Notification
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.exceptions import TokenError
-from django.db import OperationalError
 import logging
+
+from django.contrib.auth import get_user_model
+from django.db import OperationalError, transaction
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
+from apps.notifications.models import Notification
+
+from .models import OTPCode
+from .selectors import OTPSelector, UserSelector
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -27,7 +26,7 @@ class OTPService:
         with transaction.atomic():
             # همه چک‌ها و ایجاد OTP داخل یه transaction
             user = UserSelector.get_by_phone(phone_number)
-            
+
             if user:
                 # چک cooldown با lock
                 latest_otp = OTPCode.objects.select_for_update().filter(
@@ -68,7 +67,7 @@ class OTPService:
             )
 
             sms_body = f"کد تایید شما برای ورود به پلتفرم هوش مصنوعی:\n{otp.code}\nمعتبر برای ۲ دقیقه."
-            
+
             notification_record = Notification.objects.create(
                 user=user,
                 recipient=phone_number,
@@ -139,7 +138,7 @@ class OTPService:
             "user": user,
             "is_new_user": not user.is_profile_complete,
         }
-        
+
     @staticmethod
     def verify_otp_for_deletion(user, code: str) -> dict:
         """

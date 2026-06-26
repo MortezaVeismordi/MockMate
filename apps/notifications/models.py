@@ -1,5 +1,5 @@
-from django.db import models
 from django.conf import settings
+from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -47,14 +47,14 @@ class Notification(models.Model):
         verbose_name=_("وضعیت"),
         db_index=True,
     )
-    
+
     # آدرس گیرنده: شماره تلفن (09XXXXXXXXX) یا ایمیل کاربر
     recipient = models.CharField(
         max_length=255,
         verbose_name=_("گیرنده"),
         help_text=_("شماره تلفن یا آدرس ایمیل"),
     )
-    
+
     title = models.CharField(
         max_length=255,
         blank=True,

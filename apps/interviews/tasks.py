@@ -1,11 +1,9 @@
 # apps/interviews/tasks.py
-import logging
+from asgiref.sync import async_to_sync
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from django.db import transaction
-from django.utils import timezone
 from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
+from django.utils import timezone
 
 logger = get_task_logger(__name__)
 
@@ -238,8 +236,8 @@ def cleanup_abandoned_sessions() -> dict:
     ignore_result=True,
 )
 def retry_failed_evaluations() -> dict:
-    from .selectors import AnswerSelector
     from .models import UserAnswer
+    from .selectors import AnswerSelector
 
     failed_answers = AnswerSelector.get_failed_evaluations(limit=10)
     count = 0

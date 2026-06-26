@@ -1,10 +1,12 @@
 import logging
-from .selectors import UserSelector
+
 from django.contrib.auth import get_user_model
-from django.db.models.signals import post_save, pre_save, post_delete
-from django.dispatch import receiver, Signal
+from django.db.models.signals import post_delete, post_save, pre_save
+from django.dispatch import Signal, receiver
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
+from .selectors import UserSelector
 
 logger = logging.getLogger(__name__)
 

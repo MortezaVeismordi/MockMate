@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
-from .models import QuestionCategory, Question, QuestionOption, QuestionAttachment
+
+from .models import Question, QuestionAttachment, QuestionCategory, QuestionOption
 
 
 class QuestionOptionInline(admin.TabularInline):
@@ -29,9 +30,9 @@ class QuestionAdmin(admin.ModelAdmin):
     list_filter = ('question_type', 'seniority_level', 'source', 'is_active', 'categories')
     search_fields = ('title', 'body', 'reference_answer')
     filter_horizontal = ('categories',)
-    
+
     inlines = [QuestionOptionInline, QuestionAttachmentInline]
-    
+
     fieldsets = (
         (_('General Information'), {
             'fields': ('title', 'body', 'estimated_time', 'code_template')
@@ -45,6 +46,6 @@ class QuestionAdmin(admin.ModelAdmin):
         }),
         (_('System Metadata'), {
             'fields': ('is_active', 'source', 'source_url'),
-            'classes': ('collapse',),  
+            'classes': ('collapse',),
         }),
     )

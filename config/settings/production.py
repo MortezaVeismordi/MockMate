@@ -2,19 +2,18 @@
 # =============================================================================
 # Production Settings — AI Interviewer
 # =============================================================================
+import logging
+import os
+from datetime import timedelta
+
+import sentry_sdk
+from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
 
 from .base import *  # noqa: F401, F403
-from .base import (
-    INSTALLED_APPS, MIDDLEWARE, REST_FRAMEWORK,
-    CACHES, SIMPLE_JWT, CELERY_TASK_ROUTES, LOGGING
-)
-from datetime import timedelta
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
-from sentry_sdk.integrations.celery import CeleryIntegration
-from sentry_sdk.integrations.redis import RedisIntegration
-from sentry_sdk.integrations.logging import LoggingIntegration
-import logging
+from .base import CACHES, CELERY_TASK_ROUTES, INSTALLED_APPS, LOGGING, MIDDLEWARE, REST_FRAMEWORK, SIMPLE_JWT
 
 # ─── Core ─────────────────────────────────────────────────────────────────────
 DEBUG = False
@@ -169,7 +168,7 @@ if SENTRY_DSN:
 
         # اطلاعات حساس رو فیلتر میکنه
         send_default_pii=False,
-        before_send=_filter_sensitive_data,
+        before_send=_filter_sensitive_data,  # noqa: F405
     )
 
 # ─── Sentry sensitive data filter ────────────────────────────────────────────

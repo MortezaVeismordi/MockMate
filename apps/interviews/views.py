@@ -7,17 +7,18 @@ import logging
 
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.views import APIView
 
 from apps.users.response import APIResponse
+
 from .models import InterviewSession
-from .selectors import SessionSelector, InterviewStatsSelector
+from .selectors import InterviewStatsSelector, SessionSelector
 from .serializers import (
-    InterviewSessionCreateSerializer,
-    InterviewSessionListSerializer,
-    InterviewSessionDetailSerializer,
     InterviewReportSerializer,
+    InterviewSessionCreateSerializer,
+    InterviewSessionDetailSerializer,
+    InterviewSessionListSerializer,
     UserAnswerEvaluationSerializer,
 )
 from .services import InterviewSetupService
@@ -380,8 +381,8 @@ class AdminRetriggerEvaluationView(APIView):
         return APIResponse.success(
             message=_("ارزیابی مجدداً در صف قرار گرفت."),
         )
-        
-        
+
+
 class InterviewSessionListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 

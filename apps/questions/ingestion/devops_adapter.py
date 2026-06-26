@@ -1,9 +1,11 @@
+import logging
 import os
 import re
-import logging
-from typing import List, Dict, Any
-from .base_adapter import BaseQuestionAdapter
+from typing import Any, Dict, List
+
 from apps.questions.models import Question
+
+from .base_adapter import BaseQuestionAdapter
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +17,7 @@ class DevOpsExercisesAdapter(BaseQuestionAdapter):
 
     def extract(self) -> List[Dict[str, Any]]:
         raw_files_data = []
-        
+
         if not os.path.exists(self.target_dir):
             logger.error(f"Target directory does not exist: {self.target_dir}")
             return raw_files_data
@@ -32,13 +34,13 @@ class DevOpsExercisesAdapter(BaseQuestionAdapter):
                     # ۱. فیلتر کردن فایل‌های مستندات عمومی و غیر فنی
                     if file.lower() in EXCLUDED_FILES:
                         continue
-                        
+
                     file_path = os.path.join(root, file)
                     category_name = os.path.basename(root)
-                    
+
                     if category_name.startswith('.') or category_name == self.repo_path:
                         continue
-                        
+
                     try:
                         with open(file_path, 'r', encoding='utf-8') as f:
                             content = f.read()
@@ -49,7 +51,7 @@ class DevOpsExercisesAdapter(BaseQuestionAdapter):
                             })
                     except Exception as e:
                         logger.error(f"Error reading file {file_path}: {str(e)}")
-                        
+
         return raw_files_data
 
     def transform(self, raw_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -61,29 +63,29 @@ class DevOpsExercisesAdapter(BaseQuestionAdapter):
         # الگوی ریجکس برای پیدا کردن سوالاتی که با هدر یا علامت Q شروع می‌شوند
         # این الگو سوالاتی که پاسخشان داخل تگ <details> هست را هم شکار می‌کند
         question_block_pattern = re.compile(
-            r'(?:^|\n)(?P<header>#{2,4})\s+(?:Q\d*:\s*)?(?P<title>.+?)(?=\n)(?P<body>.+?)(?=(?:\n#{2,4}\s+Q\d*:|\n#{2,4}\s+[^Q]|\Z))', 
+            r'(?:^|\n)(?P<header>#{2,4})\s+(?:Q\d*:\s*)?(?P<title>.+?)(?=\n)(?P<body>.+?)(?=(?:\n#{2,4}\s+Q\d*:|\n#{2,4}\s+[^Q]|\Z))',
             re.DOTALL | re.IGNORECASE
         )
 
         for file_item in raw_data:
             content = file_item['content']
             category = file_item['category']
-            
+
             # پیدا کردن تمام بلوک‌های سوال در فایل
             matches = question_block_pattern.finditer(content)
-            
+
             for match in matches:
                 title = match.group('title').strip()
                 raw_body = match.group('body').strip()
-                
+
                 # فیلتر اموجی‌ها یا کاراکترهای اضافه از عنوان
                 title = re.sub(r'[\d\.\-\:]', '', title).strip()
-                
+
                 # تفکیک پاسخ مرجع (Reference Answer) از بدنه سوال
                 # در این ریپو پاسخ‌ها معمولاً بین تگ‌های <details> و <summary> هستند
                 reference_answer = ""
                 body_clean = raw_body
-                
+
                 if "<details>" in raw_body:
                     details_match = re.search(r'<details>.*?</summary>(?P<ans>.*?)</details>', raw_body, re.DOTALL | re.IGNORECASE)
                     if details_match:
@@ -102,7 +104,7 @@ class DevOpsExercisesAdapter(BaseQuestionAdapter):
                 # تشخیص هوشمند نوع سوال (اگر کلمات کلیدی تستی داشت)
                 q_type = Question.QuestionType.DEVOPS
                 options_metadata = []
-                
+
                 if any(indicator in body_clean for indicator in ['a)', 'b)', '1)', '- [ ]']):
                     q_type = Question.QuestionType.MULTIPLE_CHOICE
                     options_metadata = self._parse_options(body_clean, reference_answer)
@@ -152,13 +154,13 @@ class DevOpsExercisesAdapter(BaseQuestionAdapter):
         options = []
         # پیدا کردن خطوطی که با حروف الفبا یا عدد به عنوان گزینه شروع می‌شوند
         raw_options = re.findall(r'(?P<label>[a-d1-4])[\)\.]\s*(?P<text>.+)', body_text, re.IGNORECASE)
-        
+
         for label, text in raw_options:
             clean_text = text.strip()
             # تشخیص هوشمند اینکه آیا این گزینه پاسخ صحیح است یا خیر
             # بررسی اینکه آیا علامت تایید یا متن پاسخ در بخش جواب آمده است
             is_correct = label.lower() in answer_text.lower() or clean_text.lower() in answer_text.lower()
-            
+
             options.append({
                 'text': clean_text,
                 'is_correct': is_correct

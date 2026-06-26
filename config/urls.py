@@ -1,11 +1,12 @@
-from django.contrib import admin
-from django.urls import path, include
-from django.http import JsonResponse
-from django.utils import timezone
-from django.db import connection
-from django.core.cache import cache
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
+from django.core.cache import cache
+from django.db import connection
+from django.http import JsonResponse
+from django.urls import include, path
+from django.utils import timezone
+
 
 def health_check(request):
     """

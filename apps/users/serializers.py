@@ -1,13 +1,12 @@
 import logging
 from datetime import timedelta
 
-from django.contrib.auth import get_user_model ,authenticate
+from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import RegexValidator
 from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -596,9 +595,9 @@ class CompleteProfileSerializer(serializers.ModelSerializer):
         required=True,
         choices=User.ExperienceLevel.choices,
     )
-    
-    
-    
+
+
+
     class Meta:
         model = User
         fields = (
@@ -755,7 +754,7 @@ class DeleteAccountSerializer(serializers.Serializer):
     def validate(self, attrs: dict) -> dict:
         user = self.context["request"].user
         from .services import OTPService
-        
+
         result = OTPService.verify_otp_for_action(
             user=user,
             code=attrs["code"],
@@ -1301,7 +1300,7 @@ class LoginWithPasswordSerializer(PhoneNormalizerMixin, serializers.Serializer):
     """اعتبارسنجی ورود کاربران با شماره موبایل و رمز عبور"""
     phone_number = serializers.CharField(validators=[phone_validator])
     password = serializers.CharField(
-        write_only=True, 
+        write_only=True,
         style={'input_type': 'password'},
         label=_("رمز عبور")
     )
@@ -1321,10 +1320,10 @@ class LoginWithPasswordSerializer(PhoneNormalizerMixin, serializers.Serializer):
 
             if not user:
                 raise serializers.ValidationError(_("شماره موبایل یا رمز عبور اشتباه است"))
-            
+
             if not user.is_active:
                 raise serializers.ValidationError(_("حساب کاربری شما غیرفعال شده است"))
-                
+
             if getattr(user, 'is_banned', False):
                 raise serializers.ValidationError(_("حساب کاربری شما مسدود شده است"))
         else:
@@ -1338,19 +1337,19 @@ class LoginWithPasswordSerializer(PhoneNormalizerMixin, serializers.Serializer):
 class SetPasswordSerializer(serializers.Serializer):
     """سریالایزر برای تعیین یا تغییر رمز عبور کاربر احراز هویت شده"""
     current_password = serializers.CharField(
-        style={'input_type': 'password'}, 
-        required=False, 
+        style={'input_type': 'password'},
+        required=False,
         allow_blank=True,
         label=_("رمز عبور فعلی")
     )
     new_password = serializers.CharField(
-        write_only=True, 
+        write_only=True,
         style={'input_type': 'password'},
         validators=[validate_password], # استفاده از ولیدیتورهای نیتیو جنگو
         label=_("رمز عبور جدید")
     )
     confirm_password = serializers.CharField(
-        write_only=True, 
+        write_only=True,
         style={'input_type': 'password'},
         label=_("تکرار رمز عبور جدید")
     )
@@ -1377,5 +1376,5 @@ class SetPasswordSerializer(serializers.Serializer):
                 raise serializers.ValidationError({
                     "current_password": _("رمز عبور فعلی اشتباه است")
                 })
-        
+
         return attrs

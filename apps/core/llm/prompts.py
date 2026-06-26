@@ -3,8 +3,6 @@
 # LLM Prompt Templates — Context Injection & Few-Shot
 # =============================================================================
 
-from string import Template
-from typing import Optional
 
 
 # =============================================================================

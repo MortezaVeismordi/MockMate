@@ -1,4 +1,5 @@
 from django.urls import re_path
+
 from apps.interviews import consumers
 
 websocket_urlpatterns = [

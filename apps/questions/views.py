@@ -1,19 +1,23 @@
 import logging
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny # just for testing, should be adjusted based on actual access control policies
-from rest_framework.pagination import LimitOffsetPagination
+
 from django.shortcuts import get_object_or_404
+from rest_framework import status
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import (  # just for testing, should be adjusted based on actual access control policies
+    IsAdminUser,
+    IsAuthenticated,
+)
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from apps.questions.models import Question, QuestionCategory
-from apps.questions.selectors import question_list, get_random_interview_set
+from apps.questions.selectors import get_random_interview_set, question_list
 from apps.questions.serializers import (
-    CategorySerializer,
-    CandidateQuestionListSerializer,
-    CandidateQuestionDetailSerializer,
     AdminQuestionSerializer,
-    GitHubIngestInputSerializer
+    CandidateQuestionDetailSerializer,
+    CandidateQuestionListSerializer,
+    CategorySerializer,
+    GitHubIngestInputSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -36,21 +40,21 @@ class QuestionListAPI(APIView):
     def get(self, request):
         category_slug = request.query_params.get('category')
         seniority_level = request.query_params.get('seniority')
-        
+
         # واکشی داده‌های تصفیه شده از لایه سلکتور
         questions = question_list(
             category_slug=category_slug,
             seniority_level=seniority_level,
             is_active=True
         )
-        
+
         paginator = self.ApiPagination()
         page = paginator.paginate_queryset(questions, request, view=self)
-        
+
         if page is not None:
             serializer = CandidateQuestionListSerializer(page, many=True)
             return paginator.get_paginated_response(serializer.data)
-            
+
         serializer = CandidateQuestionListSerializer(questions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -77,7 +81,7 @@ class RandomInterviewSetAPI(APIView):
         category_slug = request.query_params.get('category')
         seniority_level = request.query_params.get('seniority')
         limit = request.query_params.get('limit', 5)
-        
+
         try:
             limit = int(limit)
         except ValueError:
@@ -88,7 +92,7 @@ class RandomInterviewSetAPI(APIView):
             seniority_level=seniority_level,
             limit=limit
         )
-        
+
         serializer = CandidateQuestionDetailSerializer(random_questions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -123,10 +127,10 @@ class AdminQuestionListCreateAPI(APIView):
     def get(self, request):
         # ادمین باید بتواند سوالات غیرفعال (is_active=False) را هم ببیند
         questions = Question.objects.prefetch_related('categories').all().order_by('-created_at')
-        
+
         paginator = self.AdminPagination()
         page = paginator.paginate_queryset(questions, request, view=self)
-        
+
         serializer = AdminQuestionSerializer(page if page is not None else questions, many=True)
         return paginator.get_paginated_response(serializer.data) if page is not None else Response(serializer.data)
 
@@ -191,12 +195,12 @@ class AdminGitHubIngestAPI(APIView):
     def post(self, request):
         serializer = GitHubIngestInputSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         github_url = serializer.validated_data['github_url']
-        
+
         # در اینجا متد آداپتور یا تسک Celery شما صدا زده می‌شود:
         # trigger_github_ingestion.delay(repo_url=github_url)
-        
+
         logger.info(f"GitHub ingestion triggered by Admin {request.user.id} for repo: {github_url}")
         return Response(
             {"detail": "فرآیند استخراج و بارگذاری سوالات از گیت‌هاب با موفقیت در پس‌زمینه آغاز شد."},

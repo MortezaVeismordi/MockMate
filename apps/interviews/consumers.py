@@ -7,8 +7,8 @@ import json
 import logging
 from uuid import UUID
 
-from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
 
 logger = logging.getLogger(__name__)
@@ -318,7 +318,6 @@ class InterviewConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def _ask_next_question(self):
         from .services import InterviewConductService
-        from .models import InterviewSession
 
         result = InterviewConductService.ask_next_question(self.session)
 

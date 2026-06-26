@@ -1,16 +1,14 @@
-from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from django.core.validators import RegexValidator
-from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
-from django.conf import settings
-
 import secrets
-import string
 from datetime import timedelta
 
-from .managers import CustomUserManager
+from django.conf import settings
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.core.validators import RegexValidator
+from django.db import models
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
+from .managers import CustomUserManager
 
 # ─────────────────────────────────────────────
 #  Validators

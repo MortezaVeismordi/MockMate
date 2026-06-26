@@ -1,6 +1,7 @@
 # apps/notifications/tasks.py
 
 import logging
+
 from celery import shared_task
 from django.db import transaction
 
@@ -21,7 +22,7 @@ def send_otp_notification_task(self, notification_id: int):
     تسک ناهمگام برای ارسال پیامک یا ایمیل کد OTP
     """
     logger.info(f"[Celery] Processing OTP notification ID: {notification_id}")
-    
+
     from .models import Notification
     from .services import NotificationService
 
@@ -45,10 +46,10 @@ def send_otp_notification_task(self, notification_id: int):
                 notif_record.save(update_fields=["retry_count"])
         except Exception as db_err:
             logger.error(f"Failed to update retry count: {db_err}")
-            
+
         raise self.retry(exc=exc)
-    
-    
+
+
 @shared_task(name="apps.notifications.tasks.send_welcome_sms")
 def send_welcome_sms(phone_number: str, first_name: str):
     """ارسال پیامک خوش‌آمدگویی"""

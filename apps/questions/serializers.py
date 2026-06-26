@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from apps.questions.models import Question, QuestionCategory
 
 # =====================================================================
@@ -25,15 +26,15 @@ class CandidateQuestionListSerializer(serializers.ModelSerializer):
     بسیار سبک و بهینه بدون فیلدهای متنی سنگین.
     """
     categories = CategorySerializer(many=True, read_only=True)
-    
+
     class Meta:
         model = Question
         fields = [
-            'id', 
-            'title', 
-            'question_type', 
-            'seniority_level', 
-            'estimated_time', 
+            'id',
+            'title',
+            'question_type',
+            'seniority_level',
+            'estimated_time',
             'categories'
         ]
 
@@ -44,7 +45,7 @@ class CandidateQuestionDetailSerializer(serializers.ModelSerializer):
     فیلدهایی مثل پاسخ مرجع یا ارزیابی هوش مصنوعی برای جلوگیری از تقلب داوطلب مخفی هستند.
     """
     categories = CategorySerializer(many=True, read_only=True)
-    
+
     class Meta:
         model = Question
         fields = [
@@ -117,10 +118,10 @@ class GitHubIngestInputSerializer(serializers.Serializer):
     اندپوینت ۱۰: دریافت و اعتبارسنجی ورودی‌های خزنده خودکار از گیت‌هاب.
     """
     github_url = serializers.URLField(
-        required=True, 
+        required=True,
         help_text="آدرس کامل ریپوزیوری گیت‌هاب برای استخراج سوالات"
     )
-    
+
     def validate_github_url(self, value):
         if "github.com" not in value.lower():
             raise serializers.ValidationError("آدرس ارسالی باید یک لینک معتبر از دامنه github.com باشد.")

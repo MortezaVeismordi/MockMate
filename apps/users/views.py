@@ -1,46 +1,45 @@
 import logging
 
 from django.contrib.auth import get_user_model
-from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-from rest_framework.generics import GenericAPIView, ListAPIView
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
-from rest_framework.views import APIView
-from rest_framework.filters import SearchFilter, OrderingFilter
-from rest_framework.throttling import AnonRateThrottle
-from rest_framework.parsers import MultiPartParser, FormParser
-
+from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.generics import GenericAPIView, ListAPIView
+from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
+from rest_framework.throttling import AnonRateThrottle
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from .response import APIResponse
-from .services import OTPService
+
 from .models import OTPCode
+from .response import APIResponse
+from .selectors import StatsSelector, UserSelector
 from .serializers import (
+    AdminBanSerializer,
+    AdminSoftDeleteSerializer,
+    AdminStatsSerializer,
+    AdminSuspendSerializer,
+    AdminUnsuspendSerializer,
+    AdminUserDetailSerializer,
+    # Admin
+    AdminUserListSerializer,
+    AvatarSerializer,
+    CompleteProfileSerializer,
+    DeleteAccountSerializer,
+    LoginWithPasswordSerializer,
+    LogoutSerializer,
+    OTPHistorySerializer,
+    RefreshTokenSerializer,
+    ResendOTPSerializer,
     # Auth
     SendOTPSerializer,
-    ResendOTPSerializer,
-    VerifyOTPSerializer,
-    RefreshTokenSerializer,
-    LogoutSerializer,
-    LoginWithPasswordSerializer,
     SetPasswordSerializer,
     # Profile
     UserMeSerializer,
-    CompleteProfileSerializer,
-    AvatarSerializer,
-    DeleteAccountSerializer,
-    # Admin
-    AdminUserListSerializer,
-    AdminUserDetailSerializer,
-    AdminSoftDeleteSerializer,
-    AdminSuspendSerializer,
-    AdminUnsuspendSerializer,
-    AdminBanSerializer,
-    OTPHistorySerializer,
-    AdminStatsSerializer,
+    VerifyOTPSerializer,
 )
-from .selectors import UserSelector, StatsSelector
-
+from .services import OTPService
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -948,14 +947,14 @@ class AdminStatsView(APIView):
     permission_classes = [IsAdminUser]
 
     def get(self, request):
-        stats = StatsSelector.get_full_stats()      
+        stats = StatsSelector.get_full_stats()
         serializer = AdminStatsSerializer(stats)
         return APIResponse.success(
             message=_("آمار کاربران"),
             data=serializer.data,
         )
-        
-        
+
+
 class LoginWithPasswordView(GenericAPIView):
     """
     POST /api/v1/users/auth/login-password/
@@ -968,12 +967,12 @@ class LoginWithPasswordView(GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         user = serializer.validated_data['user']
-        
+
         # تولید توکن‌های JWT (دقیقاً همگام با منطق پروژه شما)
         refresh = RefreshToken.for_user(user)
-        
+
         data = {
             "refresh": str(refresh),
             "access": str(refresh.access_token),
@@ -984,18 +983,18 @@ class LoginWithPasswordView(GenericAPIView):
                 "last_name": user.last_name,
             }
         }
-        
+
         # به‌روزرسانی زمان آخرین ورود کاربر
         user.last_login = timezone.now()
         user.save(update_fields=['last_login'])
-        
+
         return APIResponse.success(
             data=data,
             message=_("ورود با موفقیت انجام شد")
         )
-        
-        
-        
+
+
+
 class SetPasswordView(GenericAPIView):
     """
     POST /api/v1/users/profile/set-password/
@@ -1007,16 +1006,16 @@ class SetPasswordView(GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        
+
         user = request.user
         new_password = serializer.validated_data['new_password']
-        
+
         # هش کردن و ذخیره رمز عبور جدید
         user.set_password(new_password)
         user.save(update_fields=['password'])
-        
+
         logger.info(f"User {user.id} successfully updated/set their password.")
-        
+
         return APIResponse.success(
             message=_("رمز عبور با موفقیت ثبت و به‌روزرسانی شد")
         )

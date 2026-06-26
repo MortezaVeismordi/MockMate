@@ -4,14 +4,18 @@ from typing import Optional
 
 from django.contrib.auth import get_user_model
 from django.db.models import (
-    QuerySet, Count, Q, F, Value,
-    CharField, BooleanField,
-    Case, When,
-    Subquery, OuterRef, Exists,
+    BooleanField,
+    Case,
+    CharField,
+    Count,
+    F,
+    Q,
+    QuerySet,
+    Value,
+    When,
 )
-from django.db.models.functions import Concat, Coalesce
+from django.db.models.functions import Concat
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
 
 from .models import OTPCode
 
@@ -101,7 +105,7 @@ class UserSelector:
             phone_number=phone_number,
             is_banned=True,
         ).exists()
-        
+
     @staticmethod
     def get_banned_users() -> QuerySet:
         return User.objects.filter(is_banned=True).order_by("-date_joined")
@@ -196,13 +200,6 @@ class UserSelector:
             UserSelector.get_all_users()
             .filter(_is_profile_complete=False, is_active=True)
         )
-
-    @staticmethod
-    def get_banned_users() -> QuerySet:
-        """کاربران بن‌شده."""
-        return User.objects.filter(
-            phone_number__startswith="banned_",
-        ).order_by("-date_joined")
 
     # ──────────────────────────────────────────
     #  Filtered Queries

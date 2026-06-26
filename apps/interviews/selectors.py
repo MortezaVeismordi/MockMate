@@ -8,14 +8,9 @@ from typing import Optional
 from uuid import UUID
 
 from django.contrib.auth import get_user_model
-from django.db.models import (
-    QuerySet, Avg, Count, Sum, Max, Min,
-    Q, F, Prefetch, Case, When, Value, FloatField
-)
-from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
+from django.db.models import Avg, Count, Max, Min, Prefetch, Q, QuerySet, Sum
 
-from .models import InterviewSession, SessionQuestion, InterviewMessage, UserAnswer
+from .models import InterviewMessage, InterviewSession, SessionQuestion, UserAnswer
 
 logger = logging.getLogger(__name__)
 User = get_user_model()

@@ -1,6 +1,6 @@
+import logging
 import os
 import subprocess
-import logging
 from typing import Optional
 
 # وارد کردن آداپتورها
@@ -13,11 +13,11 @@ class QuestionIngestionPipeline:
     ارکستراتور و مدیریت‌کننده کلان خط لوله پورت داده‌ها از گیت‌هاب.
     وظایف: مدیریت فیزیکی ریپوها روی دیسک، نگاشت نام آداپتور به کلاس مربوطه و اجرای ETL.
     """
-    
+
     # مپ کردن نام‌های ورودی ترمینال به ریپوزیوری‌های واقعی گیت‌هاب
     REPO_REGISTRY = {
         'devops': {
-            'url': 'https://github.com/bregman-arie/devops-exercises.git', 
+            'url': 'https://github.com/bregman-arie/devops-exercises.git',
             'dir_name': 'devops-exercises',
             'adapter_class': DevOpsExercisesAdapter
         },
@@ -29,11 +29,11 @@ class QuestionIngestionPipeline:
     }
 
     def __init__(
-        self, 
-        adapter_name: str, 
-        limit: Optional[int] = None, 
-        sub_path: Optional[str] = None, 
-        category: Optional[str] = None, 
+        self,
+        adapter_name: str,
+        limit: Optional[int] = None,
+        sub_path: Optional[str] = None,
+        category: Optional[str] = None,
         level: Optional[str] = None
     ):
         self.adapter_name = adapter_name.lower()
@@ -41,12 +41,12 @@ class QuestionIngestionPipeline:
         self.sub_path = sub_path
         self.category = category
         self.level = level
-        
+
         if self.adapter_name not in self.REPO_REGISTRY:
             raise ValueError(f"Adapter '{adapter_name}' is not registered in the pipeline.")
-            
+
         self.repo_config = self.REPO_REGISTRY[self.adapter_name]
-        
+
         # تعیین پوشه محلی برای دانلود ریپوها (داخل کانتینر در مسیر /app/downloads)
         self.base_download_dir = os.path.join(os.getcwd(), 'downloads')
         self.local_repo_path = os.path.join(self.base_download_dir, self.repo_config['dir_name'])
@@ -77,15 +77,15 @@ class QuestionIngestionPipeline:
         """
         دانلود مستقیم فایل Zip ریپو و اکسترکت کردن آن در مسیر مورد نظر پروژه
         """
-        import zipfile
         import shutil
-        
+        import zipfile
+
         # تبدیل آدرس ریپو به لینک دانلود مستقیم زیپ از گیت‌هاب
         zip_url = self.repo_config['url'].replace('.git', '/archive/refs/heads/master.zip')
         # در برخی ریپوها شاخه اصلی main است
         if 'devops-exercises' in zip_url:
             zip_url = self.repo_config['url'].replace('.git', '/archive/refs/heads/master.zip')
-            
+
         temp_zip_path = os.path.join(self.base_download_dir, 'repo.zip')
         extracted_temp_dir = os.path.join(self.base_download_dir, 'temp_extracted')
 
@@ -96,21 +96,21 @@ class QuestionIngestionPipeline:
                 ['curl', '-L', zip_url, '-o', temp_zip_path],
                 check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
-            
+
             logger.info("Extracting ZIP archive...")
             with zipfile.ZipFile(temp_zip_path, 'r') as zip_ref:
                 zip_ref.extractall(extracted_temp_dir)
-            
+
             # گیت‌هاب پوشه را با نام ریپو + اسم برانچ اکسترکت می‌کند (مثلا devops-exercises-master)
             extracted_folder_name = os.listdir(extracted_temp_dir)[0]
             full_extracted_path = os.path.join(extracted_temp_dir, extracted_folder_name)
-            
+
             # جابجایی به مسیر استاندارد خط لوله
             if os.path.exists(self.local_repo_path):
                 shutil.rmtree(self.local_repo_path)
             shutil.move(full_extracted_path, self.local_repo_path)
             logger.info("ZIP Extraction and alignment completed successfully.")
-            
+
         except Exception as e:
             logger.error(f"ZIP Fallback also failed: {str(e)}")
             raise e

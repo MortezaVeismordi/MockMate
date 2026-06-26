@@ -3,9 +3,10 @@
 # Development Settings — AI Interviewer
 # =============================================================================
 
-from .base import *  # noqa: F401, F403
-from .base import INSTALLED_APPS, MIDDLEWARE, REST_FRAMEWORK, CACHES, SIMPLE_JWT
 from datetime import timedelta
+
+from .base import *  # noqa: F401, F403
+from .base import CACHES, INSTALLED_APPS, REST_FRAMEWORK, SIMPLE_JWT
 
 # ─── Core ─────────────────────────────────────────────────────────────────────
 DEBUG = True

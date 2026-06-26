@@ -3,12 +3,10 @@
 # Testing Settings — AI Interviewer
 # =============================================================================
 
-from .base import *  # noqa: F401, F403
-from .base import (
-    INSTALLED_APPS, MIDDLEWARE, REST_FRAMEWORK,
-    CACHES, SIMPLE_JWT, LOGGING
-)
 from datetime import timedelta
+
+from .base import *  # noqa: F401, F403
+from .base import LOGGING, MIDDLEWARE, REST_FRAMEWORK, SIMPLE_JWT
 
 # ─── Core ─────────────────────────────────────────────────────────────────────
 DEBUG = False                      # production رفتار رو شبیه‌سازی میکنیم
@@ -70,7 +68,8 @@ PASSWORD_HASHERS = [
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
 # ─── Media — tmp directory ───────────────────────────────────────────────────
-import tempfile                                          # noqa: E402
+import tempfile  # noqa: E402
+
 MEDIA_ROOT = tempfile.mkdtemp()
 
 # ─── Celery — همه چیز sync ───────────────────────────────────────────────────
@@ -121,7 +120,8 @@ TEST_RUNNER = "django.test.runner.DiscoverTestRunner"
 
 # parallel test برای سرعت بیشتر
 # تعداد CPU core رو میگیره
-import multiprocessing                                   # noqa: E402
+import multiprocessing  # noqa: E402
+
 TEST_RUNNER_PARALLEL = multiprocessing.cpu_count()
 
 # ─── Fixtures ────────────────────────────────────────────────────────────────

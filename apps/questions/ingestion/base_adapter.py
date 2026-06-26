@@ -1,8 +1,10 @@
-import os
 import logging
-from typing import List, Dict, Any, Optional
+import os
+from typing import Any, Dict, List, Optional
+
 from django.db import transaction
 from django.utils.text import slugify
+
 from apps.questions.models import Question, QuestionCategory, QuestionOption
 
 logger = logging.getLogger(__name__)
@@ -12,13 +14,13 @@ class BaseQuestionAdapter:
     کلاس پایه‌ی انترپرایز برای خط لوله ETL استخراج سوالات از گیت‌هاب.
     این کلاس قوانین کلی، پاک‌سازی داده‌ها، مدیریت خطا و تراکنش‌های امن دیتابیس را تضمین می‌کند.
     """
-    
+
     def __init__(
-        self, 
-        repo_path: str, 
-        limit: Optional[int] = None, 
-        sub_path: Optional[str] = None, 
-        category: Optional[str] = None, 
+        self,
+        repo_path: str,
+        limit: Optional[int] = None,
+        sub_path: Optional[str] = None,
+        category: Optional[str] = None,
         level: Optional[str] = None
     ):
         self.repo_path = repo_path
@@ -26,7 +28,7 @@ class BaseQuestionAdapter:
         self.sub_path = sub_path
         self.category_filter = category
         self.level_filter = level
-        
+
         # ترکیب مسیر اصلی ریپو با ساب‌پات درخواستی کاربر
         self.target_dir = os.path.join(repo_path, sub_path) if sub_path else repo_path
 
@@ -36,24 +38,24 @@ class BaseQuestionAdapter:
         خروجی: تعداد سوالاتی که با موفقیت ذخیره شده‌اند.
         """
         logger.info(f"Starting ETL pipeline for target directory: {self.target_dir}")
-        
+
         try:
             # ۱. فاز Extract
             raw_data = self.extract()
             if not raw_data:
                 logger.warning("No raw data extracted from the source.")
                 return 0
-                
+
             # ۲. فاز Transform
             transformed_questions = self.transform(raw_data)
             if not transformed_questions:
                 logger.warning("No questions remained after transformation and filtering.")
                 return 0
-                
+
             # ۳. فاز Load
             saved_count = self.load(transformed_questions)
             return saved_count
-            
+
         except Exception as e:
             logger.critical(f"Pipeline crashed catastrophically: {str(e)}", exc_info=True)
             return 0
@@ -92,16 +94,16 @@ class BaseQuestionAdapter:
         reference_answer = question_data.get('reference_answer', '').strip()
 
         if not title or not body:
-            logger.warning(f"Validation failed: Question skipped due to empty title or body.")
+            logger.warning("Validation failed: Question skipped due to empty title or body.")
             return None
 
         # خلاصه کردن عنوان در صورت فراتر رفتن از حد مجاز VARCHAR(255) دیتابیس
         if len(title) > 255:
             question_data['title'] = title[:250] + "..."
-            
+
         question_data['body'] = self.clean_text(body)
         question_data['reference_answer'] = self.clean_text(reference_answer)
-        
+
         return question_data
 
     def get_or_create_category(self, category_name: str) -> QuestionCategory:
@@ -110,7 +112,7 @@ class BaseQuestionAdapter:
         """
         clean_name = category_name.strip().title()
         slug = slugify(clean_name) or clean_name.lower().replace(' ', '-')
-        
+
         category, created = QuestionCategory.objects.get_or_create(
             slug=slug,
             defaults={'title': clean_name}
@@ -123,7 +125,7 @@ class BaseQuestionAdapter:
         روابط چند‌به‌چند (Categories) و گزینه‌ها (Options) را مدیریت می‌کند.
         """
         success_count = 0
-        
+
         # اجرای کل فرآیند در یک تراکنش دیتابیسی برای جلوگیری از دیتای ناقص
         with transaction.atomic():
             for q_data in questions_data:

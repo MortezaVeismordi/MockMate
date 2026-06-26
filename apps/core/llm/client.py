@@ -4,10 +4,10 @@
 # =============================================================================
 
 import logging
+import threading
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Optional
-import threading
 
 logger = logging.getLogger(__name__)
 
@@ -305,8 +305,8 @@ class LLMClient:
         ارزیابی پاسخ کاربر — Structured Output.
         توسط EvaluationService صدا زده میشه.
         """
-        from .schemas import EvaluationResult
         from .prompts import build_evaluation_prompt
+        from .schemas import EvaluationResult
 
         prompt = build_evaluation_prompt(
             question_text=context["question_text"],
@@ -336,8 +336,8 @@ class LLMClient:
         تولید گزارش نهایی — Structured Output.
         توسط ReportService صدا زده میشه.
         """
-        from .schemas import FinalReport
         from .prompts import build_report_prompt
+        from .schemas import FinalReport
 
         prompt = build_report_prompt(session_data=session_data)
 

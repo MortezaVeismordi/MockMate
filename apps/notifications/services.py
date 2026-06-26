@@ -1,10 +1,7 @@
 import logging
-from abc import ABC, abstractmethod
 from typing import Optional, Type
 
 from django.conf import settings
-from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
 
 from .models import Notification
 from .providers.base import BaseNotificationProvider, ConsoleSMSProvider
@@ -79,9 +76,9 @@ class NotificationService:
 
         # نمونه‌سازی از استراتژی ست شده
         provider = provider_class()
-        
+
         logger.info(f"Attempting to send notification {notification.id} via {provider_class.__name__}")
-        
+
         # صدا زدن متد ارسالِ پرووایدر
         success, provider_id, error_msg = provider.send(
             recipient=notification.recipient,
@@ -96,14 +93,13 @@ class NotificationService:
             notification.mark_as_failed(error=error_msg or "Unknown provider error")
             logger.error(f"Notification {notification.id} failed to send. Error: {error_msg}")
             raise RuntimeError(f"Provider failed to deliver message: {error_msg}")
-        
+
     @staticmethod
     def _resolve_provider(notification_type: str):
         """
         انتخاب provider بر اساس نوع notification و محیط (dev/prod)
         """
-        from django.conf import settings
-        
+
         is_production = not settings.DEBUG
 
         if notification_type == Notification.Type.SMS:

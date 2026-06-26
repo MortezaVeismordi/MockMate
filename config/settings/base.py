@@ -4,9 +4,10 @@
 # =============================================================================
 
 import os
-from pathlib import Path
-from datetime import timedelta
 import sys
+from datetime import timedelta
+from pathlib import Path
+
 # ─── Paths ───────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -33,7 +34,7 @@ THIRD_PARTY_APPS = [
     "django_celery_results",
     "corsheaders",
     "django_filters",
-    "drf_spectacular",  
+    "drf_spectacular",
     "channels",
 ]
 
@@ -103,7 +104,7 @@ REDIS_URL = os.environ["REDIS_URL"]
 CACHES = {
     "default": {
         # اصلاح این خط: تغییر به درایور django-redis
-        "BACKEND": "django_redis.cache.RedisCache", 
+        "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_URL,
         "KEY_PREFIX": "ai_interviewer",
         "TIMEOUT": 300,
@@ -119,7 +120,7 @@ CACHES = {
 
     "otp": {
         # اصلاح این خط
-        "BACKEND": "django_redis.cache.RedisCache", 
+        "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_URL,
         "KEY_PREFIX": "otp",
         "TIMEOUT": 120,
@@ -132,7 +133,7 @@ CACHES = {
 
     "rate_limit": {
         # اصلاح این خط
-        "BACKEND": "django_redis.cache.RedisCache", 
+        "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_URL,
         "KEY_PREFIX": "rl",
         "TIMEOUT": 3600,
@@ -253,7 +254,7 @@ SIMPLE_JWT = {
 
     "AUTH_HEADER_TYPES": ("Bearer",),
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
-    
+
     "USER_ID_FIELD": "phone_number",
     "USER_ID_CLAIM": "user_id",
 
@@ -308,7 +309,6 @@ OTP_MAX_ATTEMPTS    = 3            # بعد از ۳ بار اشتباه، block 
 OTP_RESEND_COOLDOWN = 60           # ۱ دقیقه بین هر resend
 
 # ─── Logging ──────────────────────────────────────────────────────────────────
-from .logging import LOGGING       # noqa: E402
 
 # ─── Security Defaults (هر env override میکنه) ───────────────────────────────
 SECURE_BROWSER_XSS_FILTER    = True
