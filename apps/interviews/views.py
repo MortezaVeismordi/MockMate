@@ -380,3 +380,13 @@ class AdminRetriggerEvaluationView(APIView):
         return APIResponse.success(
             message=_("ارزیابی مجدداً در صف قرار گرفت."),
         )
+        
+        
+class InterviewSessionListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return InterviewSessionListView().get(request)
+
+    def post(self, request):
+        return InterviewSessionCreateView().post(request)

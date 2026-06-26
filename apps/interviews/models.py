@@ -132,6 +132,7 @@ class InterviewSession(models.Model):
         auto_now_add=True,
         verbose_name=_("زمان ایجاد"),
     )
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("زمان بروزرسانی"))
 
     class Meta:
         verbose_name        = _("جلسه مصاحبه")
@@ -160,6 +161,7 @@ class InterviewSession(models.Model):
             self.Status.INTRO,
             self.Status.QUESTIONING,
             self.Status.DRILLING,
+            self.Status.WRAP_UP,
         )
 
     @property
@@ -169,13 +171,24 @@ class InterviewSession(models.Model):
         return round((self.current_question_index / self.total_questions) * 100, 1)
 
     # ── Methods ───────────────────────────────────────────────────────────
+    VALID_TRANSITIONS = {
+    Status.SETUP:       [Status.INTRO, Status.ABANDONED],
+    Status.INTRO:       [Status.QUESTIONING, Status.ABANDONED],
+    Status.QUESTIONING: [Status.DRILLING, Status.WRAP_UP, Status.ABANDONED],
+    Status.DRILLING:    [Status.QUESTIONING, Status.WRAP_UP, Status.ABANDONED],
+    Status.WRAP_UP:     [Status.COMPLETED, Status.ABANDONED],
+    Status.COMPLETED:   [],
+    Status.ABANDONED:   [],
+}
+
     def transition_to(self, new_status: str) -> None:
-        """تغییر وضعیت با ثبت زمان‌بندی مناسب"""
+        allowed = self.VALID_TRANSITIONS.get(self.status, [])
+        if new_status not in allowed:
+            raise ValueError(f"Invalid transition from {self.status} to {new_status}")
         if new_status == self.Status.INTRO and not self.started_at:
             self.started_at = timezone.now()
         elif new_status == self.Status.COMPLETED:
             self.completed_at = timezone.now()
-
         self.status = new_status
         update_fields = ["status"]
         if new_status == self.Status.INTRO:

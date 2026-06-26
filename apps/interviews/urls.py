@@ -7,15 +7,9 @@ urlpatterns = [
     # =========================================================================
     # ۱. روت‌های مدیریت جلسات کاربر (User Session Endpoints)
     # =========================================================================
-    path(
-        "", 
-        views.InterviewSessionCreateView.as_view(), 
-        name="session-create"
-    ),
-    path(
-        "", 
-        views.InterviewSessionListView.as_view(), 
-        name="session-list"
+    path("", 
+         views.InterviewSessionListCreateView.as_view(), 
+         name="session-list-create"
     ),
     path(
         "active/", 
