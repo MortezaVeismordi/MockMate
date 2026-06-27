@@ -1,8 +1,9 @@
 # apps/users/tests/factories.py
 import factory
+from factory.fuzzy import FuzzyChoice
+
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
-from factory.fuzzy import FuzzyChoice
 
 from apps.interviews.models import (
     InterviewMessage,

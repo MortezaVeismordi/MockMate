@@ -21,10 +21,11 @@ Philosophy:
 
 from unittest.mock import MagicMock, patch
 
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.users.models import CustomUser, OTPCode
 from apps.users.tests.base import BaseAPITestCase as APITestCase

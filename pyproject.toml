@@ -1,0 +1,26 @@
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"          # makes isort output identical to black's import style
+line_length = 88
+known_django = ["django", "rest_framework", "channels"]
+known_third_party = [
+    "celery",
+    "redis",
+    "langchain",
+    "openai",
+    "jwt",
+    "cryptography",
+    "decouple",
+    "phonenumbers",
+    "httpx",
+    "requests",
+    "dj_database_url",
+    "drf_spectacular",
+    "django_filters",
+    "corsheaders",
+]
+known_first_party = ["apps", "config"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "DJANGO", "FIRSTPARTY", "LOCALFOLDER"]

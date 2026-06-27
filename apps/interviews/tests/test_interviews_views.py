@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from rest_framework import status
 
 from apps.interviews.models import InterviewSession, SessionQuestion, UserAnswer
