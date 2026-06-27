@@ -6,7 +6,7 @@
 from datetime import timedelta
 
 from .base import *  # noqa: F401, F403
-from .base import CACHES, INSTALLED_APPS, REST_FRAMEWORK, SIMPLE_JWT
+from .base import CACHES, INSTALLED_APPS, LOGGING, REST_FRAMEWORK, SIMPLE_JWT
 
 # ─── Core ─────────────────────────────────────────────────────────────────────
 DEBUG = True

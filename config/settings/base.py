@@ -293,6 +293,9 @@ OTP_MAX_ATTEMPTS = 3  # بعد از ۳ بار اشتباه، block میشه
 OTP_RESEND_COOLDOWN = 60  # ۱ دقیقه بین هر resend
 
 # ─── Logging ──────────────────────────────────────────────────────────────────
+# تنظیمات لاگینگ از ماژول جداگانه‌ی logging.py میاد و اینجا re-export میشه
+# تا env file ها (development/production/testing) بتونن از .base ایمپورت کنن
+from .logging import LOGGING  # noqa: F401
 
 # ─── Security Defaults (هر env override میکنه) ───────────────────────────────
 SECURE_BROWSER_XSS_FILTER = True
