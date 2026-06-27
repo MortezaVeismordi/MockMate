@@ -1,8 +1,7 @@
 name: CD
 
 on:
-  push:
-    branches: [master, main]
+  # فقط از طریق workflow_run trigger می‌شه — double deploy نداریم
   workflow_run:
     workflows: [CI]
     types: [completed]
@@ -12,7 +11,8 @@ jobs:
   deploy:
     name: Deploy to Railway
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
+    # فقط وقتی CI موفق بود deploy بشه
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -24,6 +24,9 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: railway up --service web --detach
+
+      - name: Wait for deployment to be ready
+        run: sleep 30   # ← صبر می‌کنیم service بالا بیاد قبل از migrate
 
       - name: Run migrations
         env:
@@ -39,3 +42,5 @@ jobs:
         if: failure()
         run: |
           echo "Deploy failed! Check Railway dashboard."
+          echo "Commit: ${{ github.sha }}"
+          echo "Triggered by CI run: ${{ github.event.workflow_run.html_url }}"
