@@ -18,12 +18,11 @@ Philosophy:
 import io
 from unittest.mock import MagicMock, patch
 
-from PIL import Image
-from rest_framework_simplejwt.tokens import RefreshToken
-
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
+from PIL import Image
 from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.users.models import CustomUser, OTPCode
 from apps.users.tests.base import BaseAPITestCase as APITestCase

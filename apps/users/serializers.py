@@ -1,8 +1,6 @@
 import logging
 from datetime import timedelta
 
-from rest_framework_simplejwt.tokens import RefreshToken
-
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import RegexValidator
@@ -10,6 +8,7 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import OTPCode
 

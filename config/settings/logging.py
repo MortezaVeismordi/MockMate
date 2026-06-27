@@ -6,8 +6,13 @@
 import os
 from pathlib import Path
 
-LOGS_DIR = Path("/app/logs")
-LOGS_DIR.mkdir(parents=True, exist_ok=True)
+# Derive logs directory relative to the project root (config/settings/)
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+LOGS_DIR = _PROJECT_ROOT / "logs"
+try:
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass
 
 DJANGO_ENV = os.environ.get("DJANGO_ENV", "development")
 

@@ -1,8 +1,7 @@
 from unittest.mock import MagicMock, patch
 
-from rest_framework_simplejwt.tokens import RefreshToken
-
 from rest_framework.test import APITestCase
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class NoThrottle:

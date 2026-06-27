@@ -2,7 +2,6 @@
 from asgiref.sync import async_to_sync
 from celery import shared_task
 from celery.utils.log import get_task_logger
-
 from channels.layers import get_channel_layer
 from django.utils import timezone
 

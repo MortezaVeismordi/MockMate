@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
 import pytest
-
 from django.test import TestCase
 
 from apps.questions.ingestion.base_adapter import BaseQuestionAdapter

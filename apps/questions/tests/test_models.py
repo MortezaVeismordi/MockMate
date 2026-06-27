@@ -1,5 +1,4 @@
 import pytest
-
 from django.test import TestCase
 
 from apps.questions.models import (

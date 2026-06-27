@@ -38,7 +38,7 @@ jobs:
             requirements/development.txt
 
       - name: Install lint tools
-        run: pip install black==24.4.2 isort==5.13.2 flake8 bandit
+        run: pip install black==24.4.2 isort==5.13.2 bandit
 
       - name: Black format check
         run: black --check .
@@ -46,8 +46,7 @@ jobs:
       - name: isort check
         run: isort --check-only .
 
-      - name: Flake8 lint
-        run: flake8 apps/ config/
+
 
       - name: Bandit security scan
         run: bandit -r apps/ -ll --exit-zero

@@ -2,7 +2,6 @@ import logging
 from typing import Optional, Tuple
 
 import requests
-
 from django.conf import settings
 
 from .base import BaseNotificationProvider

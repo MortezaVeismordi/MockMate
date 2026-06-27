@@ -1,10 +1,9 @@
 # apps/users/authentication.py
 import logging
 
+from rest_framework import exceptions
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-
-from rest_framework import exceptions
 
 logger = logging.getLogger(__name__)
 

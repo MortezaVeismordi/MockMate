@@ -1,7 +1,6 @@
 from unittest.mock import Mock, patch
 
 import requests
-
 from django.conf import settings
 from django.test import TestCase, override_settings
 
