@@ -2,7 +2,7 @@
 .aider*
 .env
 logs/
-tests/
+
 __pycache__/
 apps/users/__pycache__/
 apps/__pycache__/
