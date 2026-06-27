@@ -1,14 +1,20 @@
 from unittest.mock import patch
-from django.test import TransactionTestCase
+
 from django.core.exceptions import ValidationError
-from apps.questions.models import Question
+from django.test import TransactionTestCase
+
 from apps.interviews.models import UserAnswer
-from apps.questions.services import submit_and_grade_answer, _build_evaluation_prompt
-from apps.users.tests.factories import (
-    UserFactory, QuestionCategoryFactory, QuestionFactory, QuestionOptionFactory,
-    InterviewSessionFactory, SessionQuestionFactory, InterviewMessageFactory, UserAnswerFactory,
-    NotificationFactory
-)
+from apps.questions.models import Question
+from apps.questions.services import (_build_evaluation_prompt,
+                                     submit_and_grade_answer)
+from apps.users.tests.factories import (InterviewMessageFactory,
+                                        InterviewSessionFactory,
+                                        NotificationFactory,
+                                        QuestionCategoryFactory,
+                                        QuestionFactory, QuestionOptionFactory,
+                                        SessionQuestionFactory,
+                                        UserAnswerFactory, UserFactory)
+
 
 class TestQuestionsServices(TransactionTestCase):
     def setUp(self):
@@ -20,7 +26,7 @@ class TestQuestionsServices(TransactionTestCase):
             reference_answer="Docker is a containerization platform.",
             is_active=True,
         )
-        
+
     @patch("apps.questions.services.LLMClient.evaluate_default")
     def test_submit_and_grade_answer_success(self, mock_evaluate_default):
         # LLMClient.evaluate_default یک classmethod هست که مستقیماً توسط سرویس
@@ -30,7 +36,7 @@ class TestQuestionsServices(TransactionTestCase):
             "score": 85,
             "strengths": ["Good explanation"],
             "weaknesses": ["Missed isolated networking aspect"],
-            "model_improvement_suggestion": "Try mentioning namespaces."
+            "model_improvement_suggestion": "Try mentioning namespaces.",
         }
 
         user_answer_text = "Docker runs apps in isolated environments."
@@ -38,7 +44,7 @@ class TestQuestionsServices(TransactionTestCase):
             user_id=self.user.id,
             session_id=self.session.id,
             question_id=self.question.id,
-            user_answer_text=user_answer_text
+            user_answer_text=user_answer_text,
         )
 
         self.assertEqual(record.status, UserAnswer.Status.GRADED)
@@ -53,9 +59,9 @@ class TestQuestionsServices(TransactionTestCase):
         with self.assertRaises(ValidationError) as context:
             submit_and_grade_answer(
                 user_id=self.user.id,
-            session_id=self.session.id,
+                session_id=self.session.id,
                 question_id=self.question.id,
-                user_answer_text="   "
+                user_answer_text="   ",
             )
         self.assertIn("خالی باشد", str(context.exception))
 
@@ -63,9 +69,9 @@ class TestQuestionsServices(TransactionTestCase):
         with self.assertRaises(ValidationError) as context:
             submit_and_grade_answer(
                 user_id=self.user.id,
-            session_id=self.session.id,
+                session_id=self.session.id,
                 question_id=9999,
-                user_answer_text="Answer"
+                user_answer_text="Answer",
             )
         self.assertIn("یافت نشد", str(context.exception))
 
@@ -80,7 +86,7 @@ class TestQuestionsServices(TransactionTestCase):
                 user_id=self.user.id,
                 session_id=self.session.id,
                 question_id=self.question.id,
-                user_answer_text="Answer"
+                user_answer_text="Answer",
             )
 
         # چک می‌کنیم که پیام خطای سفارشی‌شده درست باشد
@@ -89,16 +95,18 @@ class TestQuestionsServices(TransactionTestCase):
         # حالا بررسی می‌کنیم که رکورد با وضعیت FAILED و لاگ خطا حتماً توی دیتابیس موندگار شده باشه
         record = UserAnswer.objects.filter(
             user_id=self.user.id,
-            session_id=self.session.id, 
-            question_id=self.question.id
+            session_id=self.session.id,
+            question_id=self.question.id,
         ).first()
-        
+
         self.assertIsNotNone(record, "رکورد باید در دیتابیس ذخیره شده باشد")
         self.assertEqual(record.status, UserAnswer.Status.FAILED)
         self.assertIn("API Timeout", record.error_log)
 
     def test_build_evaluation_prompt(self):
-        prompt = _build_evaluation_prompt(question=self.question, user_answer="My answer")
+        prompt = _build_evaluation_prompt(
+            question=self.question, user_answer="My answer"
+        )
         self.assertIn("What is Docker?", prompt)
         self.assertIn("Docker is a containerization platform.", prompt)
         self.assertIn("My answer", prompt)

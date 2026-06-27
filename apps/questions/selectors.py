@@ -40,7 +40,9 @@ def get_random_interview_set(
     فقط IDها را بیرون کشیده، در لایه پایتون رندوم می‌کنیم و سپس سوالات فیزیکی را می‌خوانیم.
     """
     # بازیافت منطق فیلترینگ از سلکتور قبلی (پیروی از اصل DRY)
-    base_qs = question_list(category_slug=category_slug, seniority_level=seniority_level)
+    base_qs = question_list(
+        category_slug=category_slug, seniority_level=seniority_level
+    )
 
     # واکشی فوق‌العاده سبک و بهینه فقط برای لایه IDها
     question_ids = list(base_qs.values_list("id", flat=True))
@@ -52,4 +54,6 @@ def get_random_interview_set(
     sampled_ids = random.sample(question_ids, min(len(question_ids), limit))
 
     # واکشی نهایی رکوردهای گلچین‌شده همراه با بهینه‌سازی لایه روابط
-    return list(Question.objects.prefetch_related("categories").filter(id__in=sampled_ids))
+    return list(
+        Question.objects.prefetch_related("categories").filter(id__in=sampled_ids)
+    )

@@ -14,18 +14,10 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.questions.models import Question
 
-from .models import (
-    InterviewMessage,
-    InterviewSession,
-    SessionQuestion,
-    UserAnswer,
-)
-from .selectors import (
-    AnswerSelector,
-    InterviewStatsSelector,
-    MessageSelector,
-    SessionSelector,
-)
+from .models import (InterviewMessage, InterviewSession, SessionQuestion,
+                     UserAnswer)
+from .selectors import (AnswerSelector, InterviewStatsSelector,
+                        MessageSelector, SessionSelector)
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -54,7 +46,9 @@ class InterviewSetupService:
         """
         # چک session فعال
         if SessionSelector.has_active_session(user):
-            raise ValueError(_("شما یک مصاحبه فعال دارید. ابتدا آن را به پایان برسانید."))
+            raise ValueError(
+                _("شما یک مصاحبه فعال دارید. ابتدا آن را به پایان برسانید.")
+            )
 
         session = InterviewSession.objects.create(
             user=user,
@@ -510,7 +504,11 @@ class InterviewConductService:
 
     @staticmethod
     def _build_wrap_up_message(session: InterviewSession) -> str:
-        return "مصاحبه به پایان رسید.\n" "از وقتی که گذاشتید متشکرم.\n" "نتایج ارزیابی به زودی آماده خواهد شد."
+        return (
+            "مصاحبه به پایان رسید.\n"
+            "از وقتی که گذاشتید متشکرم.\n"
+            "نتایج ارزیابی به زودی آماده خواهد شد."
+        )
 
 
 # =============================================================================

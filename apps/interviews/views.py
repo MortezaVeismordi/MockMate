@@ -14,13 +14,11 @@ from apps.users.response import APIResponse
 
 from .models import InterviewSession
 from .selectors import InterviewStatsSelector, SessionSelector
-from .serializers import (
-    InterviewReportSerializer,
-    InterviewSessionCreateSerializer,
-    InterviewSessionDetailSerializer,
-    InterviewSessionListSerializer,
-    UserAnswerEvaluationSerializer,
-)
+from .serializers import (InterviewReportSerializer,
+                          InterviewSessionCreateSerializer,
+                          InterviewSessionDetailSerializer,
+                          InterviewSessionListSerializer,
+                          UserAnswerEvaluationSerializer)
 from .services import InterviewSetupService
 
 logger = logging.getLogger(__name__)
@@ -105,7 +103,11 @@ class InterviewSessionListView(APIView):
         return APIResponse.success(
             data={
                 "results": serializer.data,
-                "count": sessions.count() if hasattr(sessions, "count") else len(serializer.data),
+                "count": (
+                    sessions.count()
+                    if hasattr(sessions, "count")
+                    else len(serializer.data)
+                ),
             },
             message=_("لیست مصاحبه‌ها."),
         )
@@ -334,7 +336,9 @@ class AdminAnswerDetailView(APIView):
         from .models import UserAnswer
 
         try:
-            answer = UserAnswer.objects.select_related("question", "session", "user").get(pk=pk)
+            answer = UserAnswer.objects.select_related(
+                "question", "session", "user"
+            ).get(pk=pk)
         except UserAnswer.DoesNotExist:
             return APIResponse.error(
                 message=_("پاسخ یافت نشد."),

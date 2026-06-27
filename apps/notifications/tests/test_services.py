@@ -3,20 +3,22 @@ from unittest.mock import patch
 from django.test import TestCase
 
 from apps.notifications.models import Notification
-from apps.notifications.services import NotificationService
 from apps.notifications.providers.base import BaseNotificationProvider
-
+from apps.notifications.services import NotificationService
 
 # ── Concrete test providers (جایگزین Mock(spec=...) که abstract class رو instantiate نمیکنه) ──
 
+
 class SuccessProvider(BaseNotificationProvider):
     """Provider که همیشه موفق میشه."""
+
     def send(self, recipient: str, body: str, title: str = None):
         return (True, "mock_provider_id_123", None)
 
 
 class FailingProvider(BaseNotificationProvider):
     """Provider که همیشه fail میشه."""
+
     def send(self, recipient: str, body: str, title: str = None):
         return (False, None, "Provider error")
 
@@ -72,7 +74,9 @@ class NotificationServiceTests(TestCase):
         self.notification.refresh_from_db()
         self.assertEqual(self.notification.status, Notification.Status.FAILED)
         self.assertEqual(self.notification.error_message, "Provider error")
-        self.assertIn("Provider failed to deliver message: Provider error", str(context.exception))
+        self.assertIn(
+            "Provider failed to deliver message: Provider error", str(context.exception)
+        )
 
     def test_send_notification_with_successful_provider_marks_as_sent(self):
         """If provider.send returns success, notification should be marked as sent."""

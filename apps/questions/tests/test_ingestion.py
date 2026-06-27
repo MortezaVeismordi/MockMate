@@ -1,16 +1,18 @@
-import pytest
 from unittest.mock import patch
+
+import pytest
 from django.test import TestCase
-from apps.questions.models import Question, QuestionCategory, QuestionOption
+
 from apps.questions.ingestion.base_adapter import BaseQuestionAdapter
 from apps.questions.ingestion.pipeline import QuestionIngestionPipeline
+from apps.questions.models import Question, QuestionCategory, QuestionOption
 
 
 # Dummy implementation for testing abstract methods
 class DummyAdapter(BaseQuestionAdapter):
     def extract(self):
         return []
-    
+
     def transform(self, raw_data):
         return raw_data
 
@@ -25,8 +27,12 @@ class TestBaseQuestionAdapter(TestCase):
         self.assertEqual(self.adapter.clean_text(""), "")
 
     def test_validate_and_truncate_invalid(self):
-        self.assertIsNone(self.adapter.validate_and_truncate({"title": "", "body": "Body"}))
-        self.assertIsNone(self.adapter.validate_and_truncate({"title": "Title", "body": ""}))
+        self.assertIsNone(
+            self.adapter.validate_and_truncate({"title": "", "body": "Body"})
+        )
+        self.assertIsNone(
+            self.adapter.validate_and_truncate({"title": "Title", "body": ""})
+        )
         self.assertIsNone(self.adapter.validate_and_truncate(dict()))
 
     def test_validate_and_truncate_long_title(self):
@@ -54,13 +60,13 @@ class TestBaseQuestionAdapter(TestCase):
                 "categories_metadata": ["Cat A", "Cat B"],
                 "options_metadata": [
                     {"text": "A", "is_correct": True},
-                    {"text": "B", "is_correct": False}
+                    {"text": "B", "is_correct": False},
                 ],
                 "question_type": Question.QuestionType.TECHNICAL,
                 "seniority_level": Question.SeniorityLevel.JUNIOR,
             }
         ]
-        
+
         saved = self.adapter.load(questions_chunk)
         self.assertEqual(saved, 1)
 
@@ -87,21 +93,23 @@ class TestQuestionIngestionPipeline(TestCase):
             QuestionIngestionPipeline(adapter_name="unknown")
         self.assertIn("not registered", str(context.exception))
 
-    @patch("apps.questions.ingestion.pipeline.QuestionIngestionPipeline._setup_repository")
+    @patch(
+        "apps.questions.ingestion.pipeline.QuestionIngestionPipeline._setup_repository"
+    )
     def test_pipeline_instantiates_adapter(self, mock_setup):
-        from apps.questions.ingestion.devops_adapter import DevOpsExercisesAdapter
-        
+        from apps.questions.ingestion.devops_adapter import \
+            DevOpsExercisesAdapter
+
         pipeline = QuestionIngestionPipeline(adapter_name="devops")
-        self.assertEqual(pipeline.repo_config['adapter_class'], DevOpsExercisesAdapter)
+        self.assertEqual(pipeline.repo_config["adapter_class"], DevOpsExercisesAdapter)
         self.assertTrue(pipeline.local_repo_path.endswith("devops-exercises"))
 
     @patch("subprocess.run")
     def test_pipeline_setup_repository(self, mock_subprocess):
         pipeline = QuestionIngestionPipeline(adapter_name="devops")
-        
-        # We can't mock os.path.exists fully dynamically easily without patch, 
+
+        # We can't mock os.path.exists fully dynamically easily without patch,
         # but mocking subprocess ensures no real shell commands map to github.
-        with patch("os.path.exists", return_value=False), \
-             patch("os.makedirs"):
+        with patch("os.path.exists", return_value=False), patch("os.makedirs"):
             pipeline._setup_repository()
             mock_subprocess.assert_called()

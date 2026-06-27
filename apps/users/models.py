@@ -143,7 +143,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_profile_complete(self) -> bool:
-        return bool(self.first_name and self.last_name and self.job_title and self.experience_level)
+        return bool(
+            self.first_name
+            and self.last_name
+            and self.job_title
+            and self.experience_level
+        )
 
 
 # ─────────────────────────────────────────────
@@ -237,7 +242,11 @@ class OTPCode(models.Model):
 
     @property
     def is_valid(self) -> bool:
-        return not self.is_used and not self.is_expired and not self.is_max_attempts_reached
+        return (
+            not self.is_used
+            and not self.is_expired
+            and not self.is_max_attempts_reached
+        )
 
     @property
     def remaining_seconds(self) -> int:
@@ -279,7 +288,9 @@ class OTPCode(models.Model):
         # چک تعداد روزانه
         daily_count = cls.get_daily_resend_count(user)
         if daily_count >= cls.MAX_RESEND_PER_DAY:
-            raise ValueError(_("تعداد درخواست OTP امروز به حد مجاز رسیده. فردا دوباره تلاش کنید"))
+            raise ValueError(
+                _("تعداد درخواست OTP امروز به حد مجاز رسیده. فردا دوباره تلاش کنید")
+            )
 
         # غیرمعتبر کردن کدهای قبلی
         cls.invalidate_previous(user, purpose)

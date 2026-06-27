@@ -265,7 +265,9 @@ def build_evaluation_prompt(
 
     criteria_text = ""
     if required_kw:
-        criteria_text += f"کلیدواژه‌های اجباری (هر کدام ۱۰ نمره): {', '.join(required_kw)}\n"
+        criteria_text += (
+            f"کلیدواژه‌های اجباری (هر کدام ۱۰ نمره): {', '.join(required_kw)}\n"
+        )
     if bonus_kw:
         criteria_text += f"کلیدواژه‌های بونوس (هر کدام ۵ نمره): {', '.join(bonus_kw)}\n"
     if weight_map:

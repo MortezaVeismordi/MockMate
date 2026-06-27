@@ -23,7 +23,12 @@ class NotificationService:
 
     @classmethod
     def create_notification(
-        cls, recipient: str, body: str, notification_type: str = Notification.Type.SMS, user=None, title: str = ""
+        cls,
+        recipient: str,
+        body: str,
+        notification_type: str = Notification.Type.SMS,
+        user=None,
+        title: str = "",
     ) -> Notification:
         """
         گام اول: ثبت سریع اعلان در دیتابیس لوکال و هماهنگی با Celery برای ارسال آسنکرون.
@@ -48,7 +53,9 @@ class NotificationService:
 
     @classmethod
     def send_notification(
-        cls, notification_id: int, provider_class: Optional[Type[BaseNotificationProvider]] = None
+        cls,
+        notification_id: int,
+        provider_class: Optional[Type[BaseNotificationProvider]] = None,
     ) -> None:
         """
         این متد درون ورکر Celery اجرا می‌شود و وظیفه ارسال واقعی و مدیریت خطا را دارد.
@@ -56,7 +63,9 @@ class NotificationService:
         try:
             notification = Notification.objects.get(id=notification_id)
         except Notification.DoesNotExist:
-            logger.error(f"Notification with ID {notification_id} not found in database.")
+            logger.error(
+                f"Notification with ID {notification_id} not found in database."
+            )
             return
 
         if notification.status == Notification.Status.SENT:
@@ -68,7 +77,9 @@ class NotificationService:
             provider_class = cls._resolve_provider(notification.notification_type)
 
         if not provider_class:
-            logger.error(f"No valid provider class found for notification type: {notification.notification_type}")
+            logger.error(
+                f"No valid provider class found for notification type: {notification.notification_type}"
+            )
             notification.mark_as_failed(
                 error=f"No valid provider class found for notification type: {notification.notification_type}"
             )
@@ -78,19 +89,27 @@ class NotificationService:
         # نمونه‌سازی از استراتژی ست شده
         provider = provider_class()
 
-        logger.info(f"Attempting to send notification {notification.id} via {provider_class.__name__}")
+        logger.info(
+            f"Attempting to send notification {notification.id} via {provider_class.__name__}"
+        )
 
         # صدا زدن متد ارسالِ پرووایدر
         success, provider_id, error_msg = provider.send(
-            recipient=notification.recipient, body=notification.body, title=notification.title
+            recipient=notification.recipient,
+            body=notification.body,
+            title=notification.title,
         )
 
         if success:
             notification.mark_as_sent(provider_id=provider_id)
-            logger.info(f"Notification {notification.id} sent successfully. Provider ID: {provider_id}")
+            logger.info(
+                f"Notification {notification.id} sent successfully. Provider ID: {provider_id}"
+            )
         else:
             notification.mark_as_failed(error=error_msg or "Unknown provider error")
-            logger.error(f"Notification {notification.id} failed to send. Error: {error_msg}")
+            logger.error(
+                f"Notification {notification.id} failed to send. Error: {error_msg}"
+            )
             raise RuntimeError(f"Provider failed to deliver message: {error_msg}")
 
     @staticmethod

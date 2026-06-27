@@ -21,15 +21,15 @@ from unittest.mock import patch
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
-from apps.users.tests.base import BaseAPITestCase as APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.users.models import CustomUser, OTPCode
-
+from apps.users.tests.base import BaseAPITestCase as APITestCase
 
 # ─────────────────────────────────────────────────────────────
 #  Helpers
 # ─────────────────────────────────────────────────────────────
+
 
 def create_inactive_user(phone_number: str = "09120000001") -> CustomUser:
     """
@@ -93,6 +93,7 @@ MOCK_SEND_SUCCESS = {
 #  1. Send OTP
 # ─────────────────────────────────────────────────────────────
 
+
 class SendOTPTests(APITestCase):
     """
     POST /api/v1/auth/send-otp/
@@ -112,10 +113,13 @@ class SendOTPTests(APITestCase):
     def test_new_phone_creates_user_and_returns_is_new_user_true(self, mock_send):
         mock_send.return_value = {**MOCK_SEND_SUCCESS, "is_new_user": True}
 
-        response = self.client.post(self.URL, {
-            "phone_number": "09130000001",
-            "purpose": "login",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09130000001",
+                "purpose": "login",
+            },
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()["data"]
@@ -127,10 +131,13 @@ class SendOTPTests(APITestCase):
         create_active_user(phone_number="09130000002")
         mock_send.return_value = {**MOCK_SEND_SUCCESS, "is_new_user": False}
 
-        response = self.client.post(self.URL, {
-            "phone_number": "09130000002",
-            "purpose": "login",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09130000002",
+                "purpose": "login",
+            },
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.json()["data"]["is_new_user"])
@@ -139,10 +146,13 @@ class SendOTPTests(APITestCase):
     def test_response_includes_remaining_seconds(self, mock_send):
         mock_send.return_value = {**MOCK_SEND_SUCCESS, "remaining_seconds": 115}
 
-        response = self.client.post(self.URL, {
-            "phone_number": "09130000003",
-            "purpose": "login",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09130000003",
+                "purpose": "login",
+            },
+        )
 
         self.assertIn("remaining_seconds", response.json()["data"])
 
@@ -152,29 +162,38 @@ class SendOTPTests(APITestCase):
         اگه mock صدا زده بشه یعنی validation کار نکرده.
         """
         with patch("apps.users.views.OTPService.send_otp") as mock_send:
-            response = self.client.post(self.URL, {
-                "phone_number": "0912",   # فرمت نادرست
-                "purpose": "login",
-            })
+            response = self.client.post(
+                self.URL,
+                {
+                    "phone_number": "0912",  # فرمت نادرست
+                    "purpose": "login",
+                },
+            )
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             mock_send.assert_not_called()
 
     def test_non_09_phone_is_rejected(self):
         """شماره‌ای که با 09 شروع نمی‌شه باید رد بشه."""
         with patch("apps.users.views.OTPService.send_otp") as mock_send:
-            response = self.client.post(self.URL, {
-                "phone_number": "08123456789",
-                "purpose": "login",
-            })
+            response = self.client.post(
+                self.URL,
+                {
+                    "phone_number": "08123456789",
+                    "purpose": "login",
+                },
+            )
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             mock_send.assert_not_called()
 
     def test_invalid_purpose_is_rejected(self):
         with patch("apps.users.views.OTPService.send_otp") as mock_send:
-            response = self.client.post(self.URL, {
-                "phone_number": "09130000004",
-                "purpose": "hack",  # مقدار نامعتبر
-            })
+            response = self.client.post(
+                self.URL,
+                {
+                    "phone_number": "09130000004",
+                    "purpose": "hack",  # مقدار نامعتبر
+                },
+            )
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             mock_send.assert_not_called()
 
@@ -189,10 +208,13 @@ class SendOTPTests(APITestCase):
             "message": "تعداد درخواست OTP امروز به حد مجاز رسیده",
         }
 
-        response = self.client.post(self.URL, {
-            "phone_number": "09130000005",
-            "purpose": "login",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09130000005",
+                "purpose": "login",
+            },
+        )
 
         self.assertNotEqual(response.status_code, status.HTTP_200_OK)
 
@@ -208,6 +230,7 @@ class SendOTPTests(APITestCase):
 # ─────────────────────────────────────────────────────────────
 #  2. Resend OTP
 # ─────────────────────────────────────────────────────────────
+
 
 class ResendOTPTests(APITestCase):
     """
@@ -230,7 +253,7 @@ class ResendOTPTests(APITestCase):
         OTPCode.objects.filter(pk=otp.pk).update(
             created_at=timezone.now() - timedelta(seconds=90)
         )
-    
+
     @patch("apps.users.views.OTPService.send_otp")
     def test_successful_resend_returns_countdown(self, mock_send):
         mock_send.return_value = {
@@ -238,10 +261,13 @@ class ResendOTPTests(APITestCase):
             "remaining_seconds": 110,
         }
 
-        response = self.client.post(self.URL, {
-            "phone_number": "09140000001",
-            "purpose": "login",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09140000001",
+                "purpose": "login",
+            },
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("remaining_seconds", response.json()["data"])
@@ -253,19 +279,25 @@ class ResendOTPTests(APITestCase):
             "message": "تعداد درخواست OTP امروز به حد مجاز رسیده",
         }
 
-        response = self.client.post(self.URL, {
-            "phone_number": "09140000002",
-            "purpose": "login",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09140000002",
+                "purpose": "login",
+            },
+        )
 
         self.assertNotEqual(response.status_code, status.HTTP_200_OK)
 
     def test_invalid_phone_blocked_before_service(self):
         with patch("apps.users.views.OTPService.send_otp") as mock_send:
-            response = self.client.post(self.URL, {
-                "phone_number": "123",
-                "purpose": "login",
-            })
+            response = self.client.post(
+                self.URL,
+                {
+                    "phone_number": "123",
+                    "purpose": "login",
+                },
+            )
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             mock_send.assert_not_called()
 
@@ -273,6 +305,7 @@ class ResendOTPTests(APITestCase):
 # ─────────────────────────────────────────────────────────────
 #  3. Verify OTP
 # ─────────────────────────────────────────────────────────────
+
 
 class VerifyOTPTests(APITestCase):
     """
@@ -299,11 +332,14 @@ class VerifyOTPTests(APITestCase):
     def test_correct_code_returns_jwt_pair(self):
         create_otp(self.user, purpose="login")
 
-        response = self.client.post(self.URL, {
-            "phone_number": "09150000001",
-            "code": "123456",
-            "purpose": "login",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09150000001",
+                "code": "123456",
+                "purpose": "login",
+            },
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         tokens = response.json()["data"]["tokens"]
@@ -317,11 +353,14 @@ class VerifyOTPTests(APITestCase):
         """
         create_otp(self.user, purpose="login")
 
-        self.client.post(self.URL, {
-            "phone_number": "09150000001",
-            "code": "123456",
-            "purpose": "login",
-        })
+        self.client.post(
+            self.URL,
+            {
+                "phone_number": "09150000001",
+                "code": "123456",
+                "purpose": "login",
+            },
+        )
 
         self.user.refresh_from_db()
         self.assertTrue(self.user.is_active)
@@ -343,11 +382,14 @@ class VerifyOTPTests(APITestCase):
     def test_response_includes_is_profile_complete(self):
         create_otp(self.user, purpose="login")
 
-        response = self.client.post(self.URL, {
-            "phone_number": "09150000001",
-            "code": "123456",
-            "purpose": "login",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09150000001",
+                "code": "123456",
+                "purpose": "login",
+            },
+        )
 
         self.assertIn("is_profile_complete", response.json()["data"])
 
@@ -355,11 +397,14 @@ class VerifyOTPTests(APITestCase):
         """بعد از verify، کد باید is_used=True بشه."""
         otp = create_otp(self.user, purpose="login")
 
-        self.client.post(self.URL, {
-            "phone_number": "09150000001",
-            "code": "123456",
-            "purpose": "login",
-        })
+        self.client.post(
+            self.URL,
+            {
+                "phone_number": "09150000001",
+                "code": "123456",
+                "purpose": "login",
+            },
+        )
 
         otp.refresh_from_db()
         self.assertTrue(otp.is_used)
@@ -369,11 +414,14 @@ class VerifyOTPTests(APITestCase):
     def test_wrong_code_is_rejected(self):
         create_otp(self.user, purpose="login")
 
-        response = self.client.post(self.URL, {
-            "phone_number": "09150000001",
-            "code": "000000",
-            "purpose": "login",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09150000001",
+                "code": "000000",
+                "purpose": "login",
+            },
+        )
 
         self.assertNotEqual(response.status_code, status.HTTP_200_OK)
 
@@ -384,11 +432,14 @@ class VerifyOTPTests(APITestCase):
         """
         otp = create_otp(self.user, purpose="login")
 
-        self.client.post(self.URL, {
-            "phone_number": "09150000001",
-            "code": "000000",
-            "purpose": "login",
-        })
+        self.client.post(
+            self.URL,
+            {
+                "phone_number": "09150000001",
+                "code": "000000",
+                "purpose": "login",
+            },
+        )
 
         otp.refresh_from_db()
         self.assertEqual(otp.failed_attempts, 1)
@@ -396,11 +447,14 @@ class VerifyOTPTests(APITestCase):
     def test_wrong_code_does_not_activate_user(self):
         create_otp(self.user, purpose="login")
 
-        self.client.post(self.URL, {
-            "phone_number": "09150000001",
-            "code": "000000",
-            "purpose": "login",
-        })
+        self.client.post(
+            self.URL,
+            {
+                "phone_number": "09150000001",
+                "code": "000000",
+                "purpose": "login",
+            },
+        )
 
         self.user.refresh_from_db()
         self.assertFalse(self.user.is_active)
@@ -410,22 +464,28 @@ class VerifyOTPTests(APITestCase):
     def test_expired_code_is_rejected(self):
         create_otp(self.user, purpose="login", expired=True)
 
-        response = self.client.post(self.URL, {
-            "phone_number": "09150000001",
-            "code": "123456",
-            "purpose": "login",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09150000001",
+                "code": "123456",
+                "purpose": "login",
+            },
+        )
 
         self.assertNotEqual(response.status_code, status.HTTP_200_OK)
 
     def test_expired_code_does_not_activate_user(self):
         create_otp(self.user, purpose="login", expired=True)
 
-        self.client.post(self.URL, {
-            "phone_number": "09150000001",
-            "code": "123456",
-            "purpose": "login",
-        })
+        self.client.post(
+            self.URL,
+            {
+                "phone_number": "09150000001",
+                "code": "123456",
+                "purpose": "login",
+            },
+        )
 
         self.user.refresh_from_db()
         self.assertFalse(self.user.is_active)
@@ -439,11 +499,14 @@ class VerifyOTPTests(APITestCase):
         """
         create_otp(self.user, purpose="login", used=True)
 
-        response = self.client.post(self.URL, {
-            "phone_number": "09150000001",
-            "code": "123456",
-            "purpose": "login",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09150000001",
+                "code": "123456",
+                "purpose": "login",
+            },
+        )
 
         self.assertNotEqual(response.status_code, status.HTTP_200_OK)
 
@@ -460,11 +523,14 @@ class VerifyOTPTests(APITestCase):
             failed_attempts=OTPCode.MAX_ATTEMPTS,
         )
 
-        response = self.client.post(self.URL, {
-            "phone_number": "09150000001",
-            "code": "123456",
-            "purpose": "login",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09150000001",
+                "code": "123456",
+                "purpose": "login",
+            },
+        )
 
         self.assertNotEqual(response.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
@@ -478,22 +544,28 @@ class VerifyOTPTests(APITestCase):
         """
         create_otp(self.user, purpose="login")
 
-        response = self.client.post(self.URL, {
-            "phone_number": "09150000001",
-            "code": "123456",
-            "purpose": "reset",   # purpose اشتباه
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09150000001",
+                "code": "123456",
+                "purpose": "reset",  # purpose اشتباه
+            },
+        )
 
         self.assertNotEqual(response.status_code, status.HTTP_200_OK)
 
     # ── Nonexistent phone ─────────────────────────────────────
 
     def test_nonexistent_phone_returns_error(self):
-        response = self.client.post(self.URL, {
-            "phone_number": "09199999999",
-            "code": "123456",
-            "purpose": "login",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09199999999",
+                "code": "123456",
+                "purpose": "login",
+            },
+        )
 
         self.assertNotEqual(response.status_code, status.HTTP_200_OK)
 
@@ -516,6 +588,7 @@ class VerifyOTPTests(APITestCase):
 # ─────────────────────────────────────────────────────────────
 #  4. OTPCode Model Logic
 # ─────────────────────────────────────────────────────────────
+
 
 class OTPCodeModelTests(APITestCase):
     """

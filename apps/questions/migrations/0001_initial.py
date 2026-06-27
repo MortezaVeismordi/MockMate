@@ -13,17 +13,28 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="Question",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 (
                     "title",
                     models.CharField(
-                        help_text="مفهوم کلیدی یا عنوان کوتاه سوال", max_length=255, verbose_name="Title/Concept"
+                        help_text="مفهوم کلیدی یا عنوان کوتاه سوال",
+                        max_length=255,
+                        verbose_name="Title/Concept",
                     ),
                 ),
                 (
                     "body",
                     models.TextField(
-                        help_text="صورت کامل سوال یا سناریوی مطرح شده", verbose_name="Question Body/Scenario"
+                        help_text="صورت کامل سوال یا سناریوی مطرح شده",
+                        verbose_name="Question Body/Scenario",
                     ),
                 ),
                 (
@@ -92,7 +103,12 @@ class Migration(migrations.Migration):
                         verbose_name="AI Evaluation Criteria",
                     ),
                 ),
-                ("is_active", models.BooleanField(db_index=True, default=True, verbose_name="Is Active")),
+                (
+                    "is_active",
+                    models.BooleanField(
+                        db_index=True, default=True, verbose_name="Is Active"
+                    ),
+                ),
                 (
                     "source",
                     models.CharField(
@@ -106,7 +122,12 @@ class Migration(migrations.Migration):
                         verbose_name="Source",
                     ),
                 ),
-                ("source_url", models.URLField(blank=True, max_length=500, null=True, verbose_name="Source URL")),
+                (
+                    "source_url",
+                    models.URLField(
+                        blank=True, max_length=500, null=True, verbose_name="Source URL"
+                    ),
+                ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
             ],
@@ -119,8 +140,22 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="QuestionAttachment",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("file", models.FileField(upload_to="questions/attachments/", verbose_name="Attachment File")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "file",
+                    models.FileField(
+                        upload_to="questions/attachments/",
+                        verbose_name="Attachment File",
+                    ),
+                ),
                 (
                     "attachment_type",
                     models.CharField(
@@ -153,10 +188,27 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="QuestionCategory",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("title", models.CharField(max_length=100, unique=True, verbose_name="Title")),
-                ("slug", models.SlugField(max_length=120, unique=True, verbose_name="Slug")),
-                ("description", models.TextField(blank=True, null=True, verbose_name="Description")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "title",
+                    models.CharField(max_length=100, unique=True, verbose_name="Title"),
+                ),
+                (
+                    "slug",
+                    models.SlugField(max_length=120, unique=True, verbose_name="Slug"),
+                ),
+                (
+                    "description",
+                    models.TextField(blank=True, null=True, verbose_name="Description"),
+                ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 (
                     "parent",
@@ -180,15 +232,30 @@ class Migration(migrations.Migration):
             model_name="question",
             name="categories",
             field=models.ManyToManyField(
-                related_name="questions", to="questions.questioncategory", verbose_name="Categories / Skills"
+                related_name="questions",
+                to="questions.questioncategory",
+                verbose_name="Categories / Skills",
             ),
         ),
         migrations.CreateModel(
             name="QuestionOption",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("text", models.CharField(max_length=500, verbose_name="Option Text")),
-                ("is_correct", models.BooleanField(default=False, verbose_name="Is Correct Option")),
+                (
+                    "is_correct",
+                    models.BooleanField(
+                        default=False, verbose_name="Is Correct Option"
+                    ),
+                ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 (
                     "question",
@@ -208,7 +275,8 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name="question",
             index=models.Index(
-                fields=["question_type", "seniority_level", "is_active"], name="questions_q_questio_1dc036_idx"
+                fields=["question_type", "seniority_level", "is_active"],
+                name="questions_q_questio_1dc036_idx",
             ),
         ),
     ]

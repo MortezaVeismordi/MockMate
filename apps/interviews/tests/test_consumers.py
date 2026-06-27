@@ -1,42 +1,38 @@
 import json
-from unittest.mock import patch, MagicMock
-from channels.testing import WebsocketCommunicator
-from channels.layers import get_channel_layer
-from django.contrib.auth.models import AnonymousUser
-from apps.users.tests.factories import (
-    UserFactory, QuestionFactory,
-    InterviewSessionFactory, SessionQuestionFactory,
-)
-from django.test import TransactionTestCase, override_settings
-from apps.interviews.models import InterviewSession
-from apps.interviews.consumers import InterviewConsumer
+from unittest.mock import MagicMock, patch
 
-@override_settings(CHANNEL_LAYERS={
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer'
-    }
-})
+from channels.layers import get_channel_layer
+from channels.testing import WebsocketCommunicator
+from django.contrib.auth.models import AnonymousUser
+from django.test import TransactionTestCase, override_settings
+
+from apps.interviews.consumers import InterviewConsumer
+from apps.interviews.models import InterviewSession
+from apps.users.tests.factories import (InterviewSessionFactory,
+                                        QuestionFactory,
+                                        SessionQuestionFactory, UserFactory)
+
+
+@override_settings(
+    CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+)
 class InterviewConsumerTest(TransactionTestCase):
     def setUp(self):
         self.user = UserFactory.create(
-            email='test@example.com',
-            first_name='Test',
-            last_name='User'
+            email="test@example.com", first_name="Test", last_name="User"
         )
         self.session = InterviewSessionFactory.create(
             user=self.user,
-            target_position='Senior Django Developer',
-            seniority_level='senior',
-            job_description='Develop Django applications',
-            focus_topics=['Django', 'PostgreSQL'],
+            target_position="Senior Django Developer",
+            seniority_level="senior",
+            job_description="Develop Django applications",
+            focus_topics=["Django", "PostgreSQL"],
             total_questions=2,
-            status=InterviewSession.Status.SETUP
+            status=InterviewSession.Status.SETUP,
         )
         self.question = QuestionFactory.create()
         self.session_question = SessionQuestionFactory.create(
-            session=self.session,
-            question=self.question,
-            order=1
+            session=self.session, question=self.question, order=1
         )
 
     async def _get_communicator(self, user=None, session_uuid=None):
@@ -46,13 +42,10 @@ class InterviewConsumerTest(TransactionTestCase):
             session_uuid = self.session.uuid
 
         communicator = WebsocketCommunicator(
-            InterviewConsumer.as_asgi(),
-            f"/ws/interviews/{session_uuid}/"
+            InterviewConsumer.as_asgi(), f"/ws/interviews/{session_uuid}/"
         )
         communicator.scope["user"] = user
-        communicator.scope["url_route"] = {
-            "kwargs": {"uuid": str(session_uuid)}
-        }
+        communicator.scope["url_route"] = {"kwargs": {"uuid": str(session_uuid)}}
         return communicator
 
     async def test_connect_success(self):
@@ -70,8 +63,7 @@ class InterviewConsumerTest(TransactionTestCase):
 
     async def test_connect_unauthenticated(self):
         communicator = WebsocketCommunicator(
-            InterviewConsumer.as_asgi(),
-            f"/ws/interviews/{self.session.uuid}/"
+            InterviewConsumer.as_asgi(), f"/ws/interviews/{self.session.uuid}/"
         )
         communicator.scope["user"] = AnonymousUser()
         communicator.scope["url_route"] = {"kwargs": {"uuid": str(self.session.uuid)}}
@@ -83,8 +75,7 @@ class InterviewConsumerTest(TransactionTestCase):
     async def test_connect_invalid_session(self):
         invalid_uuid = "00000000-0000-0000-0000-000000000000"
         communicator = WebsocketCommunicator(
-            InterviewConsumer.as_asgi(),
-            f"/ws/interviews/{invalid_uuid}/"
+            InterviewConsumer.as_asgi(), f"/ws/interviews/{invalid_uuid}/"
         )
         communicator.scope["user"] = self.user
         communicator.scope["url_route"] = {"kwargs": {"uuid": invalid_uuid}}
@@ -101,8 +92,8 @@ class InterviewConsumerTest(TransactionTestCase):
 
         # ✅ patch روی متد استاتیک، نه کلاس — چون database_sync_to_async sync هست
         with patch(
-            'apps.interviews.services.InterviewConductService.start_interview',
-            return_value=mock_msg
+            "apps.interviews.services.InterviewConductService.start_interview",
+            return_value=mock_msg,
         ):
             communicator = await self._get_communicator()
             connected, _ = await communicator.connect()
@@ -113,7 +104,9 @@ class InterviewConsumerTest(TransactionTestCase):
 
             response = await communicator.receive_json_from()
             self.assertEqual(response["type"], "greeting")
-            self.assertEqual(response["payload"]["content"], "Welcome to your interview.")
+            self.assertEqual(
+                response["payload"]["content"], "Welcome to your interview."
+            )
 
             await communicator.disconnect()
 
@@ -133,8 +126,8 @@ class InterviewConsumerTest(TransactionTestCase):
         await self.session.asave()
 
         with patch(
-            'apps.interviews.services.InterviewConductService.ask_next_question',
-            return_value=mock_result
+            "apps.interviews.services.InterviewConductService.ask_next_question",
+            return_value=mock_result,
         ):
             communicator = await self._get_communicator()
             connected, _ = await communicator.connect()
@@ -161,22 +154,24 @@ class InterviewConsumerTest(TransactionTestCase):
         await self.session.asave()
 
         with patch(
-            'apps.interviews.services.InterviewConductService.submit_answer',
-            return_value=mock_answer
+            "apps.interviews.services.InterviewConductService.submit_answer",
+            return_value=mock_answer,
         ):
             communicator = await self._get_communicator()
             connected, _ = await communicator.connect()
             self.assertTrue(connected)
             await communicator.receive_json_from()  # connected
 
-            await communicator.send_json_to({
-                "type": "submit_answer",
-                "payload": {
-                    "question_id": self.question.id,
-                    "answer_text": "Django is a web framework for building web applications.",
-                    "answer_duration": 30
+            await communicator.send_json_to(
+                {
+                    "type": "submit_answer",
+                    "payload": {
+                        "question_id": self.question.id,
+                        "answer_text": "Django is a web framework for building web applications.",
+                        "answer_duration": 30,
+                    },
                 }
-            })
+            )
 
             response1 = await communicator.receive_json_from()
             self.assertEqual(response1["type"], "answer_received")
@@ -194,22 +189,24 @@ class InterviewConsumerTest(TransactionTestCase):
         await self.session.asave()
 
         with patch(
-            'apps.interviews.services.InterviewConductService.submit_follow_up_answer',
-            return_value=None
+            "apps.interviews.services.InterviewConductService.submit_follow_up_answer",
+            return_value=None,
         ):
             communicator = await self._get_communicator()
             connected, _ = await communicator.connect()
             self.assertTrue(connected)
             await communicator.receive_json_from()  # connected
 
-            await communicator.send_json_to({
-                "type": "submit_follow_up",
-                "payload": {
-                    "question_id": self.question.id,
-                    "answer_text": "Follow up answer text here",
-                    "answer_duration": 20
+            await communicator.send_json_to(
+                {
+                    "type": "submit_follow_up",
+                    "payload": {
+                        "question_id": self.question.id,
+                        "answer_text": "Follow up answer text here",
+                        "answer_duration": 20,
+                    },
                 }
-            })
+            )
 
             response = await communicator.receive_json_from()
             self.assertEqual(response["type"], "answer_received")
@@ -229,8 +226,8 @@ class InterviewConsumerTest(TransactionTestCase):
             f"interview_{self.session.uuid}",
             {
                 "type": "interview.evaluation.done",
-                "data": {"score": 85, "feedback": "Good job"}
-            }
+                "data": {"score": 85, "feedback": "Good job"},
+            },
         )
 
         response = await communicator.receive_json_from()

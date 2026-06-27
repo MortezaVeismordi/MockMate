@@ -362,15 +362,25 @@ class InterviewConsumer(AsyncWebsocketConsumer):
             "turn_number": result.turn_number,
             "question_order": result.metadata.get("question_order", 0),
             "estimated_time": result.metadata.get("estimated_time", 120),
-            "question_type": result.related_question.question.question_type if result.related_question else "",
-            "code_template": result.related_question.question.code_template if result.related_question else None,
+            "question_type": (
+                result.related_question.question.question_type
+                if result.related_question
+                else ""
+            ),
+            "code_template": (
+                result.related_question.question.code_template
+                if result.related_question
+                else None
+            ),
         }
 
     @database_sync_to_async
     def _submit_answer(self, answer_text: str, answer_duration):
         from .services import InterviewConductService
 
-        return InterviewConductService.submit_answer(self.session, answer_text, answer_duration)
+        return InterviewConductService.submit_answer(
+            self.session, answer_text, answer_duration
+        )
 
     @database_sync_to_async
     def _submit_follow_up_answer(self, answer_text: str):

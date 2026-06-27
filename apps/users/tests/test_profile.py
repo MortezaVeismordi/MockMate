@@ -16,21 +16,21 @@ Philosophy:
 """
 
 import io
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from PIL import Image
 from rest_framework import status
-from apps.users.tests.base import BaseAPITestCase as APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.users.models import CustomUser, OTPCode
-
+from apps.users.tests.base import BaseAPITestCase as APITestCase
 
 # ─────────────────────────────────────────────────────────────
 #  Helpers
 # ─────────────────────────────────────────────────────────────
+
 
 def create_active_user(
     phone_number: str = "09170000001",
@@ -78,6 +78,7 @@ def generate_image(name: str = "avatar.jpg", fmt: str = "JPEG") -> SimpleUploade
 # ─────────────────────────────────────────────────────────────
 #  1. GET /me/ — دریافت پروفایل
 # ─────────────────────────────────────────────────────────────
+
 
 class UserMeGetTests(APITestCase):
     """
@@ -141,6 +142,7 @@ class UserMeGetTests(APITestCase):
 #  2. PATCH /me/ — ویرایش پروفایل
 # ─────────────────────────────────────────────────────────────
 
+
 class UserMePatchTests(APITestCase):
     """
     PATCH /api/v1/me/
@@ -174,11 +176,15 @@ class UserMePatchTests(APITestCase):
         self.assertEqual(self.user.first_name, "محمد")
 
     def test_patch_multiple_fields_at_once(self):
-        response = self.client.patch(self.URL, {
-            "first_name": "سارا",
-            "last_name": "احمدی",
-            "bio": "توسعه‌دهنده بکند",
-        }, format="json")
+        response = self.client.patch(
+            self.URL,
+            {
+                "first_name": "سارا",
+                "last_name": "احمدی",
+                "bio": "توسعه‌دهنده بکند",
+            },
+            format="json",
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
@@ -198,9 +204,7 @@ class UserMePatchTests(APITestCase):
 
     def test_skills_json_field_saved_correctly(self):
         skills = ["Python", "Django", "Docker"]
-        response = self.client.patch(
-            self.URL, {"skills": skills}, format="json"
-        )
+        response = self.client.patch(self.URL, {"skills": skills}, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
@@ -217,6 +221,7 @@ class UserMePatchTests(APITestCase):
 # ─────────────────────────────────────────────────────────────
 #  3. Complete Profile
 # ─────────────────────────────────────────────────────────────
+
 
 class CompleteProfileTests(APITestCase):
     """
@@ -297,6 +302,7 @@ class CompleteProfileTests(APITestCase):
 #  4. Avatar Upload & Delete
 # ─────────────────────────────────────────────────────────────
 
+
 class AvatarTests(APITestCase):
     """
     PUT    /api/v1/me/avatar/
@@ -327,7 +333,10 @@ class AvatarTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_valid_image_upload_returns_avatar_url(self):
-        with patch("django.core.files.storage.default_storage.save", return_value="avatars/test.jpg"):
+        with patch(
+            "django.core.files.storage.default_storage.save",
+            return_value="avatars/test.jpg",
+        ):
             response = self.client.put(
                 self.PUT_URL,
                 {"avatar": generate_image()},
@@ -357,11 +366,12 @@ class AvatarTests(APITestCase):
 
     @patch("django.core.files.storage.default_storage.exists", return_value=True)
     @patch("django.core.files.storage.default_storage.delete")
-    def test_delete_avatar_clears_field_in_db(
-        self, mock_delete, mock_exists
-    ):
+    def test_delete_avatar_clears_field_in_db(self, mock_delete, mock_exists):
         # اول آپلود کن
-        with patch("django.core.files.storage.default_storage.save", return_value="avatars/test.jpg"):
+        with patch(
+            "django.core.files.storage.default_storage.save",
+            return_value="avatars/test.jpg",
+        ):
             response = self.client.put(
                 self.PUT_URL,
                 {"avatar": generate_image()},
@@ -388,6 +398,7 @@ class AvatarTests(APITestCase):
 # ─────────────────────────────────────────────────────────────
 #  5. Delete Account
 # ─────────────────────────────────────────────────────────────
+
 
 class DeleteAccountTests(APITestCase):
     """
@@ -417,6 +428,7 @@ class DeleteAccountTests(APITestCase):
 
     def _create_reset_otp(self, expired=False):
         from tests.test_otp import create_otp  # import local helper
+
         return create_otp(self.user, purpose="reset", expired=expired)
 
     def test_unauthenticated_returns_401(self):
@@ -440,6 +452,7 @@ class DeleteAccountTests(APITestCase):
 
     def test_expired_otp_returns_error(self):
         from datetime import timedelta
+
         from django.utils import timezone
 
         otp = OTPCode.objects.create(
@@ -488,8 +501,11 @@ class DeleteAccountTests(APITestCase):
         )
         self.client.delete(self.URL, {"code": "123456"})
 
-        login_response = self.client.post(self.LOGIN_URL, {
-            "phone_number": "09170000005",
-            "password": "Pass#12345",
-        })
+        login_response = self.client.post(
+            self.LOGIN_URL,
+            {
+                "phone_number": "09170000005",
+                "password": "Pass#12345",
+            },
+        )
         self.assertNotEqual(login_response.status_code, status.HTTP_200_OK)

@@ -13,7 +13,8 @@ from sentry_sdk.integrations.logging import LoggingIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
 
 from .base import *  # noqa: F401, F403
-from .base import CACHES, CELERY_TASK_ROUTES, INSTALLED_APPS, LOGGING, MIDDLEWARE, REST_FRAMEWORK, SIMPLE_JWT
+from .base import (CACHES, CELERY_TASK_ROUTES, INSTALLED_APPS, LOGGING,
+                   MIDDLEWARE, REST_FRAMEWORK, SIMPLE_JWT)
 
 # ─── Core ─────────────────────────────────────────────────────────────────────
 DEBUG = False
@@ -38,9 +39,9 @@ SESSION_COOKIE_SAMESITE = "Strict"
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = "Strict"
-CSRF_TRUSTED_ORIGINS = os.environ.get(  # noqa: F405
-    "CSRF_TRUSTED_ORIGINS", ""
-).split(",")
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(  # noqa: F405
+    ","
+)
 
 # ─── Database — production tuning ─────────────────────────────────────────────
 DATABASES["default"].update(
@@ -74,7 +75,9 @@ NOTIFICATION_PROVIDERS = {
 }
 
 # کلیدهای اجباری کاوه‌نگار در پروداکشن
-KAVENEGAR_API_KEY = os.environ["KAVENEGAR_API_KEY"]  # بدون دیفالت تا در صورت نبودن Fail Fast شود
+KAVENEGAR_API_KEY = os.environ[
+    "KAVENEGAR_API_KEY"
+]  # بدون دیفالت تا در صورت نبودن Fail Fast شود
 KAVENEGAR_SENDER = os.environ.get("KAVENEGAR_SENDER", "")
 
 # ساختار SMTP واقعی شما بدون تغییر باقی می‌ماند
@@ -128,7 +131,10 @@ CELERY_TASK_REJECT_ON_WORKER_LOST = True  # اگه worker crash کرد، retry
 
 CELERY_TASK_ROUTES.update(
     {
-        "apps.notifications.tasks.send_notification_task": {"queue": "notifications", "priority": 9},
+        "apps.notifications.tasks.send_notification_task": {
+            "queue": "notifications",
+            "priority": 9,
+        },
         "apps.interviews.tasks.evaluate": {"queue": "interviews", "priority": 5},
     }
 )
@@ -177,11 +183,22 @@ def _filter_sensitive_data(event, hint):
     """
     قبل از ارسال به Sentry، داده‌های حساس رو پاک میکنه
     """
-    sensitive_keys = {"password", "token", "secret", "otp", "authorization", "credit_card", "phone"}
+    sensitive_keys = {
+        "password",
+        "token",
+        "secret",
+        "otp",
+        "authorization",
+        "credit_card",
+        "phone",
+    }
 
     def _scrub(obj):
         if isinstance(obj, dict):
-            return {k: "***FILTERED***" if k.lower() in sensitive_keys else _scrub(v) for k, v in obj.items()}
+            return {
+                k: "***FILTERED***" if k.lower() in sensitive_keys else _scrub(v)
+                for k, v in obj.items()
+            }
         if isinstance(obj, list):
             return [_scrub(i) for i in obj]
         return obj

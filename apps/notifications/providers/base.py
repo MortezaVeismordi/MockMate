@@ -11,7 +11,9 @@ class BaseNotificationProvider(ABC):
     """
 
     @abstractmethod
-    def send(self, recipient: str, body: str, title: Optional[str] = None) -> Tuple[bool, Optional[str], Optional[str]]:
+    def send(
+        self, recipient: str, body: str, title: Optional[str] = None
+    ) -> Tuple[bool, Optional[str], Optional[str]]:
         pass
 
 
@@ -21,7 +23,9 @@ class ConsoleSMSProvider(BaseNotificationProvider):
     پیامک را به پنل واقعی نمی‌فرستد، بلکه متن آن را در ترمینال ورکر Celery چاپ می‌کند.
     """
 
-    def send(self, recipient: str, body: str, title: Optional[str] = None) -> Tuple[bool, Optional[str], Optional[str]]:
+    def send(
+        self, recipient: str, body: str, title: Optional[str] = None
+    ) -> Tuple[bool, Optional[str], Optional[str]]:
         # چاپ پیام به شکل فرمت‌شده و واضح در ترمینال سلری
         logger.info(
             "\n"

@@ -44,13 +44,17 @@ class QuestionIngestionPipeline:
         self.level = level
 
         if self.adapter_name not in self.REPO_REGISTRY:
-            raise ValueError(f"Adapter '{adapter_name}' is not registered in the pipeline.")
+            raise ValueError(
+                f"Adapter '{adapter_name}' is not registered in the pipeline."
+            )
 
         self.repo_config = self.REPO_REGISTRY[self.adapter_name]
 
         # تعیین پوشه محلی برای دانلود ریپوها (داخل کانتینر در مسیر /app/downloads)
         self.base_download_dir = os.path.join(os.getcwd(), "downloads")
-        self.local_repo_path = os.path.join(self.base_download_dir, self.repo_config["dir_name"])
+        self.local_repo_path = os.path.join(
+            self.base_download_dir, self.repo_config["dir_name"]
+        )
 
     def _setup_repository(self):
         """
@@ -61,17 +65,28 @@ class QuestionIngestionPipeline:
             os.makedirs(self.base_download_dir)
 
         if not os.path.exists(self.local_repo_path):
-            logger.info(f"Trying to clone repository via Git: {self.repo_config['url']}...")
+            logger.info(
+                f"Trying to clone repository via Git: {self.repo_config['url']}..."
+            )
             try:
                 subprocess.run(
-                    ["git", "clone", "--depth", "1", self.repo_config["url"], self.local_repo_path],
+                    [
+                        "git",
+                        "clone",
+                        "--depth",
+                        "1",
+                        self.repo_config["url"],
+                        self.local_repo_path,
+                    ],
                     check=True,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                 )
                 logger.info("Git clone completed successfully.")
             except subprocess.CalledProcessError:
-                logger.warning("Git clone failed due to network/TLS issues. Switching to Zip Download alternative...")
+                logger.warning(
+                    "Git clone failed due to network/TLS issues. Switching to Zip Download alternative..."
+                )
                 self._download_via_zip()
         else:
             logger.info("Repository exists locally. Proceeding with existing data...")
@@ -84,10 +99,14 @@ class QuestionIngestionPipeline:
         import zipfile
 
         # تبدیل آدرس ریپو به لینک دانلود مستقیم زیپ از گیت‌هاب
-        zip_url = self.repo_config["url"].replace(".git", "/archive/refs/heads/master.zip")
+        zip_url = self.repo_config["url"].replace(
+            ".git", "/archive/refs/heads/master.zip"
+        )
         # در برخی ریپوها شاخه اصلی main است
         if "devops-exercises" in zip_url:
-            zip_url = self.repo_config["url"].replace(".git", "/archive/refs/heads/master.zip")
+            zip_url = self.repo_config["url"].replace(
+                ".git", "/archive/refs/heads/master.zip"
+            )
 
         temp_zip_path = os.path.join(self.base_download_dir, "repo.zip")
         extracted_temp_dir = os.path.join(self.base_download_dir, "temp_extracted")
@@ -96,7 +115,10 @@ class QuestionIngestionPipeline:
         try:
             # استفاده از curl بومی داخل کانتینر (که قبلا در داکرفایل نصب کردیم)
             subprocess.run(
-                ["curl", "-L", zip_url, "-o", temp_zip_path], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                ["curl", "-L", zip_url, "-o", temp_zip_path],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
             )
 
             logger.info("Extracting ZIP archive...")
@@ -105,7 +127,9 @@ class QuestionIngestionPipeline:
 
             # گیت‌هاب پوشه را با نام ریپو + اسم برانچ اکسترکت می‌کند (مثلا devops-exercises-master)
             extracted_folder_name = os.listdir(extracted_temp_dir)[0]
-            full_extracted_path = os.path.join(extracted_temp_dir, extracted_folder_name)
+            full_extracted_path = os.path.join(
+                extracted_temp_dir, extracted_folder_name
+            )
 
             # جابجایی به مسیر استاندارد خط لوله
             if os.path.exists(self.local_repo_path):
@@ -132,12 +156,16 @@ class QuestionIngestionPipeline:
             # در فاز لوکال/تست اگر مایل نبودی کلون واقعی انجام شود، این متد را کامنت کن و فایل را دستی بریز
             self._setup_repository()
         except Exception:
-            logger.error("Skipping repository setup due to git error, trying to parse existing workspace...")
+            logger.error(
+                "Skipping repository setup due to git error, trying to parse existing workspace..."
+            )
 
         # ۲. یافتن آداپتور متناظر (Factory Pattern)
         adapter_class = self.repo_config["adapter_class"]
         if not adapter_class:
-            logger.error(f"Adapter class for '{self.adapter_name}' is not implemented yet!")
+            logger.error(
+                f"Adapter class for '{self.adapter_name}' is not implemented yet!"
+            )
             return 0
 
         # ۳. نیو کردن آداپتور و پاس دادن کانتکست داینامیک ترمینال

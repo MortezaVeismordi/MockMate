@@ -18,9 +18,22 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="CustomUser",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("password", models.CharField(max_length=128, verbose_name="password")),
-                ("last_login", models.DateTimeField(blank=True, null=True, verbose_name="last login")),
+                (
+                    "last_login",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="last login"
+                    ),
+                ),
                 (
                     "is_superuser",
                     models.BooleanField(
@@ -37,32 +50,67 @@ class Migration(migrations.Migration):
                         unique=True,
                         validators=[
                             django.core.validators.RegexValidator(
-                                message="شماره تلفن باید با فرمت 09XXXXXXXXX باشد", regex="^09[0-9]{9}$"
+                                message="شماره تلفن باید با فرمت 09XXXXXXXXX باشد",
+                                regex="^09[0-9]{9}$",
                             )
                         ],
                         verbose_name="شماره تلفن",
                     ),
                 ),
-                ("email", models.EmailField(blank=True, max_length=254, null=True, unique=True, verbose_name="ایمیل")),
-                ("first_name", models.CharField(blank=True, max_length=50, verbose_name="نام")),
-                ("last_name", models.CharField(blank=True, max_length=50, verbose_name="نام خانوادگی")),
+                (
+                    "email",
+                    models.EmailField(
+                        blank=True,
+                        max_length=254,
+                        null=True,
+                        unique=True,
+                        verbose_name="ایمیل",
+                    ),
+                ),
+                (
+                    "first_name",
+                    models.CharField(blank=True, max_length=50, verbose_name="نام"),
+                ),
+                (
+                    "last_name",
+                    models.CharField(
+                        blank=True, max_length=50, verbose_name="نام خانوادگی"
+                    ),
+                ),
                 (
                     "avatar",
-                    models.ImageField(blank=True, null=True, upload_to="avatars/%Y/%m/", verbose_name="تصویر پروفایل"),
+                    models.ImageField(
+                        blank=True,
+                        null=True,
+                        upload_to="avatars/%Y/%m/",
+                        verbose_name="تصویر پروفایل",
+                    ),
                 ),
-                ("job_title", models.CharField(blank=True, max_length=100, verbose_name="عنوان شغلی")),
+                (
+                    "job_title",
+                    models.CharField(
+                        blank=True, max_length=100, verbose_name="عنوان شغلی"
+                    ),
+                ),
                 (
                     "experience_level",
                     models.CharField(
                         blank=True,
-                        choices=[("junior", "جونیور"), ("mid_level", "میدلول"), ("senior", "سنیور"), ("lead", "لید")],
+                        choices=[
+                            ("junior", "جونیور"),
+                            ("mid_level", "میدلول"),
+                            ("senior", "سنیور"),
+                            ("lead", "لید"),
+                        ],
                         max_length=20,
                         verbose_name="سطح تجربه",
                     ),
                 ),
                 (
                     "years_of_experience",
-                    models.PositiveSmallIntegerField(blank=True, null=True, verbose_name="سال\u200cهای تجربه"),
+                    models.PositiveSmallIntegerField(
+                        blank=True, null=True, verbose_name="سال\u200cهای تجربه"
+                    ),
                 ),
                 (
                     "skills",
@@ -76,9 +124,22 @@ class Migration(migrations.Migration):
                 ("bio", models.TextField(blank=True, verbose_name="بیوگرافی")),
                 ("is_active", models.BooleanField(default=False, verbose_name="فعال")),
                 ("is_staff", models.BooleanField(default=False, verbose_name="کارمند")),
-                ("is_phone_verified", models.BooleanField(default=False, verbose_name="تلفن تایید شده")),
-                ("date_joined", models.DateTimeField(default=django.utils.timezone.now, verbose_name="تاریخ عضویت")),
-                ("last_login_ip", models.GenericIPAddressField(blank=True, null=True, verbose_name="آخرین IP ورود")),
+                (
+                    "is_phone_verified",
+                    models.BooleanField(default=False, verbose_name="تلفن تایید شده"),
+                ),
+                (
+                    "date_joined",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, verbose_name="تاریخ عضویت"
+                    ),
+                ),
+                (
+                    "last_login_ip",
+                    models.GenericIPAddressField(
+                        blank=True, null=True, verbose_name="آخرین IP ورود"
+                    ),
+                ),
                 (
                     "groups",
                     models.ManyToManyField(
@@ -111,22 +172,55 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="OTPCode",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("code", models.CharField(max_length=6, verbose_name="کد OTP")),
                 (
                     "purpose",
                     models.CharField(
-                        choices=[("register", "ثبت\u200cنام"), ("login", "ورود"), ("reset", "بازیابی رمز")],
+                        choices=[
+                            ("register", "ثبت\u200cنام"),
+                            ("login", "ورود"),
+                            ("reset", "بازیابی رمز"),
+                        ],
                         default="login",
                         max_length=20,
                         verbose_name="هدف",
                     ),
                 ),
-                ("is_used", models.BooleanField(default=False, verbose_name="استفاده شده")),
-                ("failed_attempts", models.PositiveSmallIntegerField(default=0, verbose_name="تلاش\u200cهای ناموفق")),
-                ("created_at", models.DateTimeField(auto_now_add=True, verbose_name="زمان ایجاد")),
-                ("used_at", models.DateTimeField(blank=True, null=True, verbose_name="زمان استفاده")),
-                ("ip_address", models.GenericIPAddressField(blank=True, null=True, verbose_name="آدرس IP")),
+                (
+                    "is_used",
+                    models.BooleanField(default=False, verbose_name="استفاده شده"),
+                ),
+                (
+                    "failed_attempts",
+                    models.PositiveSmallIntegerField(
+                        default=0, verbose_name="تلاش\u200cهای ناموفق"
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="زمان ایجاد"),
+                ),
+                (
+                    "used_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="زمان استفاده"
+                    ),
+                ),
+                (
+                    "ip_address",
+                    models.GenericIPAddressField(
+                        blank=True, null=True, verbose_name="آدرس IP"
+                    ),
+                ),
                 (
                     "user",
                     models.ForeignKey(
@@ -143,8 +237,13 @@ class Migration(migrations.Migration):
                 "db_table": "otp_codes",
                 "ordering": ["-created_at"],
                 "indexes": [
-                    models.Index(fields=["user", "is_used", "created_at"], name="otp_codes_user_id_d6aa45_idx"),
-                    models.Index(fields=["user", "purpose"], name="otp_codes_user_id_93a783_idx"),
+                    models.Index(
+                        fields=["user", "is_used", "created_at"],
+                        name="otp_codes_user_id_d6aa45_idx",
+                    ),
+                    models.Index(
+                        fields=["user", "purpose"], name="otp_codes_user_id_93a783_idx"
+                    ),
                 ],
             },
         ),

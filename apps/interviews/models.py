@@ -323,7 +323,9 @@ class InterviewMessage(models.Model):
         ]
 
     def __str__(self):
-        return f"[{self.get_role_display()}] Turn {self.turn_number} | {self.content[:50]}"
+        return (
+            f"[{self.get_role_display()}] Turn {self.turn_number} | {self.content[:50]}"
+        )
 
 
 # ─────────────────────────────────────────────────────────────────────────────

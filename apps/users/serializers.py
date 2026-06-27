@@ -115,7 +115,9 @@ class SendOTPSerializer(PhoneNormalizerMixin, serializers.Serializer):
         # ── هدف reset: کاربر باید وجود داشته باشه
         if purpose == OTPCode.Purpose.RESET:
             if not User.objects.filter(phone_number=phone_number).exists():
-                raise serializers.ValidationError({"phone_number": _("کاربری با این شماره یافت نشد")})
+                raise serializers.ValidationError(
+                    {"phone_number": _("کاربری با این شماره یافت نشد")}
+                )
 
         # ── چک cooldown: آیا هنوز کد قبلی معتبره؟
         try:
@@ -130,7 +132,11 @@ class SendOTPSerializer(PhoneNormalizerMixin, serializers.Serializer):
                 remaining = latest_otp.remaining_seconds
                 if remaining > 90:  # اگه بیشتر از ۹۰ ثانیه مونده
                     raise serializers.ValidationError(
-                        {"phone_number": _(f"کد قبلی هنوز معتبره. {remaining} ثانیه صبر کنید")}
+                        {
+                            "phone_number": _(
+                                f"کد قبلی هنوز معتبره. {remaining} ثانیه صبر کنید"
+                            )
+                        }
                     )
         except (User.DoesNotExist, OTPCode.DoesNotExist):
             pass
@@ -173,7 +179,9 @@ class ResendOTPSerializer(PhoneNormalizerMixin, serializers.Serializer):
         try:
             user = User.objects.get(phone_number=phone_number)
         except User.DoesNotExist:
-            raise serializers.ValidationError({"phone_number": _("ابتدا باید درخواست ارسال OTP بدید")})
+            raise serializers.ValidationError(
+                {"phone_number": _("ابتدا باید درخواست ارسال OTP بدید")}
+            )
 
         # ── چک cooldown: حداقل ۶۰ ثانیه بین هر resend
         try:
@@ -186,15 +194,23 @@ class ResendOTPSerializer(PhoneNormalizerMixin, serializers.Serializer):
             min_interval = 60  # حداقل ۶۰ ثانیه
             if elapsed < min_interval:
                 wait = int(min_interval - elapsed)
-                raise serializers.ValidationError({"phone_number": _(f"{wait} ثانیه تا ارسال مجدد صبر کنید")})
+                raise serializers.ValidationError(
+                    {"phone_number": _(f"{wait} ثانیه تا ارسال مجدد صبر کنید")}
+                )
         except OTPCode.DoesNotExist:
-            raise serializers.ValidationError({"phone_number": _("ابتدا باید درخواست ارسال OTP بدید")})
+            raise serializers.ValidationError(
+                {"phone_number": _("ابتدا باید درخواست ارسال OTP بدید")}
+            )
 
         # ── چک سقف روزانه
         daily_count = OTPCode.get_daily_resend_count(user)
         if daily_count >= OTPCode.MAX_RESEND_PER_DAY:
             raise serializers.ValidationError(
-                {"phone_number": _("تعداد درخواست OTP امروز به حد مجاز رسیده. فردا تلاش کنید")}
+                {
+                    "phone_number": _(
+                        "تعداد درخواست OTP امروز به حد مجاز رسیده. فردا تلاش کنید"
+                    )
+                }
             )
 
         attrs["_user"] = user
@@ -202,7 +218,9 @@ class ResendOTPSerializer(PhoneNormalizerMixin, serializers.Serializer):
         return attrs
 
 
-class VerifyOTPSerializer(PhoneNormalizerMixin, TokenGeneratorMixin, serializers.Serializer):
+class VerifyOTPSerializer(
+    PhoneNormalizerMixin, TokenGeneratorMixin, serializers.Serializer
+):
     """
     POST /auth/verify-otp/
 
@@ -443,7 +461,9 @@ class UserMeSerializer(AvatarURLMixin, serializers.ModelSerializer):
     def validate_last_name(self, value: str) -> str:
         value = value.strip()
         if value and len(value) < 2:
-            raise serializers.ValidationError(_("نام خانوادگی باید حداقل ۲ کاراکتر باشد"))
+            raise serializers.ValidationError(
+                _("نام خانوادگی باید حداقل ۲ کاراکتر باشد")
+            )
         return value
 
     def validate_years_of_experience(self, value: int) -> int:
@@ -460,7 +480,9 @@ class UserMeSerializer(AvatarURLMixin, serializers.ModelSerializer):
     def validate_bio(self, value: str) -> str:
         value = value.strip()
         if len(value) > 500:
-            raise serializers.ValidationError(_("بیوگرافی نباید بیشتر از ۵۰۰ کاراکتر باشد"))
+            raise serializers.ValidationError(
+                _("بیوگرافی نباید بیشتر از ۵۰۰ کاراکتر باشد")
+            )
         return value
 
     # ── Cross-field Validation ─────────────────────
@@ -477,7 +499,11 @@ class UserMeSerializer(AvatarURLMixin, serializers.ModelSerializer):
 
         if exp_level and years is None:
             raise serializers.ValidationError(
-                {"years_of_experience": _("با انتخاب سطح تجربه، سال‌های تجربه هم الزامی است")}
+                {
+                    "years_of_experience": _(
+                        "با انتخاب سطح تجربه، سال‌های تجربه هم الزامی است"
+                    )
+                }
             )
 
         # سازگاری سطح با سال تجربه
@@ -491,7 +517,12 @@ class UserMeSerializer(AvatarURLMixin, serializers.ModelSerializer):
             min_y, max_y = level_year_map.get(exp_level, (0, 50))
             if not (min_y <= years <= max_y):
                 raise serializers.ValidationError(
-                    {"years_of_experience": _(f"برای سطح {exp_level}، تجربه باید بین " f"{min_y} تا {max_y} سال باشد")}
+                    {
+                        "years_of_experience": _(
+                            f"برای سطح {exp_level}، تجربه باید بین "
+                            f"{min_y} تا {max_y} سال باشد"
+                        )
+                    }
                 )
 
         return attrs
@@ -575,7 +606,9 @@ class CompleteProfileSerializer(serializers.ModelSerializer):
     def validate_last_name(self, value: str) -> str:
         value = value.strip()
         if len(value) < 2:
-            raise serializers.ValidationError(_("نام خانوادگی باید حداقل ۲ کاراکتر باشد"))
+            raise serializers.ValidationError(
+                _("نام خانوادگی باید حداقل ۲ کاراکتر باشد")
+            )
         return value
 
     def validate_years_of_experience(self, value: int) -> int:
@@ -592,7 +625,9 @@ class CompleteProfileSerializer(serializers.ModelSerializer):
     def validate(self, attrs: dict) -> dict:
         # اگه پروفایل قبلاً کامل شده، اجازه نده
         if self.instance and self.instance.is_profile_complete:
-            raise serializers.ValidationError(_("پروفایل شما قبلاً تکمیل شده. از ویرایش پروفایل استفاده کنید"))
+            raise serializers.ValidationError(
+                _("پروفایل شما قبلاً تکمیل شده. از ویرایش پروفایل استفاده کنید")
+            )
         return attrs
 
     def update(self, instance, validated_data: dict):
@@ -630,10 +665,14 @@ class AvatarSerializer(serializers.ModelSerializer):
     def validate_avatar(self, image):
         max_bytes = self.MAX_SIZE_MB * 1024 * 1024
         if image.size > max_bytes:
-            raise serializers.ValidationError(_(f"حجم تصویر نباید بیشتر از {self.MAX_SIZE_MB} مگابایت باشد"))
+            raise serializers.ValidationError(
+                _(f"حجم تصویر نباید بیشتر از {self.MAX_SIZE_MB} مگابایت باشد")
+            )
 
         if image.content_type not in self.ALLOWED_TYPES:
-            raise serializers.ValidationError(_("فرمت تصویر باید JPEG، PNG یا WebP باشد"))
+            raise serializers.ValidationError(
+                _("فرمت تصویر باید JPEG، PNG یا WebP باشد")
+            )
 
         # چک ابعاد تصویر
         from PIL import Image as PILImage
@@ -642,9 +681,13 @@ class AvatarSerializer(serializers.ModelSerializer):
             img = PILImage.open(image)
             width, height = img.size
             if width > 2000 or height > 2000:
-                raise serializers.ValidationError(_("ابعاد تصویر نباید بیشتر از 2000x2000 پیکسل باشد"))
+                raise serializers.ValidationError(
+                    _("ابعاد تصویر نباید بیشتر از 2000x2000 پیکسل باشد")
+                )
             if width < 100 or height < 100:
-                raise serializers.ValidationError(_("ابعاد تصویر نباید کمتر از 100x100 پیکسل باشد"))
+                raise serializers.ValidationError(
+                    _("ابعاد تصویر نباید کمتر از 100x100 پیکسل باشد")
+                )
         except Exception as exc:
             if "ابعاد" in str(exc):
                 raise
@@ -837,15 +880,21 @@ class AdminUserDetailSerializer(AvatarURLMixin, serializers.ModelSerializer):
         request_user = self.context["request"].user
         if self.instance and self.instance.pk == request_user.pk:
             if "is_active" in attrs and not attrs["is_active"]:
-                raise serializers.ValidationError({"is_active": _("نمیتوانید حساب خودتان را غیرفعال کنید")})
+                raise serializers.ValidationError(
+                    {"is_active": _("نمیتوانید حساب خودتان را غیرفعال کنید")}
+                )
             if "is_staff" in attrs and not attrs["is_staff"]:
-                raise serializers.ValidationError({"is_staff": _("نمیتوانید دسترسی ادمین خودتان را بردارید")})
+                raise serializers.ValidationError(
+                    {"is_staff": _("نمیتوانید دسترسی ادمین خودتان را بردارید")}
+                )
         return attrs
 
     def get_otp_summary(self, obj) -> dict:
         otps = obj.otp_codes.all()
         total = otps.count()
-        last_24h = otps.filter(created_at__gte=timezone.now() - timedelta(hours=24)).count()
+        last_24h = otps.filter(
+            created_at__gte=timezone.now() - timedelta(hours=24)
+        ).count()
         return {
             "total": total,
             "last_24h": last_24h,
@@ -1209,7 +1258,9 @@ class LoginWithPasswordSerializer(PhoneNormalizerMixin, serializers.Serializer):
     """اعتبارسنجی ورود کاربران با شماره موبایل و رمز عبور"""
 
     phone_number = serializers.CharField(validators=[phone_validator])
-    password = serializers.CharField(write_only=True, style={"input_type": "password"}, label=_("رمز عبور"))
+    password = serializers.CharField(
+        write_only=True, style={"input_type": "password"}, label=_("رمز عبور")
+    )
 
     def validate(self, attrs):
         # نرمال‌سازی شماره تلفن با استفاده از میکسین خودتان
@@ -1218,10 +1269,16 @@ class LoginWithPasswordSerializer(PhoneNormalizerMixin, serializers.Serializer):
 
         if phone_number and password:
             # جنگو در پشت صحنه از فیلد UNIQUE شما (phone_number) برای authenticate استفاده میکنه
-            user = authenticate(request=self.context.get("request"), username=phone_number, password=password)
+            user = authenticate(
+                request=self.context.get("request"),
+                username=phone_number,
+                password=password,
+            )
 
             if not user:
-                raise serializers.ValidationError(_("شماره موبایل یا رمز عبور اشتباه است"))
+                raise serializers.ValidationError(
+                    _("شماره موبایل یا رمز عبور اشتباه است")
+                )
 
             if not user.is_active:
                 raise serializers.ValidationError(_("حساب کاربری شما غیرفعال شده است"))
@@ -1229,7 +1286,9 @@ class LoginWithPasswordSerializer(PhoneNormalizerMixin, serializers.Serializer):
             if getattr(user, "is_banned", False):
                 raise serializers.ValidationError(_("حساب کاربری شما مسدود شده است"))
         else:
-            raise serializers.ValidationError(_("ارسال شماره موبایل و رمز عبور الزامی است"))
+            raise serializers.ValidationError(
+                _("ارسال شماره موبایل و رمز عبور الزامی است")
+            )
 
         attrs["user"] = user
         return attrs
@@ -1239,7 +1298,10 @@ class SetPasswordSerializer(serializers.Serializer):
     """سریالایزر برای تعیین یا تغییر رمز عبور کاربر احراز هویت شده"""
 
     current_password = serializers.CharField(
-        style={"input_type": "password"}, required=False, allow_blank=True, label=_("رمز عبور فعلی")
+        style={"input_type": "password"},
+        required=False,
+        allow_blank=True,
+        label=_("رمز عبور فعلی"),
     )
     new_password = serializers.CharField(
         write_only=True,
@@ -1248,7 +1310,9 @@ class SetPasswordSerializer(serializers.Serializer):
         label=_("رمز عبور جدید"),
     )
     confirm_password = serializers.CharField(
-        write_only=True, style={"input_type": "password"}, label=_("تکرار رمز عبور جدید")
+        write_only=True,
+        style={"input_type": "password"},
+        label=_("تکرار رمز عبور جدید"),
     )
 
     def validate(self, attrs):
@@ -1259,15 +1323,23 @@ class SetPasswordSerializer(serializers.Serializer):
 
         # ۱. بررسی تطابق رمز عبور جدید و تکرار آن
         if new_password != confirm_password:
-            raise serializers.ValidationError({"confirm_password": _("رمز عبور جدید و تکرار آن مطابقت ندارند")})
+            raise serializers.ValidationError(
+                {"confirm_password": _("رمز عبور جدید و تکرار آن مطابقت ندارند")}
+            )
 
         # ۲. اگر کاربر از قبل رمز عبور دارد، وارد کردن رمز عبور فعلی الزامی است
         if user.has_usable_password():
             if not current_password:
                 raise serializers.ValidationError(
-                    {"current_password": _("برای تغییر رمز عبور، وارد کردن رمز عبور فعلی الزامی است")}
+                    {
+                        "current_password": _(
+                            "برای تغییر رمز عبور، وارد کردن رمز عبور فعلی الزامی است"
+                        )
+                    }
                 )
             if not user.check_password(current_password):
-                raise serializers.ValidationError({"current_password": _("رمز عبور فعلی اشتباه است")})
+                raise serializers.ValidationError(
+                    {"current_password": _("رمز عبور فعلی اشتباه است")}
+                )
 
         return attrs

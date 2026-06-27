@@ -39,10 +39,14 @@ def send_otp_notification_task(self, notification_id: int):
     try:
         NotificationService.send_notification(notification_id=notification_id)
     except Exception as exc:
-        logger.warning(f"[Celery] Retry delivering notification {notification_id}. Attempt {self.request.retries}")
+        logger.warning(
+            f"[Celery] Retry delivering notification {notification_id}. Attempt {self.request.retries}"
+        )
         try:
             with transaction.atomic():
-                notif_record = Notification.objects.select_for_update().get(id=notification_id)
+                notif_record = Notification.objects.select_for_update().get(
+                    id=notification_id
+                )
                 notif_record.retry_count = self.request.retries + 1
                 notif_record.save(update_fields=["retry_count"])
         except Exception as db_err:

@@ -6,12 +6,8 @@
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from .models import (
-    InterviewMessage,
-    InterviewSession,
-    SessionQuestion,
-    UserAnswer,
-)
+from .models import (InterviewMessage, InterviewSession, SessionQuestion,
+                     UserAnswer)
 
 # =============================================================================
 #  Question Serializers (nested)
@@ -57,13 +53,17 @@ class SessionQuestionDetailSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source="question.id", read_only=True)
     title = serializers.CharField(source="question.title", read_only=True)
     body = serializers.CharField(source="question.body", read_only=True)
-    estimated_time = serializers.IntegerField(source="question.estimated_time", read_only=True)
+    estimated_time = serializers.IntegerField(
+        source="question.estimated_time", read_only=True
+    )
     code_template = serializers.CharField(
         source="question.code_template",
         read_only=True,
         allow_null=True,
     )
-    question_type = serializers.CharField(source="question.question_type", read_only=True)
+    question_type = serializers.CharField(
+        source="question.question_type", read_only=True
+    )
     categories = serializers.StringRelatedField(
         source="question.categories",
         many=True,
@@ -127,10 +127,16 @@ class InterviewSessionCreateSerializer(serializers.Serializer):
         from apps.questions.models import QuestionCategory
 
         if value:
-            valid_slugs = set(QuestionCategory.objects.filter(slug__in=value).values_list("slug", flat=True))
+            valid_slugs = set(
+                QuestionCategory.objects.filter(slug__in=value).values_list(
+                    "slug", flat=True
+                )
+            )
             invalid = set(value) - valid_slugs
             if invalid:
-                raise serializers.ValidationError(_(f"موضوعات نامعتبر: {', '.join(invalid)}"))
+                raise serializers.ValidationError(
+                    _(f"موضوعات نامعتبر: {', '.join(invalid)}")
+                )
         return value
 
 

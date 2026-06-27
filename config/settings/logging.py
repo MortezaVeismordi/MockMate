@@ -42,7 +42,9 @@ LOGGING = {
         "json": {
             "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
             "format": (
-                "%(asctime)s %(levelname)s %(name)s " "%(module)s %(lineno)d %(message)s " "%(exc_info)s %(stack_info)s"
+                "%(asctime)s %(levelname)s %(name)s "
+                "%(module)s %(lineno)d %(message)s "
+                "%(exc_info)s %(stack_info)s"
             ),
             "datefmt": "%Y-%m-%dT%H:%M:%SZ",
         },

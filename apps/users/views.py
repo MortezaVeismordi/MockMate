@@ -15,30 +15,16 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import OTPCode
 from .response import APIResponse
 from .selectors import StatsSelector, UserSelector
-from .serializers import (
-    AdminBanSerializer,
-    AdminSoftDeleteSerializer,
-    AdminStatsSerializer,
-    AdminSuspendSerializer,
-    AdminUnsuspendSerializer,
-    AdminUserDetailSerializer,
-    # Admin
-    AdminUserListSerializer,
-    AvatarSerializer,
-    CompleteProfileSerializer,
-    DeleteAccountSerializer,
-    LoginWithPasswordSerializer,
-    LogoutSerializer,
-    OTPHistorySerializer,
-    RefreshTokenSerializer,
-    ResendOTPSerializer,
-    # Auth
-    SendOTPSerializer,
-    SetPasswordSerializer,
-    # Profile
-    UserMeSerializer,
-    VerifyOTPSerializer,
-)
+from .serializers import (AdminBanSerializer,  # Admin; Auth; Profile
+                          AdminSoftDeleteSerializer, AdminStatsSerializer,
+                          AdminSuspendSerializer, AdminUnsuspendSerializer,
+                          AdminUserDetailSerializer, AdminUserListSerializer,
+                          AvatarSerializer, CompleteProfileSerializer,
+                          DeleteAccountSerializer, LoginWithPasswordSerializer,
+                          LogoutSerializer, OTPHistorySerializer,
+                          RefreshTokenSerializer, ResendOTPSerializer,
+                          SendOTPSerializer, SetPasswordSerializer,
+                          UserMeSerializer, VerifyOTPSerializer)
 from .services import OTPService
 
 logger = logging.getLogger(__name__)
@@ -886,7 +872,9 @@ class AdminOTPHistoryView(ListAPIView):
     ordering = ["-created_at"]
 
     def get_queryset(self):
-        return OTPCode.objects.filter(user_id=self.kwargs["user_id"]).select_related("user")
+        return OTPCode.objects.filter(user_id=self.kwargs["user_id"]).select_related(
+            "user"
+        )
 
     def list(self, request, *args, **kwargs):
         # ── چک وجود کاربر قبل از کوئری ────────
@@ -1004,7 +992,9 @@ class SetPasswordView(GenericAPIView):
     serializer_class = SetPasswordSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, context={"request": request})
+        serializer = self.get_serializer(
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
 
         user = request.user

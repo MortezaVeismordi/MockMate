@@ -52,7 +52,11 @@ class DevOpsExercisesAdapter(BaseQuestionAdapter):
                         with open(file_path, "r", encoding="utf-8") as f:
                             content = f.read()
                             raw_files_data.append(
-                                {"content": content, "category": category_name, "file_path": file_path}
+                                {
+                                    "content": content,
+                                    "category": category_name,
+                                    "file_path": file_path,
+                                }
                             )
                     except Exception as e:
                         logger.error(f"Error reading file {file_path}: {str(e)}")
@@ -93,13 +97,18 @@ class DevOpsExercisesAdapter(BaseQuestionAdapter):
 
                 if "<details>" in raw_body:
                     details_match = re.search(
-                        r"<details>.*?</summary>(?P<ans>.*?)</details>", raw_body, re.DOTALL | re.IGNORECASE
+                        r"<details>.*?</summary>(?P<ans>.*?)</details>",
+                        raw_body,
+                        re.DOTALL | re.IGNORECASE,
                     )
                     if details_match:
                         reference_answer = details_match.group("ans").strip()
                         # پاک کردن تگ دتیلز از بدنه سوال اصلی
                         body_clean = re.sub(
-                            r"<details>.*?</details>", "", raw_body, flags=re.DOTALL | re.IGNORECASE
+                            r"<details>.*?</details>",
+                            "",
+                            raw_body,
+                            flags=re.DOTALL | re.IGNORECASE,
                         ).strip()
                 else:
                     # اگر تگ details نبود، بخش دوم متن را به عنوان پاسخ در نظر می‌گیریم (بر اساس جداکننده رایج)
@@ -114,7 +123,9 @@ class DevOpsExercisesAdapter(BaseQuestionAdapter):
                 q_type = Question.QuestionType.DEVOPS
                 options_metadata = []
 
-                if any(indicator in body_clean for indicator in ["a)", "b)", "1)", "- [ ]"]):
+                if any(
+                    indicator in body_clean for indicator in ["a)", "b)", "1)", "- [ ]"]
+                ):
                     q_type = Question.QuestionType.MULTIPLE_CHOICE
                     options_metadata = self._parse_options(body_clean, reference_answer)
 
@@ -132,7 +143,9 @@ class DevOpsExercisesAdapter(BaseQuestionAdapter):
                     for k in ["advanced", "architecture", "production", "optimize"]
                 ):
                     seniority = Question.SeniorityLevel.SENIOR
-                elif any(k in body_clean.lower() for k in ["basic", "what is", "junior"]):
+                elif any(
+                    k in body_clean.lower() for k in ["basic", "what is", "junior"]
+                ):
                     seniority = Question.SeniorityLevel.JUNIOR
 
                 # ساخت داکیومنت نهایی طبق ساختار مورد انتظار کلاس پایه
@@ -143,20 +156,28 @@ class DevOpsExercisesAdapter(BaseQuestionAdapter):
                     "seniority_level": seniority,
                     "reference_answer": reference_answer,
                     "estimated_time": estimated_time,
-                    "categories_metadata": [category, "DevOps"],  # تگ داینامیک پوشه + تگ کلان DevOps
+                    "categories_metadata": [
+                        category,
+                        "DevOps",
+                    ],  # تگ داینامیک پوشه + تگ کلان DevOps
                     "options_metadata": options_metadata,
                     "source_url": f"https://github.com/devops-exercises (File: {os.path.basename(file_item['file_path'])})",
                 }
 
                 # فیلترهای اختیاری کاربر زمان اجرای دستور (خروج زودهنگام در صورت عدم انطباق)
-                if self.category_filter and self.category_filter.lower() != category.lower():
+                if (
+                    self.category_filter
+                    and self.category_filter.lower() != category.lower()
+                ):
                     continue
                 if self.level_filter and self.level_filter.lower() != seniority.value:
                     continue
 
                 transformed_questions.append(question_document)
 
-        logger.info(f"DevOps Adapter transformed {len(transformed_questions)} potential questions.")
+        logger.info(
+            f"DevOps Adapter transformed {len(transformed_questions)} potential questions."
+        )
         return transformed_questions
 
     def _parse_options(self, body_text: str, answer_text: str) -> List[Dict[str, Any]]:
@@ -165,13 +186,18 @@ class DevOpsExercisesAdapter(BaseQuestionAdapter):
         """
         options = []
         # پیدا کردن خطوطی که با حروف الفبا یا عدد به عنوان گزینه شروع می‌شوند
-        raw_options = re.findall(r"(?P<label>[a-d1-4])[\)\.]\s*(?P<text>.+)", body_text, re.IGNORECASE)
+        raw_options = re.findall(
+            r"(?P<label>[a-d1-4])[\)\.]\s*(?P<text>.+)", body_text, re.IGNORECASE
+        )
 
         for label, text in raw_options:
             clean_text = text.strip()
             # تشخیص هوشمند اینکه آیا این گزینه پاسخ صحیح است یا خیر
             # بررسی اینکه آیا علامت تایید یا متن پاسخ در بخش جواب آمده است
-            is_correct = label.lower() in answer_text.lower() or clean_text.lower() in answer_text.lower()
+            is_correct = (
+                label.lower() in answer_text.lower()
+                or clean_text.lower() in answer_text.lower()
+            )
 
             options.append({"text": clean_text, "is_correct": is_correct})
         return options

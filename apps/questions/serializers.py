@@ -33,7 +33,14 @@ class CandidateQuestionListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Question
-        fields = ["id", "title", "question_type", "seniority_level", "estimated_time", "categories"]
+        fields = [
+            "id",
+            "title",
+            "question_type",
+            "seniority_level",
+            "estimated_time",
+            "categories",
+        ]
 
 
 class CandidateQuestionDetailSerializer(serializers.ModelSerializer):
@@ -72,7 +79,10 @@ class AdminQuestionSerializer(serializers.ModelSerializer):
     categories = CategorySerializer(many=True, read_only=True)
     # دریافت آی‌دی دسته‌بندی‌ها به صورت آرایه‌ای در زمان ساخت یا ویرایش
     category_ids = serializers.PrimaryKeyRelatedField(
-        queryset=QuestionCategory.objects.all(), write_only=True, many=True, source="categories"
+        queryset=QuestionCategory.objects.all(),
+        write_only=True,
+        many=True,
+        source="categories",
     )
 
     class Meta:
@@ -118,9 +128,13 @@ class GitHubIngestInputSerializer(serializers.Serializer):
     اندپوینت ۱۰: دریافت و اعتبارسنجی ورودی‌های خزنده خودکار از گیت‌هاب.
     """
 
-    github_url = serializers.URLField(required=True, help_text="آدرس کامل ریپوزیوری گیت‌هاب برای استخراج سوالات")
+    github_url = serializers.URLField(
+        required=True, help_text="آدرس کامل ریپوزیوری گیت‌هاب برای استخراج سوالات"
+    )
 
     def validate_github_url(self, value):
         if "github.com" not in value.lower():
-            raise serializers.ValidationError("آدرس ارسالی باید یک لینک معتبر از دامنه github.com باشد.")
+            raise serializers.ValidationError(
+                "آدرس ارسالی باید یک لینک معتبر از دامنه github.com باشد."
+            )
         return value

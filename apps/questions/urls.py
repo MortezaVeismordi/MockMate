@@ -15,11 +15,27 @@ urlpatterns = [
     # =====================================================================
     # ۲. روت‌های پنل مدیریت و ادمین (Admin / Backoffice Routes)
     # =====================================================================
-    path("admin/questions/", views.AdminQuestionListCreateAPI.as_view(), name="admin-question-list-create"),
-    path("admin/questions/<int:id>/", views.AdminQuestionDetailAPI.as_view(), name="admin-question-detail-mutations"),
-    path("admin/categories/", views.AdminCategoryListCreateAPI.as_view(), name="admin-category-create"),
+    path(
+        "admin/questions/",
+        views.AdminQuestionListCreateAPI.as_view(),
+        name="admin-question-list-create",
+    ),
+    path(
+        "admin/questions/<int:id>/",
+        views.AdminQuestionDetailAPI.as_view(),
+        name="admin-question-detail-mutations",
+    ),
+    path(
+        "admin/categories/",
+        views.AdminCategoryListCreateAPI.as_view(),
+        name="admin-category-create",
+    ),
     # =====================================================================
     # ۳. روت‌های اتوماسیون و خزنده گیت‌هاب (Automation Routes)
     # =====================================================================
-    path("admin/ingest/github/", views.AdminGitHubIngestAPI.as_view(), name="admin-github-ingest"),
+    path(
+        "admin/ingest/github/",
+        views.AdminGitHubIngestAPI.as_view(),
+        name="admin-github-ingest",
+    ),
 ]

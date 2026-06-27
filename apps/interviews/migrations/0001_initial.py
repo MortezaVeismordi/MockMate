@@ -20,12 +20,30 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="InterviewSession",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("uuid", models.UUIDField(default=uuid.uuid4, editable=False, unique=True, verbose_name="شناسه یکتا")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        unique=True,
+                        verbose_name="شناسه یکتا",
+                    ),
+                ),
                 (
                     "target_position",
                     models.CharField(
-                        help_text="مثال: Senior Django Developer", max_length=150, verbose_name="موقعیت شغلی هدف"
+                        help_text="مثال: Senior Django Developer",
+                        max_length=150,
+                        verbose_name="موقعیت شغلی هدف",
                     ),
                 ),
                 (
@@ -46,7 +64,9 @@ class Migration(migrations.Migration):
                 (
                     "job_description",
                     models.TextField(
-                        blank=True, help_text="اختیاری — برای شخصی\u200cسازی مصاحبه", verbose_name="متن آگهی استخدام"
+                        blank=True,
+                        help_text="اختیاری — برای شخصی\u200cسازی مصاحبه",
+                        verbose_name="متن آگهی استخدام",
                     ),
                 ),
                 (
@@ -78,9 +98,16 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "current_question_index",
-                    models.PositiveSmallIntegerField(default=0, verbose_name="ایندکس سوال فعلی"),
+                    models.PositiveSmallIntegerField(
+                        default=0, verbose_name="ایندکس سوال فعلی"
+                    ),
                 ),
-                ("total_questions", models.PositiveSmallIntegerField(default=10, verbose_name="تعداد کل سوالات")),
+                (
+                    "total_questions",
+                    models.PositiveSmallIntegerField(
+                        default=10, verbose_name="تعداد کل سوالات"
+                    ),
+                ),
                 (
                     "final_score",
                     models.FloatField(
@@ -96,13 +123,29 @@ class Migration(migrations.Migration):
                 (
                     "final_report",
                     models.JSONField(
-                        blank=True, help_text="گزارش کامل مصاحبه به فرمت JSON", null=True, verbose_name="گزارش نهایی"
+                        blank=True,
+                        help_text="گزارش کامل مصاحبه به فرمت JSON",
+                        null=True,
+                        verbose_name="گزارش نهایی",
                     ),
                 ),
                 ("summary", models.TextField(blank=True, verbose_name="خلاصه مصاحبه")),
-                ("started_at", models.DateTimeField(blank=True, null=True, verbose_name="زمان شروع")),
-                ("completed_at", models.DateTimeField(blank=True, null=True, verbose_name="زمان پایان")),
-                ("created_at", models.DateTimeField(auto_now_add=True, verbose_name="زمان ایجاد")),
+                (
+                    "started_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="زمان شروع"
+                    ),
+                ),
+                (
+                    "completed_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="زمان پایان"
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="زمان ایجاد"),
+                ),
                 (
                     "user",
                     models.ForeignKey(
@@ -123,7 +166,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="SessionQuestion",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("order", models.PositiveSmallIntegerField(verbose_name="ترتیب")),
                 (
                     "status",
@@ -178,11 +229,23 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="InterviewMessage",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 (
                     "role",
                     models.CharField(
-                        choices=[("system", "سیستم"), ("assistant", "مصاحبه\u200cکننده"), ("user", "کاربر")],
+                        choices=[
+                            ("system", "سیستم"),
+                            ("assistant", "مصاحبه\u200cکننده"),
+                            ("user", "کاربر"),
+                        ],
                         max_length=20,
                         verbose_name="نقش",
                     ),
@@ -206,7 +269,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("content", models.TextField(verbose_name="محتوا")),
-                ("turn_number", models.PositiveSmallIntegerField(verbose_name="شماره نوبت")),
+                (
+                    "turn_number",
+                    models.PositiveSmallIntegerField(verbose_name="شماره نوبت"),
+                ),
                 (
                     "metadata",
                     models.JSONField(
@@ -216,7 +282,12 @@ class Migration(migrations.Migration):
                         verbose_name="متادیتا",
                     ),
                 ),
-                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True, verbose_name="زمان ایجاد")),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, db_index=True, verbose_name="زمان ایجاد"
+                    ),
+                ),
                 (
                     "session",
                     models.ForeignKey(
@@ -248,18 +319,40 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="UserAnswer",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("answer_text", models.TextField(verbose_name="متن پاسخ")),
                 (
                     "answer_duration",
-                    models.PositiveIntegerField(blank=True, null=True, verbose_name="مدت زمان پاسخ (ثانیه)"),
+                    models.PositiveIntegerField(
+                        blank=True, null=True, verbose_name="مدت زمان پاسخ (ثانیه)"
+                    ),
                 ),
-                ("follow_up_asked", models.BooleanField(default=False, verbose_name="سوال تعقیبی پرسیده شد")),
-                ("follow_up_answer", models.TextField(blank=True, verbose_name="پاسخ سوال تعقیبی")),
+                (
+                    "follow_up_asked",
+                    models.BooleanField(
+                        default=False, verbose_name="سوال تعقیبی پرسیده شد"
+                    ),
+                ),
+                (
+                    "follow_up_answer",
+                    models.TextField(blank=True, verbose_name="پاسخ سوال تعقیبی"),
+                ),
                 (
                     "status",
                     models.CharField(
-                        choices=[("pending", "در انتظار تصحیح"), ("graded", "تصحیح شده"), ("failed", "خطا در تصحیح")],
+                        choices=[
+                            ("pending", "در انتظار تصحیح"),
+                            ("graded", "تصحیح شده"),
+                            ("failed", "خطا در تصحیح"),
+                        ],
                         db_index=True,
                         default="pending",
                         max_length=10,
@@ -278,20 +371,55 @@ class Migration(migrations.Migration):
                         verbose_name="نمره (0-100)",
                     ),
                 ),
-                ("technical_accuracy", models.TextField(blank=True, verbose_name="دقت فنی")),
-                ("strengths", models.JSONField(blank=True, default=list, verbose_name="نقاط قوت")),
-                ("weaknesses", models.JSONField(blank=True, default=list, verbose_name="نقاط ضعف")),
+                (
+                    "technical_accuracy",
+                    models.TextField(blank=True, verbose_name="دقت فنی"),
+                ),
+                (
+                    "strengths",
+                    models.JSONField(blank=True, default=list, verbose_name="نقاط قوت"),
+                ),
+                (
+                    "weaknesses",
+                    models.JSONField(blank=True, default=list, verbose_name="نقاط ضعف"),
+                ),
                 (
                     "missing_keywords",
-                    models.JSONField(blank=True, default=list, verbose_name="کلیدواژه\u200cهای جامانده"),
+                    models.JSONField(
+                        blank=True,
+                        default=list,
+                        verbose_name="کلیدواژه\u200cهای جامانده",
+                    ),
                 ),
-                ("feedback", models.TextField(blank=True, verbose_name="بازخورد تشریحی")),
-                ("suggested_follow_up", models.TextField(blank=True, verbose_name="سوال تعقیبی پیشنهادی")),
-                ("raw_evaluation", models.JSONField(blank=True, null=True, verbose_name="خروجی خام هوش مصنوعی")),
+                (
+                    "feedback",
+                    models.TextField(blank=True, verbose_name="بازخورد تشریحی"),
+                ),
+                (
+                    "suggested_follow_up",
+                    models.TextField(blank=True, verbose_name="سوال تعقیبی پیشنهادی"),
+                ),
+                (
+                    "raw_evaluation",
+                    models.JSONField(
+                        blank=True, null=True, verbose_name="خروجی خام هوش مصنوعی"
+                    ),
+                ),
                 ("error_log", models.TextField(blank=True, verbose_name="لاگ خطا")),
-                ("created_at", models.DateTimeField(auto_now_add=True, verbose_name="زمان ایجاد")),
-                ("evaluated_at", models.DateTimeField(blank=True, null=True, verbose_name="زمان ارزیابی")),
-                ("updated_at", models.DateTimeField(auto_now=True, verbose_name="زمان بروزرسانی")),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="زمان ایجاد"),
+                ),
+                (
+                    "evaluated_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="زمان ارزیابی"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="زمان بروزرسانی"),
+                ),
                 (
                     "question",
                     models.ForeignKey(
@@ -329,27 +457,39 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="interviewsession",
-            index=models.Index(fields=["user", "status"], name="interview_s_user_id_88a9f3_idx"),
+            index=models.Index(
+                fields=["user", "status"], name="interview_s_user_id_88a9f3_idx"
+            ),
         ),
         migrations.AddIndex(
             model_name="interviewsession",
-            index=models.Index(fields=["user", "created_at"], name="interview_s_user_id_c20944_idx"),
+            index=models.Index(
+                fields=["user", "created_at"], name="interview_s_user_id_c20944_idx"
+            ),
         ),
         migrations.AddIndex(
             model_name="interviewmessage",
-            index=models.Index(fields=["session", "turn_number"], name="interview_m_session_2a3974_idx"),
+            index=models.Index(
+                fields=["session", "turn_number"], name="interview_m_session_2a3974_idx"
+            ),
         ),
         migrations.AddIndex(
             model_name="interviewmessage",
-            index=models.Index(fields=["session", "role"], name="interview_m_session_120266_idx"),
+            index=models.Index(
+                fields=["session", "role"], name="interview_m_session_120266_idx"
+            ),
         ),
         migrations.AddIndex(
             model_name="useranswer",
-            index=models.Index(fields=["session", "status"], name="user_answer_session_89669e_idx"),
+            index=models.Index(
+                fields=["session", "status"], name="user_answer_session_89669e_idx"
+            ),
         ),
         migrations.AddIndex(
             model_name="useranswer",
-            index=models.Index(fields=["user", "status"], name="user_answer_user_id_2b0112_idx"),
+            index=models.Index(
+                fields=["user", "status"], name="user_answer_user_id_2b0112_idx"
+            ),
         ),
         migrations.AlterUniqueTogether(
             name="useranswer",

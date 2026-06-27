@@ -15,7 +15,9 @@ class ConsoleEmailProvider(BaseNotificationProvider):
     محتوای ایمیل را بدون ارسال واقعی، در ترمینال کانتینر داکر چاپ می‌کند.
     """
 
-    def send(self, recipient: str, body: str, title: Optional[str] = None) -> Tuple[bool, Optional[str], Optional[str]]:
+    def send(
+        self, recipient: str, body: str, title: Optional[str] = None
+    ) -> Tuple[bool, Optional[str], Optional[str]]:
         subject = title or "AI Interviewer Notification"
         logger.info(f"[Console-Email] Simulating email delivery to {recipient}")
 
@@ -36,7 +38,9 @@ class SmtpEmailProvider(BaseNotificationProvider):
     ارسال ایمیل واقعی از طریق پروتکل SMTP و مدیریت خطاهای لایه Mail Server.
     """
 
-    def send(self, recipient: str, body: str, title: Optional[str] = None) -> Tuple[bool, Optional[str], Optional[str]]:
+    def send(
+        self, recipient: str, body: str, title: Optional[str] = None
+    ) -> Tuple[bool, Optional[str], Optional[str]]:
         subject = title or "AI Interviewer — اعلان پلتفرم"
         logger.info(f"[Smtp-Email] Attempting to send live email to {recipient}")
 

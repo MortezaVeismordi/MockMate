@@ -12,6 +12,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="customuser",
             name="is_banned",
-            field=models.BooleanField(db_index=True, default=False, verbose_name="مسدود شده"),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name="مسدود شده"
+            ),
         ),
     ]

@@ -29,7 +29,9 @@ def evaluate_answer_task(self, answer_id: int) -> dict:
     from .services import EvaluationService
 
     try:
-        answer = UserAnswer.objects.select_related("question", "session", "user").get(pk=answer_id)
+        answer = UserAnswer.objects.select_related("question", "session", "user").get(
+            pk=answer_id
+        )
     except UserAnswer.DoesNotExist:
         logger.error("Answer not found | answer_id=%d", answer_id)
         return {"status": "not_found", "answer_id": answer_id}

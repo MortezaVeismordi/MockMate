@@ -50,7 +50,9 @@ class BaseQuestionAdapter:
             # ۲. فاز Transform
             transformed_questions = self.transform(raw_data)
             if not transformed_questions:
-                logger.warning("No questions remained after transformation and filtering.")
+                logger.warning(
+                    "No questions remained after transformation and filtering."
+                )
                 return 0
 
             # ۳. فاز Load
@@ -58,7 +60,9 @@ class BaseQuestionAdapter:
             return saved_count
 
         except Exception as e:
-            logger.critical(f"Pipeline crashed catastrophically: {str(e)}", exc_info=True)
+            logger.critical(
+                f"Pipeline crashed catastrophically: {str(e)}", exc_info=True
+            )
             return 0
 
     def extract(self) -> List[Any]:
@@ -66,14 +70,18 @@ class BaseQuestionAdapter:
         باید در کلاس فرزند اورراید شود.
         وظیفه: اسکن دایرکتوری و خواندن فایل‌های خام (متن مارک‌داون یا جیسون).
         """
-        raise NotImplementedError("Each adapter must implement its own 'extract' method.")
+        raise NotImplementedError(
+            "Each adapter must implement its own 'extract' method."
+        )
 
     def transform(self, raw_data: List[Any]) -> List[Dict[str, Any]]:
         """
         باید در کلاس فرزند اورراید شود.
         وظیفه: پارس کردن متون خام و تبدیل آن‌ها به دیکشنری‌های استاندارد شده.
         """
-        raise NotImplementedError("Each adapter must implement its own 'transform' method.")
+        raise NotImplementedError(
+            "Each adapter must implement its own 'transform' method."
+        )
 
     def clean_text(self, text: str) -> str:
         """
@@ -85,7 +93,9 @@ class BaseQuestionAdapter:
         cleaned = "\n".join([line.strip() for line in text.strip().splitlines()])
         return cleaned
 
-    def validate_and_truncate(self, question_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def validate_and_truncate(
+        self, question_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """
         لایه دفاعی اعتبارسنجی داده‌ها قبل از ورود به دیتابیس.
         تضمین می‌کند که فیلدهای حیاتی پر هستند و طول فیلد تایتل از حد مجاز دیتابیس بیشتر نیست.
@@ -95,7 +105,9 @@ class BaseQuestionAdapter:
         reference_answer = question_data.get("reference_answer", "").strip()
 
         if not title or not body:
-            logger.warning("Validation failed: Question skipped due to empty title or body.")
+            logger.warning(
+                "Validation failed: Question skipped due to empty title or body."
+            )
             return None
 
         # خلاصه کردن عنوان در صورت فراتر رفتن از حد مجاز VARCHAR(255) دیتابیس
@@ -114,7 +126,9 @@ class BaseQuestionAdapter:
         clean_name = category_name.strip().title()
         slug = slugify(clean_name) or clean_name.lower().replace(" ", "-")
 
-        category, created = QuestionCategory.objects.get_or_create(slug=slug, defaults={"title": clean_name})
+        category, created = QuestionCategory.objects.get_or_create(
+            slug=slug, defaults={"title": clean_name}
+        )
         return category
 
     def load(self, questions_data: List[Dict[str, Any]]) -> int:
@@ -141,13 +155,19 @@ class BaseQuestionAdapter:
                             source_url=validated_data.get("source_url"),
                             defaults={
                                 "body": validated_data["body"],
-                                "question_type": validated_data.get("question_type", Question.QuestionType.TECHNICAL),
+                                "question_type": validated_data.get(
+                                    "question_type", Question.QuestionType.TECHNICAL
+                                ),
                                 "seniority_level": validated_data.get(
                                     "seniority_level", Question.SeniorityLevel.MID_LEVEL
                                 ),
                                 "reference_answer": validated_data["reference_answer"],
-                                "ai_evaluation_criteria": validated_data.get("ai_evaluation_criteria", {}),
-                                "estimated_time": validated_data.get("estimated_time", 120),
+                                "ai_evaluation_criteria": validated_data.get(
+                                    "ai_evaluation_criteria", {}
+                                ),
+                                "estimated_time": validated_data.get(
+                                    "estimated_time", 120
+                                ),
                                 "code_template": validated_data.get("code_template"),
                                 "source": Question.SourceType.GITHUB_IMPORT,
                                 "is_active": True,
@@ -163,7 +183,9 @@ class BaseQuestionAdapter:
                             QuestionOption.objects.bulk_create(
                                 [
                                     QuestionOption(
-                                        question=question, text=opt["text"], is_correct=opt.get("is_correct", False)
+                                        question=question,
+                                        text=opt["text"],
+                                        is_correct=opt.get("is_correct", False),
                                     )
                                     for opt in options_list
                                 ]
@@ -176,7 +198,9 @@ class BaseQuestionAdapter:
                             break
 
                 except Exception as item_error:
-                    logger.error(f"Failed to load question: {str(item_error)}", exc_info=True)
+                    logger.error(
+                        f"Failed to load question: {str(item_error)}", exc_info=True
+                    )
                     continue
 
         logger.info(f"Successfully loaded {success_count} questions into the database.")

@@ -242,7 +242,10 @@ class ProviderFactory:
         provider_class = cls._registry.get(provider)
 
         if not provider_class:
-            raise ValueError(f"Provider ناشناخته: {provider}. " f"گزینه‌های معتبر: {list(cls._registry.keys())}")
+            raise ValueError(
+                f"Provider ناشناخته: {provider}. "
+                f"گزینه‌های معتبر: {list(cls._registry.keys())}"
+            )
 
         kwargs = {"temperature": temperature}
         if model:

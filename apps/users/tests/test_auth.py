@@ -19,19 +19,20 @@ Philosophy:
   RefreshToken (only where we need a known token value).
 """
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
-from apps.users.tests.base import BaseAPITestCase as APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.users.models import CustomUser, OTPCode
-
+from apps.users.tests.base import BaseAPITestCase as APITestCase
 
 # ─────────────────────────────────────────────────────────────
 #  Helpers
 # ─────────────────────────────────────────────────────────────
+
 
 def create_active_user(
     phone_number: str = "09123456789",
@@ -64,6 +65,7 @@ def auth_headers(user: CustomUser) -> dict:
 #  1. Password Login
 # ─────────────────────────────────────────────────────────────
 
+
 class LoginWithPasswordTests(APITestCase):
     """
     POST /api/v1/auth/login-password/
@@ -92,10 +94,13 @@ class LoginWithPasswordTests(APITestCase):
         A user with correct phone + password must receive
         both an access token and a refresh token.
         """
-        response = self.client.post(self.URL, {
-            "phone_number": "09111111111",
-            "password": "CorrectHorse#99",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09111111111",
+                "password": "CorrectHorse#99",
+            },
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()["data"]
@@ -109,10 +114,13 @@ class LoginWithPasswordTests(APITestCase):
         Login response should embed basic user info so the
         frontend doesn't need an extra /me/ round-trip.
         """
-        response = self.client.post(self.URL, {
-            "phone_number": "09111111111",
-            "password": "CorrectHorse#99",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09111111111",
+                "password": "CorrectHorse#99",
+            },
+        )
 
         user_data = response.json()["data"]["user"]
         self.assertEqual(user_data["phone_number"], "09111111111")
@@ -122,10 +130,13 @@ class LoginWithPasswordTests(APITestCase):
         After a successful login, last_login should be refreshed.
         """
         before = self.user.last_login
-        self.client.post(self.URL, {
-            "phone_number": "09111111111",
-            "password": "CorrectHorse#99",
-        })
+        self.client.post(
+            self.URL,
+            {
+                "phone_number": "09111111111",
+                "password": "CorrectHorse#99",
+            },
+        )
         self.user.refresh_from_db()
         self.assertNotEqual(self.user.last_login, before)
 
@@ -135,10 +146,13 @@ class LoginWithPasswordTests(APITestCase):
         """
         Wrong password must NOT return a token under any circumstances.
         """
-        response = self.client.post(self.URL, {
-            "phone_number": "09111111111",
-            "password": "WrongPassword!",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09111111111",
+                "password": "WrongPassword!",
+            },
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertNotIn("access", response.json().get("data", {}))
@@ -148,10 +162,13 @@ class LoginWithPasswordTests(APITestCase):
         A phone number that has never registered must not leak
         whether the account exists (same error class as wrong password).
         """
-        response = self.client.post(self.URL, {
-            "phone_number": "09999999999",
-            "password": "AnyPassword!",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09999999999",
+                "password": "AnyPassword!",
+            },
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -163,10 +180,13 @@ class LoginWithPasswordTests(APITestCase):
         self.user.is_active = False
         self.user.save(update_fields=["is_active"])
 
-        response = self.client.post(self.URL, {
-            "phone_number": "09111111111",
-            "password": "CorrectHorse#99",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09111111111",
+                "password": "CorrectHorse#99",
+            },
+        )
 
         self.assertNotEqual(response.status_code, status.HTTP_200_OK)
 
@@ -183,16 +203,20 @@ class LoginWithPasswordTests(APITestCase):
         The custom phone validator (09XXXXXXXXX) should reject
         malformed numbers before even hitting the DB.
         """
-        response = self.client.post(self.URL, {
-            "phone_number": "123",
-            "password": "CorrectHorse#99",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "123",
+                "password": "CorrectHorse#99",
+            },
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 # ─────────────────────────────────────────────────────────────
 #  2. Set Password
 # ─────────────────────────────────────────────────────────────
+
 
 class SetPasswordTests(APITestCase):
     """
@@ -220,10 +244,13 @@ class SetPasswordTests(APITestCase):
     # ── Auth guard ────────────────────────────────────────────
 
     def test_unauthenticated_request_is_blocked(self):
-        response = self.client.post(self.SET_URL, {
-            "new_password": "NewPass#123",
-            "confirm_password": "NewPass#123",
-        })
+        response = self.client.post(
+            self.SET_URL,
+            {
+                "new_password": "NewPass#123",
+                "confirm_password": "NewPass#123",
+            },
+        )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     # ── Happy path ────────────────────────────────────────────
@@ -232,10 +259,14 @@ class SetPasswordTests(APITestCase):
         self.client.credentials(
             HTTP_AUTHORIZATION=f"Bearer {str(RefreshToken.for_user(self.user).access_token)}"
         )
-        response = self.client.post(self.SET_URL, {
-            "current_password": "OldPassword#1", "new_password": "BrandNew#999",
-            "confirm_password": "BrandNew#999",
-        })
+        response = self.client.post(
+            self.SET_URL,
+            {
+                "current_password": "OldPassword#1",
+                "new_password": "BrandNew#999",
+                "confirm_password": "BrandNew#999",
+            },
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_new_password_is_actually_persisted(self):
@@ -246,16 +277,23 @@ class SetPasswordTests(APITestCase):
         self.client.credentials(
             HTTP_AUTHORIZATION=f"Bearer {str(RefreshToken.for_user(self.user).access_token)}"
         )
-        self.client.post(self.SET_URL, {
-            "current_password": "OldPassword#1", "new_password": "Updated#Pass1",
-            "confirm_password": "Updated#Pass1",
-        })
+        self.client.post(
+            self.SET_URL,
+            {
+                "current_password": "OldPassword#1",
+                "new_password": "Updated#Pass1",
+                "confirm_password": "Updated#Pass1",
+            },
+        )
 
         # Now try logging in with the new password
-        login_response = self.client.post(self.LOGIN_URL, {
-            "phone_number": "09122222222",
-            "password": "Updated#Pass1",
-        })
+        login_response = self.client.post(
+            self.LOGIN_URL,
+            {
+                "phone_number": "09122222222",
+                "password": "Updated#Pass1",
+            },
+        )
         self.assertEqual(login_response.status_code, status.HTTP_200_OK)
 
     def test_old_password_no_longer_works_after_change(self):
@@ -265,15 +303,22 @@ class SetPasswordTests(APITestCase):
         self.client.credentials(
             HTTP_AUTHORIZATION=f"Bearer {str(RefreshToken.for_user(self.user).access_token)}"
         )
-        self.client.post(self.SET_URL, {
-            "current_password": "OldPassword#1", "new_password": "Updated#Pass1",
-            "confirm_password": "Updated#Pass1",
-        })
+        self.client.post(
+            self.SET_URL,
+            {
+                "current_password": "OldPassword#1",
+                "new_password": "Updated#Pass1",
+                "confirm_password": "Updated#Pass1",
+            },
+        )
 
-        login_response = self.client.post(self.LOGIN_URL, {
-            "phone_number": "09122222222",
-            "password": "OldPassword#1",
-        })
+        login_response = self.client.post(
+            self.LOGIN_URL,
+            {
+                "phone_number": "09122222222",
+                "password": "OldPassword#1",
+            },
+        )
         self.assertNotEqual(login_response.status_code, status.HTTP_200_OK)
 
     # ── Validation ────────────────────────────────────────────
@@ -282,16 +327,20 @@ class SetPasswordTests(APITestCase):
         self.client.credentials(
             HTTP_AUTHORIZATION=f"Bearer {str(RefreshToken.for_user(self.user).access_token)}"
         )
-        response = self.client.post(self.SET_URL, {
-            "new_password": "GoodPass#1",
-            "confirm_password": "DifferentPass#1",
-        })
+        response = self.client.post(
+            self.SET_URL,
+            {
+                "new_password": "GoodPass#1",
+                "confirm_password": "DifferentPass#1",
+            },
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 # ─────────────────────────────────────────────────────────────
 #  3. Token Refresh
 # ─────────────────────────────────────────────────────────────
+
 
 class RefreshTokenTests(APITestCase):
     """
@@ -361,6 +410,7 @@ class RefreshTokenTests(APITestCase):
 #  4. Logout
 # ─────────────────────────────────────────────────────────────
 
+
 class LogoutTests(APITestCase):
     """
     POST /api/v1/auth/logout/
@@ -408,6 +458,7 @@ class LogoutTests(APITestCase):
 #  5. OTP Send
 # ─────────────────────────────────────────────────────────────
 
+
 class SendOTPTests(APITestCase):
     """
     POST /api/v1/auth/send-otp/
@@ -433,10 +484,13 @@ class SendOTPTests(APITestCase):
     def test_valid_phone_triggers_otp(self, mock_send):
         mock_send.return_value = {**self.MOCK_SUCCESS, "is_new_user": True}
 
-        response = self.client.post(self.URL, {
-            "phone_number": "09150000001",
-            "purpose": "login",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09150000001",
+                "purpose": "login",
+            },
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mock_send.assert_called_once()
@@ -445,10 +499,13 @@ class SendOTPTests(APITestCase):
     def test_new_phone_returns_is_new_user_true(self, mock_send):
         mock_send.return_value = {**self.MOCK_SUCCESS, "is_new_user": True}
 
-        response = self.client.post(self.URL, {
-            "phone_number": "09150000002",
-            "purpose": "login",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09150000002",
+                "purpose": "login",
+            },
+        )
 
         data = response.json()["data"]
         self.assertTrue(data["is_new_user"])
@@ -458,10 +515,13 @@ class SendOTPTests(APITestCase):
         create_active_user(phone_number="09150000003")
         mock_send.return_value = {**self.MOCK_SUCCESS, "is_new_user": False}
 
-        response = self.client.post(self.URL, {
-            "phone_number": "09150000003",
-            "purpose": "login",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09150000003",
+                "purpose": "login",
+            },
+        )
 
         data = response.json()["data"]
         self.assertFalse(data["is_new_user"])
@@ -472,10 +532,13 @@ class SendOTPTests(APITestCase):
         before OTPService is ever called.
         """
         with patch("apps.users.views.OTPService.send_otp") as mock_send:
-            response = self.client.post(self.URL, {
-                "phone_number": "00000",
-                "purpose": "login",
-            })
+            response = self.client.post(
+                self.URL,
+                {
+                    "phone_number": "00000",
+                    "purpose": "login",
+                },
+            )
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             mock_send.assert_not_called()
 
@@ -490,16 +553,20 @@ class SendOTPTests(APITestCase):
             "message": "تعداد درخواست OTP امروز به حد مجاز رسیده",
         }
 
-        response = self.client.post(self.URL, {
-            "phone_number": "09150000004",
-            "purpose": "login",
-        })
+        response = self.client.post(
+            self.URL,
+            {
+                "phone_number": "09150000004",
+                "purpose": "login",
+            },
+        )
         self.assertNotEqual(response.status_code, status.HTTP_200_OK)
 
 
 # ─────────────────────────────────────────────────────────────
 #  6. Protected Endpoint Access
 # ─────────────────────────────────────────────────────────────
+
 
 class ProtectedEndpointTests(APITestCase):
     """
@@ -531,9 +598,7 @@ class ProtectedEndpointTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_tampered_token_returns_401(self):
-        self.client.credentials(
-            HTTP_AUTHORIZATION=f"Bearer {self.access}tampered"
-        )
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access}tampered")
         response = self.client.get(self.URL)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 

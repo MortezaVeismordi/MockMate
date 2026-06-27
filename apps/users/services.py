@@ -85,7 +85,11 @@ class OTPService:
         # on_commit خارج از with هست ولی بعد از commit اجرا میشه ✓
         from apps.notifications.tasks import send_otp_notification_task
 
-        transaction.on_commit(lambda: send_otp_notification_task.delay(notification_id=notification_record.id))
+        transaction.on_commit(
+            lambda: send_otp_notification_task.delay(
+                notification_id=notification_record.id
+            )
+        )
 
         return {
             "success": True,

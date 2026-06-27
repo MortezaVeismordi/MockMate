@@ -48,19 +48,34 @@ class Question(models.Model):
         AI_GENERATED = "ai_generated", _("AI Generated & Cached")
         GITHUB_IMPORT = "github_import", _("Imported from GitHub")
 
-    title = models.CharField(_("Title/Concept"), max_length=255, help_text=_("مفهوم کلیدی یا عنوان کوتاه سوال"))
-    body = models.TextField(_("Question Body/Scenario"), help_text=_("صورت کامل سوال یا سناریوی مطرح شده"))
+    title = models.CharField(
+        _("Title/Concept"),
+        max_length=255,
+        help_text=_("مفهوم کلیدی یا عنوان کوتاه سوال"),
+    )
+    body = models.TextField(
+        _("Question Body/Scenario"), help_text=_("صورت کامل سوال یا سناریوی مطرح شده")
+    )
 
     # فیلدهای مدیریت زمان و قالب‌های اجرایی
     estimated_time = models.PositiveIntegerField(
-        _("Estimated Time (Seconds)"), default=120, help_text=_("زمان پیشنهادی برای پاسخ به این سوال")
+        _("Estimated Time (Seconds)"),
+        default=120,
+        help_text=_("زمان پیشنهادی برای پاسخ به این سوال"),
     )
     code_template = models.TextField(
-        _("Code Template"), blank=True, null=True, help_text=_("قالب کد اولیه برای سوالات کدنویسی")
+        _("Code Template"),
+        blank=True,
+        null=True,
+        help_text=_("قالب کد اولیه برای سوالات کدنویسی"),
     )
 
     question_type = models.CharField(
-        _("Question Type"), max_length=30, choices=QuestionType.choices, default=QuestionType.TECHNICAL, db_index=True
+        _("Question Type"),
+        max_length=30,
+        choices=QuestionType.choices,
+        default=QuestionType.TECHNICAL,
+        db_index=True,
     )
     seniority_level = models.CharField(
         _("Seniority Level"),
@@ -70,18 +85,29 @@ class Question(models.Model):
         db_index=True,
     )
     categories = models.ManyToManyField(
-        QuestionCategory, related_name="questions", verbose_name=_("Categories / Skills")
+        QuestionCategory,
+        related_name="questions",
+        verbose_name=_("Categories / Skills"),
     )
 
     reference_answer = models.TextField(
-        _("Reference Answer"), help_text=_("پاسخ ایده‌آل و نکات کلیدی برای راهنمایی تصحیح هوش مصنوعی")
+        _("Reference Answer"),
+        help_text=_("پاسخ ایده‌آل و نکات کلیدی برای راهنمایی تصحیح هوش مصنوعی"),
     )
     ai_evaluation_criteria = models.JSONField(
-        _("AI Evaluation Criteria"), default=dict, blank=True, help_text=_("کلیدواژه‌های اجباری و وزن نمره‌دهی")
+        _("AI Evaluation Criteria"),
+        default=dict,
+        blank=True,
+        help_text=_("کلیدواژه‌های اجباری و وزن نمره‌دهی"),
     )
 
     is_active = models.BooleanField(_("Is Active"), default=True, db_index=True)
-    source = models.CharField(_("Source"), max_length=20, choices=SourceType.choices, default=SourceType.MANUAL)
+    source = models.CharField(
+        _("Source"),
+        max_length=20,
+        choices=SourceType.choices,
+        default=SourceType.MANUAL,
+    )
     source_url = models.URLField(_("Source URL"), blank=True, null=True, max_length=500)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -104,7 +130,12 @@ class QuestionOption(models.Model):
     گزینه‌های سوال (مخصوص سوالات تستی یا چند گزینه‌ای)
     """
 
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="options", verbose_name=_("Question"))
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE,
+        related_name="options",
+        verbose_name=_("Question"),
+    )
     text = models.CharField(_("Option Text"), max_length=500)
     is_correct = models.BooleanField(_("Is Correct Option"), default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -125,11 +156,17 @@ class QuestionAttachment(models.Model):
         DOCUMENT = "document", _("Supplementary Document")
 
     question = models.ForeignKey(
-        Question, on_delete=models.CASCADE, related_name="attachments", verbose_name=_("Question")
+        Question,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+        verbose_name=_("Question"),
     )
     file = models.FileField(_("Attachment File"), upload_to="questions/attachments/")
     attachment_type = models.CharField(
-        _("Attachment Type"), max_length=20, choices=AttachmentType.choices, default=AttachmentType.CODE_FILE
+        _("Attachment Type"),
+        max_length=20,
+        choices=AttachmentType.choices,
+        default=AttachmentType.CODE_FILE,
     )
     created_at = models.DateTimeField(auto_now_add=True)
 

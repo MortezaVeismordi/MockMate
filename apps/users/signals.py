@@ -62,7 +62,10 @@ def _is_profile_now_complete(old_instance, new_instance) -> bool:
     آیا پروفایل در این save از ناقص به کامل تبدیل شد؟
     """
     was_complete = bool(
-        old_instance.first_name and old_instance.last_name and old_instance.job_title and old_instance.experience_level
+        old_instance.first_name
+        and old_instance.last_name
+        and old_instance.job_title
+        and old_instance.experience_level
     )
     return not was_complete and new_instance.is_profile_complete
 
@@ -273,7 +276,8 @@ def on_profile_completed(sender, user, **kwargs):
     )
 
     try:
-        from apps.notifications.tasks import send_profile_completed_notification
+        from apps.notifications.tasks import \
+            send_profile_completed_notification
 
         send_profile_completed_notification.delay(user_id=user.pk)
     except Exception as exc:

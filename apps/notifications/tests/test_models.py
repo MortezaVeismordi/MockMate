@@ -8,8 +8,7 @@ class NotificationModelTests(TestCase):
     def test_create_notification_with_defaults(self):
         """Test creating a notification with default values."""
         notification = Notification.objects.create(
-            recipient="09123456789",
-            body="Test message"
+            recipient="09123456789", body="Test message"
         )
 
         self.assertEqual(notification.recipient, "09123456789")
@@ -53,7 +52,7 @@ class NotificationModelTests(TestCase):
         notification = Notification.objects.create(
             recipient="09123456789",
             body="Test message",
-            status=Notification.Status.PENDING
+            status=Notification.Status.PENDING,
         )
 
         notification.mark_as_sent(provider_id="provider_123")
@@ -71,7 +70,7 @@ class NotificationModelTests(TestCase):
         notification = Notification.objects.create(
             recipient="09123456789",
             body="Test message",
-            status=Notification.Status.PENDING
+            status=Notification.Status.PENDING,
         )
 
         notification.mark_as_failed(error="Something went wrong")
@@ -87,7 +86,7 @@ class NotificationModelTests(TestCase):
             recipient="user@example.com",
             body="Test in-app message",
             notification_type=Notification.Type.IN_APP,
-            status=Notification.Status.SENT
+            status=Notification.Status.SENT,
         )
 
         self.assertFalse(notification.is_read)
@@ -109,7 +108,7 @@ class NotificationModelTests(TestCase):
             recipient="09123456789",
             body="Test message",
             notification_type=Notification.Type.SMS,
-            status=Notification.Status.SENT
+            status=Notification.Status.SENT,
         )
 
         expected_str = "پیامک | 09123456789 | ارسال شده"

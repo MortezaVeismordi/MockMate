@@ -84,6 +84,9 @@ jobs:
             requirements/base.txt
             requirements/development.txt
 
+      - name: Install system dependencies
+        run: sudo apt-get install -y graphviz graphviz-dev
+        
       - name: Install dependencies
         run: |
           pip install -r requirements/base.txt

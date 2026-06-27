@@ -10,7 +10,8 @@ from uuid import UUID
 from django.contrib.auth import get_user_model
 from django.db.models import Avg, Count, Max, Min, Prefetch, Q, QuerySet, Sum
 
-from .models import InterviewMessage, InterviewSession, SessionQuestion, UserAnswer
+from .models import (InterviewMessage, InterviewSession, SessionQuestion,
+                     UserAnswer)
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -33,7 +34,9 @@ class SessionSelector:
                 .prefetch_related(
                     Prefetch(
                         "session_questions",
-                        queryset=SessionQuestion.objects.select_related("question").order_by("order"),
+                        queryset=SessionQuestion.objects.select_related(
+                            "question"
+                        ).order_by("order"),
                     )
                 )
                 .get(uuid=uuid)
@@ -106,7 +109,9 @@ class SessionSelector:
     @staticmethod
     def get_completed_sessions(user) -> QuerySet:
         return (
-            InterviewSession.objects.filter(user=user, status=InterviewSession.Status.COMPLETED)
+            InterviewSession.objects.filter(
+                user=user, status=InterviewSession.Status.COMPLETED
+            )
             .annotate(avg_score=Avg("answers__score"))
             .order_by("-completed_at")
         )
@@ -126,7 +131,9 @@ class SessionSelector:
         )
 
     @staticmethod
-    def get_next_pending_question(session: InterviewSession) -> Optional[SessionQuestion]:
+    def get_next_pending_question(
+        session: InterviewSession,
+    ) -> Optional[SessionQuestion]:
         """
         اولین سوال pending بعد از سوال فعلی
         """
@@ -179,10 +186,14 @@ class MessageSelector:
         if limit:
             # آخرین N پیام + همه system messages
             system_msgs = qs.filter(role=InterviewMessage.Role.SYSTEM)
-            recent_msgs = qs.exclude(role=InterviewMessage.Role.SYSTEM).order_by("-turn_number")[:limit]
+            recent_msgs = qs.exclude(role=InterviewMessage.Role.SYSTEM).order_by(
+                "-turn_number"
+            )[:limit]
 
             # ترکیب و مرتب‌سازی
-            ids = list(system_msgs.values_list("id", flat=True)) + list(recent_msgs.values_list("id", flat=True))
+            ids = list(system_msgs.values_list("id", flat=True)) + list(
+                recent_msgs.values_list("id", flat=True)
+            )
             qs = InterviewMessage.objects.filter(id__in=ids).order_by("turn_number")
 
         return qs
@@ -207,11 +218,16 @@ class MessageSelector:
         ).order_by("-turn_number")[:last_n]
 
         # برعکس کن تا قدیمی‌ترین اول باشه
-        return [{"role": msg.role, "content": msg.content} for msg in reversed(list(messages))]
+        return [
+            {"role": msg.role, "content": msg.content}
+            for msg in reversed(list(messages))
+        ]
 
     @staticmethod
     def get_last_turn_number(session: InterviewSession) -> int:
-        result = InterviewMessage.objects.filter(session=session).aggregate(max_turn=Max("turn_number"))
+        result = InterviewMessage.objects.filter(session=session).aggregate(
+            max_turn=Max("turn_number")
+        )
         return result["max_turn"] or 0
 
     @staticmethod
@@ -219,7 +235,9 @@ class MessageSelector:
         session: InterviewSession,
         message_type: str,
     ) -> QuerySet:
-        return InterviewMessage.objects.filter(session=session, message_type=message_type).order_by("turn_number")
+        return InterviewMessage.objects.filter(
+            session=session, message_type=message_type
+        ).order_by("turn_number")
 
 
 # =============================================================================
@@ -340,7 +358,9 @@ class InterviewStatsSelector:
             "min_score": aggregation["min_score"] or 0,
             "passed_count": aggregation["passed_count"] or 0,
             "pass_rate": round((aggregation["passed_count"] or 0) / total * 100, 1),
-            "follow_up_rate": round((aggregation["follow_up_count"] or 0) / total * 100, 1),
+            "follow_up_rate": round(
+                (aggregation["follow_up_count"] or 0) / total * 100, 1
+            ),
             "total_duration_min": round((aggregation["total_duration"] or 0) / 60, 1),
             "type_breakdown": list(type_breakdown),
         }

@@ -16,7 +16,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="Notification",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 (
                     "notification_type",
                     models.CharField(
@@ -34,7 +42,11 @@ class Migration(migrations.Migration):
                 (
                     "status",
                     models.CharField(
-                        choices=[("pending", "در انتظار ارسال"), ("sent", "ارسال شده"), ("failed", "ناموفق")],
+                        choices=[
+                            ("pending", "در انتظار ارسال"),
+                            ("sent", "ارسال شده"),
+                            ("failed", "ناموفق"),
+                        ],
                         db_index=True,
                         default="pending",
                         max_length=10,
@@ -43,7 +55,11 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "recipient",
-                    models.CharField(help_text="شماره تلفن یا آدرس ایمیل", max_length=255, verbose_name="گیرنده"),
+                    models.CharField(
+                        help_text="شماره تلفن یا آدرس ایمیل",
+                        max_length=255,
+                        verbose_name="گیرنده",
+                    ),
                 ),
                 (
                     "title",
@@ -57,14 +73,47 @@ class Migration(migrations.Migration):
                 ("body", models.TextField(verbose_name="متن پیام")),
                 (
                     "provider_message_id",
-                    models.CharField(blank=True, max_length=255, null=True, verbose_name="شناسه پیگیری پرووایدر"),
+                    models.CharField(
+                        blank=True,
+                        max_length=255,
+                        null=True,
+                        verbose_name="شناسه پیگیری پرووایدر",
+                    ),
                 ),
-                ("error_message", models.TextField(blank=True, null=True, verbose_name="متن خطا")),
-                ("retry_count", models.PositiveSmallIntegerField(default=0, verbose_name="تعداد تلاش مجدد")),
-                ("is_read", models.BooleanField(db_index=True, default=False, verbose_name="خوانده شده")),
-                ("read_at", models.DateTimeField(blank=True, null=True, verbose_name="زمان خوانده شدن")),
-                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True, verbose_name="زمان ایجاد")),
-                ("sent_at", models.DateTimeField(blank=True, null=True, verbose_name="زمان ارسال واقعی")),
+                (
+                    "error_message",
+                    models.TextField(blank=True, null=True, verbose_name="متن خطا"),
+                ),
+                (
+                    "retry_count",
+                    models.PositiveSmallIntegerField(
+                        default=0, verbose_name="تعداد تلاش مجدد"
+                    ),
+                ),
+                (
+                    "is_read",
+                    models.BooleanField(
+                        db_index=True, default=False, verbose_name="خوانده شده"
+                    ),
+                ),
+                (
+                    "read_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="زمان خوانده شدن"
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, db_index=True, verbose_name="زمان ایجاد"
+                    ),
+                ),
+                (
+                    "sent_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="زمان ارسال واقعی"
+                    ),
+                ),
                 (
                     "user",
                     models.ForeignKey(
@@ -84,9 +133,13 @@ class Migration(migrations.Migration):
                 "ordering": ["-created_at"],
                 "indexes": [
                     models.Index(
-                        fields=["user", "is_read", "notification_type"], name="notificatio_user_id_f1cfd0_idx"
+                        fields=["user", "is_read", "notification_type"],
+                        name="notificatio_user_id_f1cfd0_idx",
                     ),
-                    models.Index(fields=["status", "created_at"], name="notificatio_status_dee16f_idx"),
+                    models.Index(
+                        fields=["status", "created_at"],
+                        name="notificatio_status_dee16f_idx",
+                    ),
                 ],
             },
         ),

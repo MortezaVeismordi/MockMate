@@ -25,9 +25,9 @@ INSTALLED_APPS += [
 
 # ─── Database ────────────────────────────────────────────────────────────────
 # همون base ولی با logging کامل query ها
-DATABASES["default"]["OPTIONS"]["options"] = (  # noqa: F405
-    "-c statement_timeout=60000"  # توی dev بیشتر صبر میکنیم
-)
+DATABASES["default"]["OPTIONS"][
+    "options"
+] = "-c statement_timeout=60000"  # noqa: F405  # توی dev بیشتر صبر میکنیم
 
 # ─── Cache ────────────────────────────────────────────────────────────────────
 # توی development میتونیم dummy cache هم بذاریم

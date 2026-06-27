@@ -1,11 +1,13 @@
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
+
 import requests
-
-from django.test import TestCase, override_settings
 from django.conf import settings
+from django.test import TestCase, override_settings
 
-from apps.notifications.providers.sms import KavenegarSMSProvider, ConsoleSMSProvider
-from apps.notifications.providers.email import SmtpEmailProvider, ConsoleEmailProvider
+from apps.notifications.providers.email import (ConsoleEmailProvider,
+                                                SmtpEmailProvider)
+from apps.notifications.providers.sms import (ConsoleSMSProvider,
+                                              KavenegarSMSProvider)
 
 
 @override_settings(KAVENEGAR_API_KEY="test-api-key", KAVENEGAR_SENDER="10008663")
@@ -16,13 +18,13 @@ class KavenegarSMSProviderTests(TestCase):
         self.valid_body = "Test message"
         self.valid_title = "Test Title"
 
-    @patch('apps.notifications.providers.sms.requests.post')
+    @patch("apps.notifications.providers.sms.requests.post")
     def test_send_success(self, mock_post):
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
             "return": {"status": 200, "message": "ok"},
-            "entries": [{"messageid": "1234567890"}]
+            "entries": [{"messageid": "1234567890"}],
         }
         mock_post.return_value = mock_response
 
@@ -37,7 +39,7 @@ class KavenegarSMSProviderTests(TestCase):
         self.assertIsNone(error)
         mock_post.assert_called_once()
 
-    @patch('apps.notifications.providers.sms.requests.post')
+    @patch("apps.notifications.providers.sms.requests.post")
     def test_send_failure_api_error(self, mock_post):
         mock_response = Mock()
         mock_response.status_code = 200
@@ -56,7 +58,7 @@ class KavenegarSMSProviderTests(TestCase):
         self.assertIsNone(provider_id)
         self.assertIn("API Error Code 400", error)
 
-    @patch('apps.notifications.providers.sms.requests.post')
+    @patch("apps.notifications.providers.sms.requests.post")
     def test_send_failure_timeout(self, mock_post):
         # باید requests.exceptions.Timeout بده نه Exception عادی
         mock_post.side_effect = requests.exceptions.Timeout("Timeout")
@@ -71,7 +73,7 @@ class KavenegarSMSProviderTests(TestCase):
         self.assertIsNone(provider_id)
         self.assertIn("Connection timed out", error)
 
-    @patch('apps.notifications.providers.sms.requests.post')
+    @patch("apps.notifications.providers.sms.requests.post")
     def test_send_failure_connection_error(self, mock_post):
         # باید requests.exceptions.ConnectionError بده
         mock_post.side_effect = requests.exceptions.ConnectionError("Connection error")
@@ -111,7 +113,7 @@ class SmtpEmailProviderTests(TestCase):
         self.valid_body = "Test email body"
         self.valid_title = "Test Email Title"
 
-    @patch('apps.notifications.providers.email.send_mail')
+    @patch("apps.notifications.providers.email.send_mail")
     def test_send_success(self, mock_send_mail):
         mock_send_mail.return_value = 1
 
@@ -126,9 +128,10 @@ class SmtpEmailProviderTests(TestCase):
         self.assertIsNone(error)
         mock_send_mail.assert_called_once()
 
-    @patch('apps.notifications.providers.email.send_mail')
+    @patch("apps.notifications.providers.email.send_mail")
     def test_send_failure_smtp_exception(self, mock_send_mail):
         from smtplib import SMTPException
+
         mock_send_mail.side_effect = SMTPException("SMTP error")
 
         success, provider_id, error = self.provider.send(
@@ -141,7 +144,7 @@ class SmtpEmailProviderTests(TestCase):
         self.assertIsNone(provider_id)
         self.assertIn("SMTP protocol error occurred", error)
 
-    @patch('apps.notifications.providers.email.send_mail')
+    @patch("apps.notifications.providers.email.send_mail")
     def test_send_failure_general_exception(self, mock_send_mail):
         mock_send_mail.side_effect = Exception("General error")
 

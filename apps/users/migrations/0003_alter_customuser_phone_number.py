@@ -19,7 +19,8 @@ class Migration(migrations.Migration):
                 unique=True,
                 validators=[
                     django.core.validators.RegexValidator(
-                        message="شماره تلفن باید با فرمت 09XXXXXXXXX باشد", regex="^09[0-9]{9}$"
+                        message="شماره تلفن باید با فرمت 09XXXXXXXXX باشد",
+                        regex="^09[0-9]{9}$",
                     )
                 ],
                 verbose_name="شماره تلفن",

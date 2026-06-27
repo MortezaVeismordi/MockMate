@@ -15,7 +15,9 @@ class ConsoleSMSProvider(BaseNotificationProvider):
     پیامک‌ها را با ساختار بصری واضح در ترمینال کانتینر داکر چاپ می‌کند.
     """
 
-    def send(self, recipient: str, body: str, title: Optional[str] = None) -> Tuple[bool, Optional[str], Optional[str]]:
+    def send(
+        self, recipient: str, body: str, title: Optional[str] = None
+    ) -> Tuple[bool, Optional[str], Optional[str]]:
         # لاگ استاندارد برای سیستم‌های مانیتورینگ داخلی داکر
         logger.info(f"[Console-SMS] Simulating SMS delivery to {recipient}")
 
@@ -38,7 +40,9 @@ class KavenegarSMSProvider(BaseNotificationProvider):
     اتصال مستقیم و پایدار به وب‌سرویس REST API پنل کاوه‌نگار با مدیریت استثناها.
     """
 
-    def send(self, recipient: str, body: str, title: Optional[str] = None) -> Tuple[bool, Optional[str], Optional[str]]:
+    def send(
+        self, recipient: str, body: str, title: Optional[str] = None
+    ) -> Tuple[bool, Optional[str], Optional[str]]:
         api_key = getattr(settings, "KAVENEGAR_API_KEY", "")
         sender = getattr(settings, "KAVENEGAR_SENDER", "")
 
@@ -74,9 +78,15 @@ class KavenegarSMSProvider(BaseNotificationProvider):
             if response.status_code == 200 and status_code == 200:
                 entries = result.get("entries", [])
                 # دریافت شناسه پیامک برای پیگیری‌های قانونی یا مانیتورینگ دلیوری
-                message_id = str(entries[0].get("messageid")) if entries else "kavenegar_fallback_id"
+                message_id = (
+                    str(entries[0].get("messageid"))
+                    if entries
+                    else "kavenegar_fallback_id"
+                )
 
-                logger.info(f"[Kavenegar-SMS] SMS delivered successfully to {recipient}. Provider ID: {message_id}")
+                logger.info(
+                    f"[Kavenegar-SMS] SMS delivered successfully to {recipient}. Provider ID: {message_id}"
+                )
                 return True, message_id, None
 
             else:

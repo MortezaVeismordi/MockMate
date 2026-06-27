@@ -4,21 +4,17 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (  # just for testing, should be adjusted based on actual access control policies
-    IsAdminUser,
-    IsAuthenticated,
-)
+    IsAdminUser, IsAuthenticated)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.questions.models import Question, QuestionCategory
 from apps.questions.selectors import get_random_interview_set, question_list
-from apps.questions.serializers import (
-    AdminQuestionSerializer,
-    CandidateQuestionDetailSerializer,
-    CandidateQuestionListSerializer,
-    CategorySerializer,
-    GitHubIngestInputSerializer,
-)
+from apps.questions.serializers import (AdminQuestionSerializer,
+                                        CandidateQuestionDetailSerializer,
+                                        CandidateQuestionListSerializer,
+                                        CategorySerializer,
+                                        GitHubIngestInputSerializer)
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +40,9 @@ class QuestionListAPI(APIView):
         seniority_level = request.query_params.get("seniority")
 
         # واکشی داده‌های تصفیه شده از لایه سلکتور
-        questions = question_list(category_slug=category_slug, seniority_level=seniority_level, is_active=True)
+        questions = question_list(
+            category_slug=category_slug, seniority_level=seniority_level, is_active=True
+        )
 
         paginator = self.ApiPagination()
         page = paginator.paginate_queryset(questions, request, view=self)
@@ -75,7 +73,9 @@ class RandomInterviewSetAPI(APIView):
     اندپوینت ۳: چیدن پکت مصاحبه تصادفی بدون به خطر انداختن پرفورمنس دیتابیس.
     """
 
-    permission_classes = [IsAuthenticated]  # یا IsAuthenticated بسته به سیاست بیزینس شما
+    permission_classes = [
+        IsAuthenticated
+    ]  # یا IsAuthenticated بسته به سیاست بیزینس شما
 
     def get(self, request):
         category_slug = request.query_params.get("category")
@@ -127,13 +127,23 @@ class AdminQuestionListCreateAPI(APIView):
 
     def get(self, request):
         # ادمین باید بتواند سوالات غیرفعال (is_active=False) را هم ببیند
-        questions = Question.objects.prefetch_related("categories").all().order_by("-created_at")
+        questions = (
+            Question.objects.prefetch_related("categories")
+            .all()
+            .order_by("-created_at")
+        )
 
         paginator = self.AdminPagination()
         page = paginator.paginate_queryset(questions, request, view=self)
 
-        serializer = AdminQuestionSerializer(page if page is not None else questions, many=True)
-        return paginator.get_paginated_response(serializer.data) if page is not None else Response(serializer.data)
+        serializer = AdminQuestionSerializer(
+            page if page is not None else questions, many=True
+        )
+        return (
+            paginator.get_paginated_response(serializer.data)
+            if page is not None
+            else Response(serializer.data)
+        )
 
     def post(self, request):
         serializer = AdminQuestionSerializer(data=request.data)
@@ -168,7 +178,9 @@ class AdminQuestionDetailAPI(APIView):
         # اصولا پیاده‌سازی Soft Delete امن‌تر است، اما اینجا حذف فیزیکی را بنا بر CRUD استاندارد پیاده می‌کنیم
         question.delete()
         logger.warning(f"Admin {request.user.id} deleted question ID {id}.")
-        return Response({"detail": "سوال با موفقیت حذف شد."}, status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"detail": "سوال با موفقیت حذف شد."}, status=status.HTTP_204_NO_CONTENT
+        )
 
 
 class AdminCategoryListCreateAPI(APIView):
@@ -206,8 +218,12 @@ class AdminGitHubIngestAPI(APIView):
         # در اینجا متد آداپتور یا تسک Celery شما صدا زده می‌شود:
         # trigger_github_ingestion.delay(repo_url=github_url)
 
-        logger.info(f"GitHub ingestion triggered by Admin {request.user.id} for repo: {github_url}")
+        logger.info(
+            f"GitHub ingestion triggered by Admin {request.user.id} for repo: {github_url}"
+        )
         return Response(
-            {"detail": "فرآیند استخراج و بارگذاری سوالات از گیت‌هاب با موفقیت در پس‌زمینه آغاز شد."},
+            {
+                "detail": "فرآیند استخراج و بارگذاری سوالات از گیت‌هاب با موفقیت در پس‌زمینه آغاز شد."
+            },
             status=status.HTTP_202_ACCEPTED,
         )

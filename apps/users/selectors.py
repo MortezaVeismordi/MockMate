@@ -3,17 +3,8 @@ from datetime import timedelta
 from typing import Optional
 
 from django.contrib.auth import get_user_model
-from django.db.models import (
-    BooleanField,
-    Case,
-    CharField,
-    Count,
-    F,
-    Q,
-    QuerySet,
-    Value,
-    When,
-)
+from django.db.models import (BooleanField, Case, CharField, Count, F, Q,
+                              QuerySet, Value, When)
 from django.db.models.functions import Concat
 from django.utils import timezone
 
@@ -69,7 +60,9 @@ class UserSelector:
         مناسب برای Admin Detail View.
         """
         try:
-            return User.objects.prefetch_related("otp_codes", "groups", "user_permissions").get(pk=user_id)
+            return User.objects.prefetch_related(
+                "otp_codes", "groups", "user_permissions"
+            ).get(pk=user_id)
         except User.DoesNotExist:
             return None
 
@@ -145,7 +138,10 @@ class UserSelector:
                 ),
                 _is_profile_complete=Case(
                     When(
-                        Q(first_name__gt="") & Q(last_name__gt="") & Q(job_title__gt="") & Q(experience_level__gt=""),
+                        Q(first_name__gt="")
+                        & Q(last_name__gt="")
+                        & Q(job_title__gt="")
+                        & Q(experience_level__gt=""),
                         then=Value(True),
                     ),
                     default=Value(False),
@@ -193,7 +189,9 @@ class UserSelector:
     @staticmethod
     def get_users_with_incomplete_profile() -> QuerySet:
         """کاربرانی که پروفایل‌شون ناقصه."""
-        return UserSelector.get_all_users().filter(_is_profile_complete=False, is_active=True)
+        return UserSelector.get_all_users().filter(
+            _is_profile_complete=False, is_active=True
+        )
 
     # ──────────────────────────────────────────
     #  Filtered Queries
@@ -277,7 +275,9 @@ class UserSelector:
         مناسب برای ارسال نوتیفیکیشن بازگشت.
         """
         threshold = timezone.now() - timedelta(days=days)
-        return UserSelector.get_active_users().filter(Q(last_login__lt=threshold) | Q(last_login__isnull=True))
+        return UserSelector.get_active_users().filter(
+            Q(last_login__lt=threshold) | Q(last_login__isnull=True)
+        )
 
     @staticmethod
     def get_recently_active(hours: int = 24) -> QuerySet:
@@ -326,7 +326,9 @@ class OTPSelector:
     ) -> Optional[OTPCode]:
         """آخرین OTP (فعال یا غیرفعال)."""
         try:
-            return OTPCode.objects.filter(user=user, purpose=purpose).latest("created_at")
+            return OTPCode.objects.filter(user=user, purpose=purpose).latest(
+                "created_at"
+            )
         except OTPCode.DoesNotExist:
             return None
 
@@ -404,7 +406,11 @@ class OTPSelector:
         limit: int = None,
     ) -> QuerySet:
         """تاریخچه OTP یک کاربر."""
-        qs = OTPCode.objects.filter(user_id=user_id).select_related("user").order_by("-created_at")
+        qs = (
+            OTPCode.objects.filter(user_id=user_id)
+            .select_related("user")
+            .order_by("-created_at")
+        )
         if limit:
             qs = qs[:limit]
         return qs

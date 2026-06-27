@@ -1,16 +1,11 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
-from apps.core.llm.client import (
-    LLMProvider,
-    ProviderFactory,
-    BaseLLMProvider,
-    OpenAIProvider,
-    AnthropicProvider,
-    OpenRouterProvider,
-    OllamaProvider,
-    LLMClient,
-    get_provider_from_settings,
-)
+
+from apps.core.llm.client import (AnthropicProvider, BaseLLMProvider,
+                                  LLMClient, LLMProvider, OllamaProvider,
+                                  OpenAIProvider, OpenRouterProvider,
+                                  ProviderFactory, get_provider_from_settings)
 
 
 @pytest.mark.django_db
@@ -19,24 +14,24 @@ class TestProviderFactory:
 
     def test_create_openai_provider(self):
         """Test creating OpenAI provider"""
-        with patch.dict('os.environ', {'OPENAI_API_KEY': 'test-key'}):
-            with patch('django.conf.settings.OPENAI_API_KEY', 'test-key'):
+        with patch.dict("os.environ", {"OPENAI_API_KEY": "test-key"}):
+            with patch("django.conf.settings.OPENAI_API_KEY", "test-key"):
                 provider = ProviderFactory.create(LLMProvider.OPENAI)
                 assert isinstance(provider, OpenAIProvider)
                 assert provider.provider_name == LLMProvider.OPENAI
 
     def test_create_anthropic_provider(self):
         """Test creating Anthropic provider"""
-        with patch.dict('os.environ', {'ANTHROPIC_API_KEY': 'test-key'}):
-            with patch('django.conf.settings.ANTHROPIC_API_KEY', 'test-key'):
+        with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"}):
+            with patch("django.conf.settings.ANTHROPIC_API_KEY", "test-key"):
                 provider = ProviderFactory.create(LLMProvider.ANTHROPIC)
                 assert isinstance(provider, AnthropicProvider)
                 assert provider.provider_name == LLMProvider.ANTHROPIC
 
     def test_create_openrouter_provider(self):
         """Test creating OpenRouter provider"""
-        with patch.dict('os.environ', {'OPENROUTER_API_KEY': 'test-key'}):
-            with patch('django.conf.settings.OPENROUTER_API_KEY', 'test-key'):
+        with patch.dict("os.environ", {"OPENROUTER_API_KEY": "test-key"}):
+            with patch("django.conf.settings.OPENROUTER_API_KEY", "test-key"):
                 provider = ProviderFactory.create(LLMProvider.OPENROUTER)
                 assert isinstance(provider, OpenRouterProvider)
                 assert provider.provider_name == LLMProvider.OPENROUTER
@@ -50,13 +45,15 @@ class TestProviderFactory:
     def test_create_invalid_provider(self):
         """Test creating invalid provider"""
         with pytest.raises(ValueError, match="Provider ناشناخته"):
-            ProviderFactory.create('invalid_provider')
+            ProviderFactory.create("invalid_provider")
 
     def test_create_provider_with_custom_model(self):
         """Test creating provider with custom model"""
-        with patch.dict('os.environ', {'OPENAI_API_KEY': 'test-key'}):
-            with patch('django.conf.settings.OPENAI_API_KEY', 'test-key'):
-                provider = ProviderFactory.create(LLMProvider.OPENAI, model="gpt-4o-mini")
+        with patch.dict("os.environ", {"OPENAI_API_KEY": "test-key"}):
+            with patch("django.conf.settings.OPENAI_API_KEY", "test-key"):
+                provider = ProviderFactory.create(
+                    LLMProvider.OPENAI, model="gpt-4o-mini"
+                )
                 assert provider.get_model_name() == "gpt-4o-mini"
 
     def test_register_new_provider(self):
@@ -95,34 +92,34 @@ class TestBaseLLMProvider:
     def test_provider_interface_methods(self):
         """Test that all providers implement required interface"""
         # Test OpenAIProvider
-        with patch.dict('os.environ', {'OPENAI_API_KEY': 'test-key'}):
-            with patch('django.conf.settings.OPENAI_API_KEY', 'test-key'):
+        with patch.dict("os.environ", {"OPENAI_API_KEY": "test-key"}):
+            with patch("django.conf.settings.OPENAI_API_KEY", "test-key"):
                 provider = OpenAIProvider()
-                assert hasattr(provider, 'get_chat_model')
-                assert hasattr(provider, 'get_model_name')
-                assert hasattr(provider, 'provider_name')
+                assert hasattr(provider, "get_chat_model")
+                assert hasattr(provider, "get_model_name")
+                assert hasattr(provider, "provider_name")
 
         # Test AnthropicProvider
-        with patch.dict('os.environ', {'ANTHROPIC_API_KEY': 'test-key'}):
-            with patch('django.conf.settings.ANTHROPIC_API_KEY', 'test-key'):
+        with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"}):
+            with patch("django.conf.settings.ANTHROPIC_API_KEY", "test-key"):
                 provider = AnthropicProvider()
-                assert hasattr(provider, 'get_chat_model')
-                assert hasattr(provider, 'get_model_name')
-                assert hasattr(provider, 'provider_name')
+                assert hasattr(provider, "get_chat_model")
+                assert hasattr(provider, "get_model_name")
+                assert hasattr(provider, "provider_name")
 
         # Test OpenRouterProvider
-        with patch.dict('os.environ', {'OPENROUTER_API_KEY': 'test-key'}):
-            with patch('django.conf.settings.OPENROUTER_API_KEY', 'test-key'):
+        with patch.dict("os.environ", {"OPENROUTER_API_KEY": "test-key"}):
+            with patch("django.conf.settings.OPENROUTER_API_KEY", "test-key"):
                 provider = OpenRouterProvider()
-                assert hasattr(provider, 'get_chat_model')
-                assert hasattr(provider, 'get_model_name')
-                assert hasattr(provider, 'provider_name')
+                assert hasattr(provider, "get_chat_model")
+                assert hasattr(provider, "get_model_name")
+                assert hasattr(provider, "provider_name")
 
         # Test OllamaProvider
         provider = OllamaProvider()
-        assert hasattr(provider, 'get_chat_model')
-        assert hasattr(provider, 'get_model_name')
-        assert hasattr(provider, 'provider_name')
+        assert hasattr(provider, "get_chat_model")
+        assert hasattr(provider, "get_model_name")
+        assert hasattr(provider, "provider_name")
 
 
 @pytest.mark.django_db
@@ -131,20 +128,22 @@ class TestOpenAIProvider:
 
     def test_init_openai_provider_with_api_key(self):
         """Test initializing OpenAI provider with API key"""
-        with patch('django.conf.settings.OPENAI_API_KEY', 'test-key'):
+        with patch("django.conf.settings.OPENAI_API_KEY", "test-key"):
             provider = OpenAIProvider()
             assert provider.provider_name == LLMProvider.OPENAI
             assert provider.get_model_name() == "gpt-4o"  # default
 
     def test_init_openai_provider_without_api_key_raises(self):
         """Test initializing OpenAI provider without API key raises error"""
-        with patch('django.conf.settings.OPENAI_API_KEY', None):
-            with pytest.raises(ValueError, match="OPENAI_API_KEY در settings تنظیم نشده"):
+        with patch("django.conf.settings.OPENAI_API_KEY", None):
+            with pytest.raises(
+                ValueError, match="OPENAI_API_KEY در settings تنظیم نشده"
+            ):
                 OpenAIProvider()
 
     def test_openai_provider_custom_model(self):
         """Test OpenAI provider with custom model"""
-        with patch('django.conf.settings.OPENAI_API_KEY', 'test-key'):
+        with patch("django.conf.settings.OPENAI_API_KEY", "test-key"):
             provider = OpenAIProvider(model="gpt-4o-mini")
             assert provider.get_model_name() == "gpt-4o-mini"
 
@@ -155,15 +154,17 @@ class TestAnthropicProvider:
 
     def test_init_anthropic_provider_with_api_key(self):
         """Test initializing Anthropic provider with API key"""
-        with patch('django.conf.settings.ANTHROPIC_API_KEY', 'test-key'):
+        with patch("django.conf.settings.ANTHROPIC_API_KEY", "test-key"):
             provider = AnthropicProvider()
             assert provider.provider_name == LLMProvider.ANTHROPIC
             assert provider.get_model_name() == "claude-sonnet-4-20250514"  # default
 
     def test_init_anthropic_provider_without_api_key_raises(self):
         """Test initializing Anthropic provider without API key raises error"""
-        with patch('django.conf.settings.ANTHROPIC_API_KEY', None):
-            with pytest.raises(ValueError, match="ANTHROPIC_API_KEY در settings تنظیم نشده"):
+        with patch("django.conf.settings.ANTHROPIC_API_KEY", None):
+            with pytest.raises(
+                ValueError, match="ANTHROPIC_API_KEY در settings تنظیم نشده"
+            ):
                 AnthropicProvider()
 
 
@@ -173,15 +174,17 @@ class TestOpenRouterProvider:
 
     def test_init_openrouter_provider_with_api_key(self):
         """Test initializing OpenRouter provider with API key"""
-        with patch('django.conf.settings.OPENROUTER_API_KEY', 'test-key'):
+        with patch("django.conf.settings.OPENROUTER_API_KEY", "test-key"):
             provider = OpenRouterProvider()
             assert provider.provider_name == LLMProvider.OPENROUTER
             assert provider.get_model_name() == "google/gemini-flash-1.5"  # default
 
     def test_init_openrouter_provider_without_api_key_raises(self):
         """Test initializing OpenRouter provider without API key raises error"""
-        with patch('django.conf.settings.OPENROUTER_API_KEY', None):
-            with pytest.raises(ValueError, match="OPENROUTER_API_KEY در settings تنظیم نشده"):
+        with patch("django.conf.settings.OPENROUTER_API_KEY", None):
+            with pytest.raises(
+                ValueError, match="OPENROUTER_API_KEY در settings تنظیم نشده"
+            ):
                 OpenRouterProvider()
 
 
@@ -205,7 +208,7 @@ class TestOllamaProvider:
 class TestLLMClient:
     """Test cases for LLMClient"""
 
-    @patch('apps.core.llm.client.ProviderFactory.create')
+    @patch("apps.core.llm.client.ProviderFactory.create")
     def test_llm_client_initialization(self, mock_create):
         """Test LLMClient initialization"""
         mock_provider = MagicMock(spec=BaseLLMProvider)
@@ -213,8 +216,8 @@ class TestLLMClient:
         mock_provider.get_model_name.return_value = "gpt-4o"
         mock_create.return_value = mock_provider
 
-        with patch('django.conf.settings.LLM_PROVIDER', LLMProvider.OPENAI):
-            with patch('django.conf.settings.LLM_MODEL', None):
+        with patch("django.conf.settings.LLM_PROVIDER", LLMProvider.OPENAI):
+            with patch("django.conf.settings.LLM_MODEL", None):
                 client = LLMClient()
                 assert client._provider_instance == mock_provider
                 mock_create.assert_called_once_with(
@@ -223,7 +226,7 @@ class TestLLMClient:
                     temperature=0.3,
                 )
 
-    @patch('apps.core.llm.client.ProviderFactory.create')
+    @patch("apps.core.llm.client.ProviderFactory.create")
     def test_llm_client_with_explicit_provider(self, mock_create):
         """Test LLMClient with explicit provider"""
         mock_provider = MagicMock(spec=BaseLLMProvider)
@@ -239,7 +242,7 @@ class TestLLMClient:
             temperature=0.3,
         )
 
-    @patch('apps.core.llm.client.LLMClient._get_default')
+    @patch("apps.core.llm.client.LLMClient._get_default")
     def test_evaluate_default_class_method(self, mock_get_default):
         """Test LLMClient.evaluate_default class method"""
         mock_client = MagicMock()
@@ -256,7 +259,7 @@ class TestLLMClient:
         assert result == {"score": 8.5, "feedback": "Good"}
         mock_client.evaluate.assert_called_once_with(context)
 
-    @patch('apps.core.llm.client.LLMClient._get_default')
+    @patch("apps.core.llm.client.LLMClient._get_default")
     def test_generate_default_report_summary_class_method(self, mock_get_default):
         """Test LLMClient.generate_default_report_summary class method"""
         mock_client = MagicMock()
@@ -291,15 +294,15 @@ class TestLLMProviderEnum:
 class TestGetProviderFromSettings:
     """Test cases for get_provider_from_settings helper"""
 
-    @patch('django.conf.settings.LLM_PROVIDER', 'openrouter')
+    @patch("django.conf.settings.LLM_PROVIDER", "openrouter")
     def test_get_provider_from_settings(self):
         """Test getting provider from settings"""
         provider = get_provider_from_settings()
-        assert provider == 'openrouter'
+        assert provider == "openrouter"
 
     def test_get_provider_from_settings_default(self):
         """Test default provider when LLM_PROVIDER is not in settings"""
-        with patch('django.conf.settings') as mock_settings:
+        with patch("django.conf.settings") as mock_settings:
             del mock_settings.LLM_PROVIDER
             provider = get_provider_from_settings()
             assert provider == LLMProvider.OPENAI
