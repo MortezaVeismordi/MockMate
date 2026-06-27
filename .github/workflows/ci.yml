@@ -10,6 +10,13 @@ env:
   DJANGO_SETTINGS_MODULE: config.settings.testing
   SECRET_KEY: "ci-secret-key-not-for-production"
   DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+  # Satisfy base.py's hard os.environ["DB_*"] reads at import time.
+  # testing.py's dj_database_url.parse() block still wins at runtime.
+  DB_NAME: test_db
+  DB_USER: postgres
+  DB_PASSWORD: postgres
+  DB_HOST: localhost
+  DB_PORT: "5432"
   REDIS_URL: redis://localhost:6379/0
   LLM_PROVIDER: ollama
   LLM_MODEL: llama3.2:3b
@@ -31,7 +38,7 @@ jobs:
             requirements/development.txt
 
       - name: Install lint tools
-        run: pip install black isort flake8 bandit  # ← ابزارهایی که پروژه واقعاً داره
+        run: pip install black==24.4.2 isort==5.13.2 flake8 bandit
 
       - name: Black format check
         run: black --check .
@@ -86,7 +93,7 @@ jobs:
 
       - name: Install system dependencies
         run: sudo apt-get install -y graphviz graphviz-dev
-        
+
       - name: Install dependencies
         run: |
           pip install -r requirements/base.txt

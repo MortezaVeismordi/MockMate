@@ -15,8 +15,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import OTPCode
 from .response import APIResponse
 from .selectors import StatsSelector, UserSelector
-from .serializers import (AdminBanSerializer,  # Admin; Auth; Profile
-                          AdminSoftDeleteSerializer, AdminStatsSerializer,
+from .serializers import AdminBanSerializer  # Admin; Auth; Profile
+from .serializers import (AdminSoftDeleteSerializer, AdminStatsSerializer,
                           AdminSuspendSerializer, AdminUnsuspendSerializer,
                           AdminUserDetailSerializer, AdminUserListSerializer,
                           AvatarSerializer, CompleteProfileSerializer,

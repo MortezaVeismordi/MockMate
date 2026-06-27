@@ -3,10 +3,52 @@
 # Testing Settings — AI Interviewer
 # =============================================================================
 
+import os
 from datetime import timedelta
+
+import dj_database_url
 
 from .base import *  # noqa: F401, F403
 from .base import LOGGING, MIDDLEWARE, REST_FRAMEWORK, SIMPLE_JWT
+
+# ─── Database — CI uses DATABASE_URL; local dev uses individual DB_* vars ─────
+# We override DATABASES here (before any os.environ["DB_NAME"] access in base.py
+# can raise a KeyError) when the DATABASE_URL environment variable is present.
+_database_url = os.environ.get("DATABASE_URL")
+if _database_url:
+    # CI: parse the full connection string — wins over base.py's DATABASES
+    DATABASES = {
+        "default": dj_database_url.parse(
+            _database_url,
+            conn_max_age=0,
+            conn_health_checks=False,
+        )
+    }
+    DATABASES["default"]["TEST"] = {"NAME": "test_ai_interviewer"}
+else:
+    # Local dev: fall back to individual DB_* vars with safe defaults
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("TEST_DB_NAME", "test_ai_interviewer"),  # noqa: F405
+            "USER": os.environ.get("DB_USER", "postgres"),  # noqa: F405
+            "PASSWORD": os.environ.get("DB_PASSWORD", "postgres"),  # noqa: F405
+            "HOST": os.environ.get("DB_HOST", "db"),  # noqa: F405
+            "PORT": os.environ.get("DB_PORT", "5432"),  # noqa: F405
+            "TEST": {
+                "NAME": "test_ai_interviewer",
+                # هر test run یه دیتابیس تازه میسازه
+                "CREATE_DB": True,
+            },
+            "OPTIONS": {
+                "connect_timeout": 5,
+                # توی test statement_timeout نمیخوایم
+                # بعضی تست‌های پیچیده ممکنه بیشتر طول بکشه
+            },
+            # connection pooling توی test خاموش
+            "CONN_MAX_AGE": 0,
+        }
+    }
 
 # ─── Core ─────────────────────────────────────────────────────────────────────
 DEBUG = False  # production رفتار رو شبیه‌سازی میکنیم
@@ -16,30 +58,6 @@ ALLOWED_HOSTS = ["*"]
 
 # ─── Security — توی test نیازی نیست ──────────────────────────────────────────
 SECRET_KEY = "test-secret-key-not-for-production-use-only-testing"  # noqa: S106
-
-# ─── Database — سریع‌ترین حالت ممکن ──────────────────────────────────────────
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("TEST_DB_NAME", "test_ai_interviewer"),  # noqa: F405
-        "USER": os.environ.get("DB_USER", "postgres"),  # noqa: F405
-        "PASSWORD": os.environ.get("DB_PASSWORD", "postgres"),  # noqa: F405
-        "HOST": os.environ.get("DB_HOST", "db"),  # noqa: F405
-        "PORT": os.environ.get("DB_PORT", "5432"),  # noqa: F405
-        "TEST": {
-            "NAME": "test_ai_interviewer",
-            # هر test run یه دیتابیس تازه میسازه
-            "CREATE_DB": True,
-        },
-        "OPTIONS": {
-            "connect_timeout": 5,
-            # توی test statement_timeout نمیخوایم
-            # بعضی تست‌های پیچیده ممکنه بیشتر طول بکشه
-        },
-        # connection pooling توی test خاموش
-        "CONN_MAX_AGE": 0,
-    }
-}
 
 # ─── Cache — فقط LocMem برای سرعت ────────────────────────────────────────────
 # توی test نیازی به Redis نداریم مگه integration test

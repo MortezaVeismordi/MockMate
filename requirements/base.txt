@@ -12,6 +12,7 @@ drf-spectacular==0.28.0
 asgiref==3.8.1
 # ─── Database ─────────────────────────────────────────────────────────────────
 psycopg2-binary==2.9.10
+dj-database-url==2.3.0          # parse DATABASE_URL in CI / testing
 
 # ─── Cache & Celery ───────────────────────────────────────────────────────────
 redis==5.2.1
