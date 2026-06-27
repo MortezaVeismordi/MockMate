@@ -16,15 +16,26 @@ from .models import OTPCode
 from .response import APIResponse
 from .selectors import StatsSelector, UserSelector
 from .serializers import AdminBanSerializer  # Admin; Auth; Profile
-from .serializers import (AdminSoftDeleteSerializer, AdminStatsSerializer,
-                          AdminSuspendSerializer, AdminUnsuspendSerializer,
-                          AdminUserDetailSerializer, AdminUserListSerializer,
-                          AvatarSerializer, CompleteProfileSerializer,
-                          DeleteAccountSerializer, LoginWithPasswordSerializer,
-                          LogoutSerializer, OTPHistorySerializer,
-                          RefreshTokenSerializer, ResendOTPSerializer,
-                          SendOTPSerializer, SetPasswordSerializer,
-                          UserMeSerializer, VerifyOTPSerializer)
+from .serializers import (
+    AdminSoftDeleteSerializer,
+    AdminStatsSerializer,
+    AdminSuspendSerializer,
+    AdminUnsuspendSerializer,
+    AdminUserDetailSerializer,
+    AdminUserListSerializer,
+    AvatarSerializer,
+    CompleteProfileSerializer,
+    DeleteAccountSerializer,
+    LoginWithPasswordSerializer,
+    LogoutSerializer,
+    OTPHistorySerializer,
+    RefreshTokenSerializer,
+    ResendOTPSerializer,
+    SendOTPSerializer,
+    SetPasswordSerializer,
+    UserMeSerializer,
+    VerifyOTPSerializer,
+)
 from .services import OTPService
 
 logger = logging.getLogger(__name__)

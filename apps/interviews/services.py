@@ -14,10 +14,13 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.questions.models import Question
 
-from .models import (InterviewMessage, InterviewSession, SessionQuestion,
-                     UserAnswer)
-from .selectors import (AnswerSelector, InterviewStatsSelector,
-                        MessageSelector, SessionSelector)
+from .models import InterviewMessage, InterviewSession, SessionQuestion, UserAnswer
+from .selectors import (
+    AnswerSelector,
+    InterviewStatsSelector,
+    MessageSelector,
+    SessionSelector,
+)
 
 logger = logging.getLogger(__name__)
 User = get_user_model()

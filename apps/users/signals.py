@@ -276,8 +276,7 @@ def on_profile_completed(sender, user, **kwargs):
     )
 
     try:
-        from apps.notifications.tasks import \
-            send_profile_completed_notification
+        from apps.notifications.tasks import send_profile_completed_notification
 
         send_profile_completed_notification.delay(user_id=user.pk)
     except Exception as exc:

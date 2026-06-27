@@ -6,13 +6,17 @@ from django.test import TransactionTestCase
 from apps.interviews.models import InterviewSession, UserAnswer
 from apps.interviews.tasks import evaluate_answer_task, generate_report_task
 from apps.questions.models import Question
-from apps.users.tests.factories import (InterviewMessageFactory,
-                                        InterviewSessionFactory,
-                                        NotificationFactory,
-                                        QuestionCategoryFactory,
-                                        QuestionFactory, QuestionOptionFactory,
-                                        SessionQuestionFactory,
-                                        UserAnswerFactory, UserFactory)
+from apps.users.tests.factories import (
+    InterviewMessageFactory,
+    InterviewSessionFactory,
+    NotificationFactory,
+    QuestionCategoryFactory,
+    QuestionFactory,
+    QuestionOptionFactory,
+    SessionQuestionFactory,
+    UserAnswerFactory,
+    UserFactory,
+)
 
 User = get_user_model()
 

@@ -4,10 +4,8 @@ import requests
 from django.conf import settings
 from django.test import TestCase, override_settings
 
-from apps.notifications.providers.email import (ConsoleEmailProvider,
-                                                SmtpEmailProvider)
-from apps.notifications.providers.sms import (ConsoleSMSProvider,
-                                              KavenegarSMSProvider)
+from apps.notifications.providers.email import ConsoleEmailProvider, SmtpEmailProvider
+from apps.notifications.providers.sms import ConsoleSMSProvider, KavenegarSMSProvider
 
 
 @override_settings(KAVENEGAR_API_KEY="test-api-key", KAVENEGAR_SENDER="10008663")

@@ -5,16 +5,24 @@ import pytest
 from django.test import TestCase
 from django.utils import timezone
 
-from apps.interviews.models import (InterviewMessage, InterviewSession,
-                                    SessionQuestion, UserAnswer)
+from apps.interviews.models import (
+    InterviewMessage,
+    InterviewSession,
+    SessionQuestion,
+    UserAnswer,
+)
 from apps.questions.models import Question, QuestionCategory
-from apps.users.tests.factories import (InterviewMessageFactory,
-                                        InterviewSessionFactory,
-                                        NotificationFactory,
-                                        QuestionCategoryFactory,
-                                        QuestionFactory, QuestionOptionFactory,
-                                        SessionQuestionFactory,
-                                        UserAnswerFactory, UserFactory)
+from apps.users.tests.factories import (
+    InterviewMessageFactory,
+    InterviewSessionFactory,
+    NotificationFactory,
+    QuestionCategoryFactory,
+    QuestionFactory,
+    QuestionOptionFactory,
+    SessionQuestionFactory,
+    UserAnswerFactory,
+    UserFactory,
+)
 
 
 @pytest.mark.django_db

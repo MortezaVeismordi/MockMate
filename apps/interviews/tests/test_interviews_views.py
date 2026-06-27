@@ -3,17 +3,20 @@ from unittest.mock import MagicMock, patch
 import pytest
 from rest_framework import status
 
-from apps.interviews.models import (InterviewSession, SessionQuestion,
-                                    UserAnswer)
+from apps.interviews.models import InterviewSession, SessionQuestion, UserAnswer
 from apps.questions.models import Question, QuestionCategory
 from apps.users.tests.base import BaseAPITestCase as APITestCase
-from apps.users.tests.factories import (InterviewMessageFactory,
-                                        InterviewSessionFactory,
-                                        NotificationFactory,
-                                        QuestionCategoryFactory,
-                                        QuestionFactory, QuestionOptionFactory,
-                                        SessionQuestionFactory,
-                                        UserAnswerFactory, UserFactory)
+from apps.users.tests.factories import (
+    InterviewMessageFactory,
+    InterviewSessionFactory,
+    NotificationFactory,
+    QuestionCategoryFactory,
+    QuestionFactory,
+    QuestionOptionFactory,
+    SessionQuestionFactory,
+    UserAnswerFactory,
+    UserFactory,
+)
 
 
 @pytest.mark.django_db

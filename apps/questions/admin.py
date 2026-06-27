@@ -1,8 +1,7 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
-from .models import (Question, QuestionAttachment, QuestionCategory,
-                     QuestionOption)
+from .models import Question, QuestionAttachment, QuestionCategory, QuestionOption
 
 
 class QuestionOptionInline(admin.TabularInline):

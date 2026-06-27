@@ -10,8 +10,7 @@ from uuid import UUID
 from django.contrib.auth import get_user_model
 from django.db.models import Avg, Count, Max, Min, Prefetch, Q, QuerySet, Sum
 
-from .models import (InterviewMessage, InterviewSession, SessionQuestion,
-                     UserAnswer)
+from .models import InterviewMessage, InterviewSession, SessionQuestion, UserAnswer
 
 logger = logging.getLogger(__name__)
 User = get_user_model()

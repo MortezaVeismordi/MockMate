@@ -4,17 +4,21 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (  # just for testing, should be adjusted based on actual access control policies
-    IsAdminUser, IsAuthenticated)
+    IsAdminUser,
+    IsAuthenticated,
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.questions.models import Question, QuestionCategory
 from apps.questions.selectors import get_random_interview_set, question_list
-from apps.questions.serializers import (AdminQuestionSerializer,
-                                        CandidateQuestionDetailSerializer,
-                                        CandidateQuestionListSerializer,
-                                        CategorySerializer,
-                                        GitHubIngestInputSerializer)
+from apps.questions.serializers import (
+    AdminQuestionSerializer,
+    CandidateQuestionDetailSerializer,
+    CandidateQuestionListSerializer,
+    CategorySerializer,
+    GitHubIngestInputSerializer,
+)
 
 logger = logging.getLogger(__name__)
 

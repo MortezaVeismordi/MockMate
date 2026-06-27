@@ -2,10 +2,17 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from apps.core.llm.client import (AnthropicProvider, BaseLLMProvider,
-                                  LLMClient, LLMProvider, OllamaProvider,
-                                  OpenAIProvider, OpenRouterProvider,
-                                  ProviderFactory, get_provider_from_settings)
+from apps.core.llm.client import (
+    AnthropicProvider,
+    BaseLLMProvider,
+    LLMClient,
+    LLMProvider,
+    OllamaProvider,
+    OpenAIProvider,
+    OpenRouterProvider,
+    ProviderFactory,
+    get_provider_from_settings,
+)
 
 
 @pytest.mark.django_db

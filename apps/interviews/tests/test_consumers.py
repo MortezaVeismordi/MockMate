@@ -8,9 +8,12 @@ from django.test import TransactionTestCase, override_settings
 
 from apps.interviews.consumers import InterviewConsumer
 from apps.interviews.models import InterviewSession
-from apps.users.tests.factories import (InterviewSessionFactory,
-                                        QuestionFactory,
-                                        SessionQuestionFactory, UserFactory)
+from apps.users.tests.factories import (
+    InterviewSessionFactory,
+    QuestionFactory,
+    SessionQuestionFactory,
+    UserFactory,
+)
 
 
 @override_settings(

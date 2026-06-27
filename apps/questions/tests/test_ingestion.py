@@ -97,8 +97,7 @@ class TestQuestionIngestionPipeline(TestCase):
         "apps.questions.ingestion.pipeline.QuestionIngestionPipeline._setup_repository"
     )
     def test_pipeline_instantiates_adapter(self, mock_setup):
-        from apps.questions.ingestion.devops_adapter import \
-            DevOpsExercisesAdapter
+        from apps.questions.ingestion.devops_adapter import DevOpsExercisesAdapter
 
         pipeline = QuestionIngestionPipeline(adapter_name="devops")
         self.assertEqual(pipeline.repo_config["adapter_class"], DevOpsExercisesAdapter)

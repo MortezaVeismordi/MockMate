@@ -1,15 +1,23 @@
 import pytest
 from django.test import TestCase
 
-from apps.questions.models import (Question, QuestionAttachment,
-                                   QuestionCategory, QuestionOption)
-from apps.users.tests.factories import (InterviewMessageFactory,
-                                        InterviewSessionFactory,
-                                        NotificationFactory,
-                                        QuestionCategoryFactory,
-                                        QuestionFactory, QuestionOptionFactory,
-                                        SessionQuestionFactory,
-                                        UserAnswerFactory, UserFactory)
+from apps.questions.models import (
+    Question,
+    QuestionAttachment,
+    QuestionCategory,
+    QuestionOption,
+)
+from apps.users.tests.factories import (
+    InterviewMessageFactory,
+    InterviewSessionFactory,
+    NotificationFactory,
+    QuestionCategoryFactory,
+    QuestionFactory,
+    QuestionOptionFactory,
+    SessionQuestionFactory,
+    UserAnswerFactory,
+    UserFactory,
+)
 
 
 class TestQuestionModels(TestCase):

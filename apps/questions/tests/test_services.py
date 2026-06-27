@@ -5,15 +5,18 @@ from django.test import TransactionTestCase
 
 from apps.interviews.models import UserAnswer
 from apps.questions.models import Question
-from apps.questions.services import (_build_evaluation_prompt,
-                                     submit_and_grade_answer)
-from apps.users.tests.factories import (InterviewMessageFactory,
-                                        InterviewSessionFactory,
-                                        NotificationFactory,
-                                        QuestionCategoryFactory,
-                                        QuestionFactory, QuestionOptionFactory,
-                                        SessionQuestionFactory,
-                                        UserAnswerFactory, UserFactory)
+from apps.questions.services import _build_evaluation_prompt, submit_and_grade_answer
+from apps.users.tests.factories import (
+    InterviewMessageFactory,
+    InterviewSessionFactory,
+    NotificationFactory,
+    QuestionCategoryFactory,
+    QuestionFactory,
+    QuestionOptionFactory,
+    SessionQuestionFactory,
+    UserAnswerFactory,
+    UserFactory,
+)
 
 
 class TestQuestionsServices(TransactionTestCase):

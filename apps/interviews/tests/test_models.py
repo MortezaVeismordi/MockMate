@@ -2,13 +2,20 @@ import pytest
 from django.test import TestCase
 from django.utils import timezone
 
-from apps.interviews.models import (InterviewMessage, InterviewSession,
-                                    SessionQuestion, UserAnswer)
+from apps.interviews.models import (
+    InterviewMessage,
+    InterviewSession,
+    SessionQuestion,
+    UserAnswer,
+)
 from apps.questions.models import Question
-from apps.users.tests.factories import (InterviewSessionFactory,
-                                        QuestionFactory,
-                                        SessionQuestionFactory,
-                                        UserAnswerFactory, UserFactory)
+from apps.users.tests.factories import (
+    InterviewSessionFactory,
+    QuestionFactory,
+    SessionQuestionFactory,
+    UserAnswerFactory,
+    UserFactory,
+)
 
 
 class InterviewSessionModelTest(TestCase):

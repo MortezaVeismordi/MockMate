@@ -3,8 +3,17 @@ from datetime import timedelta
 from typing import Optional
 
 from django.contrib.auth import get_user_model
-from django.db.models import (BooleanField, Case, CharField, Count, F, Q,
-                              QuerySet, Value, When)
+from django.db.models import (
+    BooleanField,
+    Case,
+    CharField,
+    Count,
+    F,
+    Q,
+    QuerySet,
+    Value,
+    When,
+)
 from django.db.models.functions import Concat
 from django.utils import timezone
 

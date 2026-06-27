@@ -13,8 +13,15 @@ from sentry_sdk.integrations.logging import LoggingIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
 
 from .base import *  # noqa: F401, F403
-from .base import (CACHES, CELERY_TASK_ROUTES, INSTALLED_APPS, LOGGING,
-                   MIDDLEWARE, REST_FRAMEWORK, SIMPLE_JWT)
+from .base import (
+    CACHES,
+    CELERY_TASK_ROUTES,
+    INSTALLED_APPS,
+    LOGGING,
+    MIDDLEWARE,
+    REST_FRAMEWORK,
+    SIMPLE_JWT,
+)
 
 # ─── Core ─────────────────────────────────────────────────────────────────────
 DEBUG = False

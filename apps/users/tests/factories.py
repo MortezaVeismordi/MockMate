@@ -4,11 +4,20 @@ from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 from factory.fuzzy import FuzzyChoice
 
-from apps.interviews.models import (InterviewMessage, InterviewSession,
-                                    SessionQuestion, UserAnswer)
+from apps.interviews.models import (
+    InterviewMessage,
+    InterviewSession,
+    SessionQuestion,
+    UserAnswer,
+)
 from apps.notifications.models import Notification
-from apps.questions.models import (Question, QuestionAttachment,
-                                   QuestionCategory, QuestionOption)
+from apps.questions.models import (
+    Question,
+    QuestionAttachment,
+    QuestionCategory,
+    QuestionOption,
+)
+
 # ── ایمپورت مدل‌ها با نام‌های دقیق و واقعی پروژه ────────────────────────
 from apps.users.models import CustomUser as User
 from apps.users.models import OTPCode

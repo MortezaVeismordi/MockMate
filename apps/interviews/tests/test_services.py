@@ -2,19 +2,25 @@ from unittest.mock import patch
 
 from django.test import TransactionTestCase
 
-from apps.interviews.models import (InterviewSession, SessionQuestion,
-                                    UserAnswer)
-from apps.interviews.services import (EvaluationService,
-                                      InterviewConductService,
-                                      InterviewSetupService, ReportService)
+from apps.interviews.models import InterviewSession, SessionQuestion, UserAnswer
+from apps.interviews.services import (
+    EvaluationService,
+    InterviewConductService,
+    InterviewSetupService,
+    ReportService,
+)
 from apps.questions.models import Question, QuestionCategory
-from apps.users.tests.factories import (InterviewMessageFactory,
-                                        InterviewSessionFactory,
-                                        NotificationFactory,
-                                        QuestionCategoryFactory,
-                                        QuestionFactory, QuestionOptionFactory,
-                                        SessionQuestionFactory,
-                                        UserAnswerFactory, UserFactory)
+from apps.users.tests.factories import (
+    InterviewMessageFactory,
+    InterviewSessionFactory,
+    NotificationFactory,
+    QuestionCategoryFactory,
+    QuestionFactory,
+    QuestionOptionFactory,
+    SessionQuestionFactory,
+    UserAnswerFactory,
+    UserFactory,
+)
 
 
 class TestInterviewServices(TransactionTestCase):

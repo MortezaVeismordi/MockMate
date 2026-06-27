@@ -14,11 +14,13 @@ from apps.users.response import APIResponse
 
 from .models import InterviewSession
 from .selectors import InterviewStatsSelector, SessionSelector
-from .serializers import (InterviewReportSerializer,
-                          InterviewSessionCreateSerializer,
-                          InterviewSessionDetailSerializer,
-                          InterviewSessionListSerializer,
-                          UserAnswerEvaluationSerializer)
+from .serializers import (
+    InterviewReportSerializer,
+    InterviewSessionCreateSerializer,
+    InterviewSessionDetailSerializer,
+    InterviewSessionListSerializer,
+    UserAnswerEvaluationSerializer,
+)
 from .services import InterviewSetupService
 
 logger = logging.getLogger(__name__)
